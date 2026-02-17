@@ -1,65 +1,623 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState, useEffect, useRef, useCallback } from 'react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { 
+  ArrowRight, 
+  Shield, 
+  Truck, 
+  DollarSign, 
+  Users,
+  Star,
+  TrendingUp,
+  Package,
+  Zap,
+  Flame,
+  Award,
+  Tag,
+  Clock
+} from 'lucide-react';
+import { collection, query, limit, getDocs, orderBy, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase/config';
+import { Product } from '@/types';
+import { PriceDisplay } from '@/components/ui/PriceDisplay';
+import { CategorySelector } from '@/components/CategorySelector';
+import { CategoriesSidebar } from '@/components/CategoriesSidebar';
+import { RestaurantCard } from '@/components/RestaurantCard';
+import { DatingProfileCard } from '@/components/DatingProfileCard';
+
+export default function HomePage() {
+  const [bestDeals, setBestDeals] = useState<Product[]>([]);
+  const [topRanked, setTopRanked] = useState<Product[]>([]);
+  const [newArrivals, setNewArrivals] = useState<Product[]>([]);
+  const [restaurants, setRestaurants] = useState<Product[]>([]);
+  const [datingProfiles, setDatingProfiles] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Charger les différentes sections de produits
+  useEffect(() => {
+    loadAllProducts();
+  }, []);
+
+  const loadAllProducts = async () => {
+    setLoading(true);
+    try {
+      const productsRef = collection(db, 'products');
+
+      // Meilleures offres (produits avec le plus de ventes) - Augmenter à 24
+      const bestDealsQuery = query(
+        productsRef,
+        where('isActive', '==', true),
+        orderBy('sales', 'desc'),
+        limit(24)
+      );
+      const bestDealsSnapshot = await getDocs(bestDealsQuery);
+      const bestDealsData = bestDealsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Product[];
+      setBestDeals(bestDealsData);
+
+      // Produits au top du classement (meilleure note) - Augmenter à 24
+      const topRankedQuery = query(
+        productsRef,
+        where('isActive', '==', true),
+        orderBy('rating', 'desc'),
+        limit(24)
+      );
+      const topRankedSnapshot = await getDocs(topRankedQuery);
+      const topRankedData = topRankedSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Product[];
+      setTopRanked(topRankedData);
+
+      // Nouveautés (produits récents) - Augmenter à 24
+      const newArrivalsQuery = query(
+        productsRef,
+        where('isActive', '==', true),
+        orderBy('createdAt', 'desc'),
+        limit(24)
+      );
+      const newArrivalsSnapshot = await getDocs(newArrivalsQuery);
+      const newArrivalsData = newArrivalsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Product[];
+      setNewArrivals(newArrivalsData);
+
+      // Restaurants populaires
+      const restaurantsQuery = query(
+        productsRef,
+        where('isActive', '==', true),
+        where('serviceCategory', '==', 'restaurant'),
+        orderBy('rating', 'desc'),
+        limit(6)
+      );
+      const restaurantsSnapshot = await getDocs(restaurantsQuery);
+      const restaurantsData = restaurantsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Product[];
+      setRestaurants(restaurantsData);
+
+      // Profils en vedette
+      const datingQuery = query(
+        productsRef,
+        where('isActive', '==', true),
+        where('serviceCategory', '==', 'dating'),
+        where('datingProfile.status', '==', 'available'),
+        limit(6)
+      );
+      const datingSnapshot = await getDocs(datingQuery);
+      const datingData = datingSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Product[];
+      setDatingProfiles(datingData);
+
+    } catch (error) {
+      console.error('Error loading products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const categories = [
+    { name: 'Électronique', icon: '💻', color: 'bg-blue-100', link: '/categories/electronique' },
+    { name: 'Mode', icon: '👔', color: 'bg-pink-100', link: '/categories/mode' },
+    { name: 'Maison & Jardin', icon: '🏡', color: 'bg-green-100', link: '/categories/maison-jardin' },
+    { name: 'Sport & Loisirs', icon: '⚽', color: 'bg-orange-100', link: '/categories/sport-loisirs' },
+    { name: 'Beauté & Santé', icon: '💄', color: 'bg-purple-100', link: '/categories/beaute-sante' },
+    { name: 'Jouets & Bébé', icon: '🧸', color: 'bg-yellow-100', link: '/categories/jouets-bebe' },
+    { name: 'Automobile', icon: '🚗', color: 'bg-red-100', link: '/categories/automobile' },
+    { name: 'Alimentation', icon: '🍔', color: 'bg-green-100', link: '/categories/alimentation' },
+  ];
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="bg-gray-50">
+      {/* Hero Section */}
+      <section className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 text-gray-900 py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+                La plateforme B2B/B2C
+                <span className="block text-green-700">leader mondial</span>
+              </h1>
+              <p className="text-xl md:text-2xl mb-8 text-gray-800">
+                Connectez-vous avec des millions de fournisseurs et acheteurs à travers le monde
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link
+                  href="/products"
+                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-semibold text-center transition-all transform hover:scale-105 shadow-lg"
+                >
+                  Commencer à acheter
+                </Link>
+                <Link
+                  href="/sell"
+                  className="bg-white text-green-600 border-2 border-green-600 px-8 py-4 rounded-lg font-semibold text-center hover:bg-green-50 transition-all transform hover:scale-105 shadow-lg"
+                >
+                  Commencer à vendre
+                </Link>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="hidden lg:block"
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white p-6 rounded-lg shadow-lg">
+                  <TrendingUp className="text-green-600 mb-2" size={32} />
+                  <h3 className="font-bold text-2xl mb-1">10M+</h3>
+                  <p className="text-gray-600">Produits</p>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow-lg">
+                  <Users className="text-yellow-500 mb-2" size={32} />
+                  <h3 className="font-bold text-2xl mb-1">5M+</h3>
+                  <p className="text-gray-600">Utilisateurs</p>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow-lg">
+                  <Package className="text-green-600 mb-2" size={32} />
+                  <h3 className="font-bold text-2xl mb-1">200K+</h3>
+                  <p className="text-gray-600">Fournisseurs</p>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow-lg">
+                  <Zap className="text-yellow-500 mb-2" size={32} />
+                  <h3 className="font-bold text-2xl mb-1">24/7</h3>
+                  <p className="text-gray-600">Support</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* Features */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-gray-900">
+            Pourquoi nous choisir
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              { icon: Shield, title: 'Protection acheteur', desc: 'Vos achats sont protégés à 100%', color: 'text-green-600' },
+              { icon: Truck, title: 'Livraison rapide', desc: 'Expédition mondiale fiable', color: 'text-yellow-500' },
+              { icon: DollarSign, title: 'Prix compétitifs', desc: 'Meilleurs prix du marché', color: 'text-green-600' },
+              { icon: Users, title: 'Millions d\'utilisateurs', desc: 'Rejoignez notre communauté', color: 'text-yellow-500' },
+            ].map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="text-center p-6 rounded-lg hover:shadow-lg transition-shadow"
+              >
+                <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <feature.icon className={feature.color} size={32} />
+                </div>
+                <h3 className="font-bold text-lg mb-2 text-gray-900">{feature.title}</h3>
+                <p className="text-gray-600">{feature.desc}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
-      </main>
+      </section>
+
+      {/* Category Selector */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 text-gray-900">
+            Explorez nos services
+          </h2>
+          
+          {/* Layout avec sidebar et CategorySelector */}
+          <div className="flex gap-6">
+            {/* Sidebar des catégories */}
+            <div className="hidden lg:block flex-shrink-0">
+              <CategoriesSidebar />
+            </div>
+            
+            {/* CategorySelector principal */}
+            <div className="flex-1">
+              <CategorySelector />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Restaurants populaires */}
+      {restaurants.length > 0 && (
+        <section className="py-16 bg-gradient-to-br from-orange-50 to-red-50">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Restaurants populaires</h2>
+                <p className="text-gray-600">Découvrez les meilleurs restaurants près de vous</p>
+              </div>
+              <Link 
+                href="/restaurants" 
+                className="text-orange-600 hover:text-orange-700 flex items-center gap-2 font-medium group"
+              >
+                Voir tout 
+                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {restaurants.map((restaurant, index) => (
+                <motion.div
+                  key={restaurant.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <RestaurantCard restaurant={restaurant} index={index} />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+
+
+      {/* Categories */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Catégories e-commerce</h2>
+            <Link 
+              href="/categories" 
+              className="text-green-600 hover:text-green-700 flex items-center gap-2 font-medium group"
+            >
+              Voir tout 
+              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+            {categories.map((cat, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <Link
+                  href={cat.link}
+                  className={`${cat.color} p-6 rounded-lg hover:shadow-lg transition-all transform hover:scale-105 text-center block`}
+                >
+                  <div className="text-4xl mb-2">{cat.icon}</div>
+                  <h3 className="font-semibold text-sm text-gray-900">{cat.name}</h3>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Meilleures offres - Best Deals */}
+      <section className="py-16 bg-gradient-to-br from-red-50 to-orange-50">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="bg-red-500 p-3 rounded-lg">
+                <Flame className="text-white" size={32} />
+              </div>
+              <div>
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Meilleures offres</h2>
+                <p className="text-gray-600">Les produits les plus vendus du moment</p>
+              </div>
+            </div>
+            <Link 
+              href="/products?sort=sales" 
+              className="text-red-600 hover:text-red-700 flex items-center gap-2 font-medium group"
+            >
+              Voir tout 
+              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              {bestDeals.map((product, index) => (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Link
+                    href={`/products/${product.id}`}
+                    className="bg-white border-2 border-red-200 rounded-lg overflow-hidden hover:shadow-2xl hover:border-red-400 transition-all transform hover:scale-105 block group"
+                  >
+                    <div className="relative h-48 bg-gray-100">
+                      <img
+                        src={product.images[0] || '/placeholder.png'}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Badge Hot Deal */}
+                      <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
+                        <Flame size={12} />
+                        HOT
+                      </div>
+                      {/* Badge de ventes */}
+                      <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                        {product.sales}+ vendus
+                      </div>
+                      {product.stock === 0 && (
+                        <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
+                          Rupture
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <h3 className="font-medium text-sm text-gray-900 line-clamp-2 mb-2 h-10 group-hover:text-red-600 transition-colors">
+                        {product.name}
+                      </h3>
+                      <div className="flex items-center gap-1 mb-2">
+                        <Star className="text-yellow-400 fill-yellow-400" size={14} />
+                        <span className="text-xs text-gray-600">
+                          {product.rating.toFixed(1)} ({product.reviewCount})
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <PriceDisplay 
+                          priceUSD={product.prices[0].price}
+                          className="text-lg font-bold text-red-600"
+                        />
+                        <span className="text-xs text-gray-500">
+                          MOQ: {product.moq}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Produits au top du classement - Top Ranked */}
+      <section className="py-16 bg-gradient-to-br from-yellow-50 to-amber-50">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="bg-yellow-500 p-3 rounded-lg">
+                <Award className="text-white" size={32} />
+              </div>
+              <div>
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Produits au top du classement</h2>
+                <p className="text-gray-600">Les mieux notés par nos clients</p>
+              </div>
+            </div>
+            <Link 
+              href="/products?sort=rating" 
+              className="text-yellow-600 hover:text-yellow-700 flex items-center gap-2 font-medium group"
+            >
+              Voir tout 
+              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              {topRanked.map((product, index) => (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Link
+                    href={`/products/${product.id}`}
+                    className="bg-white border-2 border-yellow-200 rounded-lg overflow-hidden hover:shadow-2xl hover:border-yellow-400 transition-all transform hover:scale-105 block group"
+                  >
+                    <div className="relative h-48 bg-gray-100">
+                      <img
+                        src={product.images[0] || '/placeholder.png'}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Badge Top Rated */}
+                      <div className="absolute top-2 left-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
+                        <Award size={12} />
+                        TOP
+                      </div>
+                      {/* Badge de classement */}
+                      {index < 3 && (
+                        <div className="absolute top-2 right-2 bg-gradient-to-br from-yellow-400 to-yellow-600 text-white text-sm font-bold w-8 h-8 rounded-full flex items-center justify-center shadow-lg">
+                          #{index + 1}
+                        </div>
+                      )}
+                      {product.stock === 0 && (
+                        <div className="absolute bottom-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
+                          Rupture
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <h3 className="font-medium text-sm text-gray-900 line-clamp-2 mb-2 h-10 group-hover:text-yellow-600 transition-colors">
+                        {product.name}
+                      </h3>
+                      <div className="flex items-center gap-1 mb-2 bg-yellow-50 px-2 py-1 rounded">
+                        <Star className="text-yellow-400 fill-yellow-400" size={16} />
+                        <span className="text-sm font-bold text-yellow-600">
+                          {product.rating.toFixed(1)}
+                        </span>
+                        <span className="text-xs text-gray-600">
+                          ({product.reviewCount} avis)
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <PriceDisplay 
+                          priceUSD={product.prices[0].price}
+                          className="text-lg font-bold text-green-600"
+                        />
+                        <span className="text-xs text-gray-500">
+                          MOQ: {product.moq}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Nouveautés - New Arrivals */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="bg-green-500 p-3 rounded-lg">
+                <Clock className="text-white" size={32} />
+              </div>
+              <div>
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Nouveautés</h2>
+                <p className="text-gray-600">Découvrez les derniers produits ajoutés</p>
+              </div>
+            </div>
+            <Link 
+              href="/products?sort=newest" 
+              className="text-green-600 hover:text-green-700 flex items-center gap-2 font-medium group"
+            >
+              Voir tout 
+              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              {newArrivals.map((product, index) => (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Link
+                    href={`/products/${product.id}`}
+                    className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all transform hover:scale-105 block group"
+                  >
+                    <div className="relative h-48 bg-gray-100">
+                      <img
+                        src={product.images[0] || '/placeholder.png'}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Badge New */}
+                      <div className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
+                        <Tag size={12} />
+                        NOUVEAU
+                      </div>
+                      {product.stock === 0 && (
+                        <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
+                          Rupture
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <h3 className="font-medium text-sm text-gray-900 line-clamp-2 mb-2 h-10 group-hover:text-green-600 transition-colors">
+                        {product.name}
+                      </h3>
+                      <div className="flex items-center gap-1 mb-2">
+                        <Star className="text-yellow-400 fill-yellow-400" size={14} />
+                        <span className="text-xs text-gray-600">
+                          {product.rating.toFixed(1)} ({product.reviewCount})
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <PriceDisplay 
+                          priceUSD={product.prices[0].price}
+                          className="text-lg font-bold text-green-600"
+                        />
+                        <span className="text-xs text-gray-500">
+                          MOQ: {product.moq}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="bg-gradient-to-r from-green-600 to-green-700 text-white py-16">
+        <div className="container mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Prêt à développer votre business ?
+            </h2>
+            <p className="text-xl mb-8">
+              Rejoignez des milliers de vendeurs qui réussissent
+            </p>
+            <Link
+              href="/register"
+              className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-8 py-4 rounded-lg font-bold inline-block transition-all transform hover:scale-105 shadow-lg"
+            >
+              Créer un compte gratuitement
+            </Link>
+          </motion.div>
+        </div>
+      </section>
     </div>
   );
 }

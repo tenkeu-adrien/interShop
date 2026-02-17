@@ -1,0 +1,67 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isValidImageSize() {
+      return request.resource.size < 5 * 1024 * 1024; // 5MB
+    }
+    
+    function isValidFileSize() {
+      return request.resource.size < 10 * 1024 * 1024; // 10MB
+    }
+    
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    // User avatars
+    match /avatars/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if isAuthenticated() && 
+        isOwner(userId) && 
+        isValidImageSize() && 
+        isImage();
+    }
+    
+    // Product images
+    match /products/{fournisseurId}/{productId}/{fileName} {
+      allow read: if true;
+      allow write: if isAuthenticated() && 
+        isOwner(fournisseurId) && 
+        isValidImageSize() && 
+        isImage();
+    }
+    
+    // Chat attachments
+    match /chat/{conversationId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isValidFileSize();
+    }
+    
+    // Shop logos
+    match /shops/{fournisseurId}/{fileName} {
+      allow read: if true;
+      allow write: if isAuthenticated() && 
+        isOwner(fournisseurId) && 
+        isValidImageSize() && 
+        isImage();
+    }
+    
+    // Review images
+    match /reviews/{reviewId}/{fileName} {
+      allow read: if true;
+      allow write: if isAuthenticated() && 
+        isValidImageSize() && 
+        isImage();
+    }
+  }
+}

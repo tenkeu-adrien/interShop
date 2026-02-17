@@ -1,0 +1,270 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    function isFournisseur() {
+      return isAuthenticated() && getUserRole() == 'fournisseur';
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && getUserRole() == 'admin';
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      // Utilisateurs peuvent mettre à jour leur profil mais pas les champs de vérification
+      allow update: if isOwner(userId) && 
+        !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['role', 'accountStatus', 'adminApproval', 'emailVerified', 'phoneVerified']);
+      // Admins peuvent tout mettre à jour
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Email Verifications collection
+    match /emailVerifications/{verificationId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+    
+    // Phone Verifications collection (Phase 2)
+    match /phoneVerifications/{verificationId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+    
+    // Admin Approval Queue collection (Phase 2)
+    match /adminApprovalQueue/{requestId} {
+      allow read: if isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Products collection
+    match /products/{productId} {
+      allow read: if true; // Public read
+      allow create: if isFournisseur();
+      allow update: if isAuthenticated() && 
+        (resource.data.fournisseurId == request.auth.uid || isAdmin());
+      allow delete: if isAuthenticated() && 
+        (resource.data.fournisseurId == request.auth.uid || isAdmin());
+    }
+    
+    // Orders collection
+    match /orders/{orderId} {
+      allow read: if isAuthenticated() && 
+        (resource.data.clientId == request.auth.uid || 
+         resource.data.fournisseurId == request.auth.uid ||
+         resource.data.marketisteId == request.auth.uid ||
+         isAdmin());
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && 
+        (resource.data.clientId == request.auth.uid || 
+         resource.data.fournisseurId == request.auth.uid ||
+         isAdmin());
+      allow delete: if isAdmin();
+    }
+    
+    // Conversations collection
+    match /conversations/{conversationId} {
+      allow read: if isAuthenticated() && 
+        request.auth.uid in resource.data.participants;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && 
+        request.auth.uid in resource.data.participants;
+      allow delete: if isAdmin();
+    }
+    
+    // Messages collection
+    match /messages/{messageId} {
+      allow read: if isAuthenticated() && 
+        (resource.data.senderId == request.auth.uid || 
+         resource.data.receiverId == request.auth.uid);
+      allow create: if isAuthenticated() && 
+        request.auth.uid == request.resource.data.senderId;
+      allow update: if isAuthenticated() && 
+        (resource.data.senderId == request.auth.uid || 
+         resource.data.receiverId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+    
+    // Notifications collection
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+    
+    // Reviews collection
+    match /reviews/{reviewId} {
+      allow read: if true; // Public read
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && 
+        (resource.data.clientId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+    
+    // Marketing codes collection
+    match /marketingCodes/{codeId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && getUserRole() == 'marketiste';
+      allow update: if isAuthenticated() && 
+        (resource.data.marketisteId == request.auth.uid || isAdmin());
+      allow delete: if isAuthenticated() && 
+        (resource.data.marketisteId == request.auth.uid || isAdmin());
+    }
+    
+    // Licenses collection
+    match /licenses/{licenseId} {
+      allow read: if true; // Public read for all users to see available licenses
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Subscriptions collection
+    match /subscriptions/{subscriptionId} {
+      allow read: if isAuthenticated() && 
+        (resource.data.fournisseurId == request.auth.uid || isAdmin());
+      allow create: if isAdmin(); // Only admin can create subscriptions
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Product Usage collection
+    match /productUsage/{usageId} {
+      allow read: if isAuthenticated() && 
+        (usageId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated(); // System creates on first product
+      allow update: if isAuthenticated(); // System updates on product creation
+      allow delete: if isAdmin();
+    }
+    
+    // Contact Requests collection
+    match /contactRequests/{requestId} {
+      allow read: if isAuthenticated() && 
+        (resource.data.clientId == request.auth.uid || 
+         resource.data.intermediaryId == request.auth.uid ||
+         isAdmin());
+      allow create: if isAuthenticated(); // Clients can create contact requests
+      allow update: if isAuthenticated() && 
+        (resource.data.intermediaryId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+    
+    // Dating Profiles collection (separate from products)
+    match /datingProfiles/{profileId} {
+      allow read: if true; // Public read for all users
+      allow create: if isFournisseur(); // Only fournisseurs can create profiles
+      allow update: if isAuthenticated() && 
+        (resource.data.fournisseurId == request.auth.uid || isAdmin());
+      allow delete: if isAuthenticated() && 
+        (resource.data.fournisseurId == request.auth.uid || isAdmin());
+    }
+    
+    // Dating Contact Requests collection
+    match /datingContactRequests/{requestId} {
+      allow read: if isAuthenticated() && 
+        (resource.data.clientId == request.auth.uid || 
+         resource.data.intermediaryId == request.auth.uid ||
+         isAdmin());
+      allow create: if isAuthenticated(); // Clients can create contact requests
+      allow update: if isAuthenticated() && 
+        (resource.data.intermediaryId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+    
+    // Conversations collection
+    match /conversations/{conversationId} {
+      allow read: if isAuthenticated() && 
+        request.auth.uid in resource.data.participants;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && 
+        request.auth.uid in resource.data.participants;
+      allow delete: if isAdmin();
+    }
+    
+    // Messages collection
+    match /messages/{messageId} {
+      allow read: if isAuthenticated() && 
+        (resource.data.senderId == request.auth.uid || 
+         resource.data.receiverId == request.auth.uid);
+      allow create: if isAuthenticated() && 
+        request.auth.uid == request.resource.data.senderId;
+      allow update: if isAuthenticated() && 
+        (resource.data.senderId == request.auth.uid || 
+         resource.data.receiverId == request.auth.uid);
+      allow delete: if isAuthenticated() && 
+        (resource.data.senderId == request.auth.uid || isAdmin());
+    }
+  }
+}
+
+    
+    // ============================================
+    // WALLET & MOBILE MONEY RULES
+    // ============================================
+    
+    // Wallets collection
+    match /wallets/{walletId} {
+      allow read: if isAuthenticated() && 
+        (request.auth.uid == walletId || isAdmin());
+      allow create: if isAuthenticated() && request.auth.uid == walletId;
+      // Users can't update balance directly
+      allow update: if isAuthenticated() && request.auth.uid == walletId && 
+        !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['balance', 'pendingBalance']);
+      // Admins can update everything
+      allow update: if isAdmin();
+    }
+    
+    // Transactions collection
+    match /transactions/{transactionId} {
+      allow read: if isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || 
+         resource.data.recipientUserId == request.auth.uid ||
+         isAdmin());
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid;
+      // Only admins can update (for validation)
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // Mobile Money Accounts (Admin only)
+    match /mobileMoneyAccounts/{accountId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // Wallet Settings (Admin only)
+    match /walletSettings/{settingsId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}
