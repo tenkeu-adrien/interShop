@@ -29,7 +29,7 @@ export default function WalletHistoryPage() {
       return;
     }
 
-    fetchTransactions(user.uid, filters);
+    fetchTransactions(user.id, filters);
   }, [user, filters, router]);
 
   const getStatusColor = (status: string) => {

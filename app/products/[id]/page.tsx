@@ -24,6 +24,8 @@ import {
 import toast from 'react-hot-toast';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
 import { ProductChatActions } from '@/components/products/ProductChatActions';
+import { ContactButton } from '@/components/products/ContactButton';
+import { BackButton } from '@/components/ui/BackButton';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -452,11 +454,24 @@ export default function ProductDetailPage() {
               </div>
 
               {fournisseur && (
-                <ProductChatActions
-                  product={product}
-                  fournisseur={fournisseur}
-                  className="mb-6"
-                />
+                <>
+                  <ProductChatActions
+                    product={product}
+                    fournisseur={fournisseur}
+                    className="mb-4"
+                  />
+                  <ContactButton
+                    type="product"
+                    ownerId={product.fournisseurId}
+                    ownerName={fournisseur.name}
+                    ownerPhoto={fournisseur.photo}
+                    ownerRole="fournisseur"
+                    itemId={product.id!}
+                    itemName={product.name}
+                    itemImage={product.images[0]}
+                    className="mb-6"
+                  />
+                </>
               )}
 
               {/* Action Buttons */}

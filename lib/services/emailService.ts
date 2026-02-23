@@ -18,7 +18,7 @@ interface EmailOptions {
 /**
  * Envoie un email (simulation pour le développement)
  */
-async function sendEmaill(options: EmailOptions): Promise<void> {
+async function sendEmailInternal(options: EmailOptions): Promise<void> {
   console.log('📧 EMAIL ENVOYÉ:');
   console.log('À:', options.to);
   console.log('Sujet:', options.subject);
@@ -284,7 +284,7 @@ export async function sendVerificationEmail(
   code: string, 
   name: string
 ): Promise<void> {
-  await sendEmail({
+  await sendEmailInternal({
     to: email,
     subject: '🔐 Code de vérification de votre compte',
     html: getVerificationEmailTemplate(name, code)
@@ -299,7 +299,7 @@ export async function sendWelcomeEmail(
   name: string,
   role: string
 ): Promise<void> {
-  await sendEmail({
+  await sendEmailInternal({
     to: email,
     subject: '🎉 Bienvenue sur notre plateforme !',
     html: getWelcomeEmailTemplate(name, role)
@@ -319,7 +319,7 @@ export async function sendApprovalEmail(
     ? '✅ Votre compte a été approuvé' 
     : '❌ Votre compte n\'a pas été approuvé';
   
-  await sendEmail({
+  await sendEmailInternal({
     to: email,
     subject,
     html: getApprovalEmailTemplate(name, approved, reason)

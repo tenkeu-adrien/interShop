@@ -11,8 +11,14 @@ import {
   EyeOff, 
   CheckCircle, 
   AlertCircle,
-  Loader2
+  Loader2,
+  Mail,
+  Shield
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
+
+type ResetStep = 'idle' | 'email-sent' | 'code-verified';
 
 export default function WalletSettingsPage() {
   const router = useRouter();
@@ -28,13 +34,20 @@ export default function WalletSettingsPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
+  // États pour la réinitialisation du PIN
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetStep, setResetStep] = useState<ResetStep>('idle');
+  const [resetCode, setResetCode] = useState('');
+  const [sendingCode, setSendingCode] = useState(false);
+  const [verifyingCode, setVerifyingCode] = useState(false);
+
   useEffect(() => {
     if (!user) {
       router.push('/login');
       return;
     }
 
-    fetchWallet(user.uid);
+    fetchWallet(user.id);
   }, [user, router]);
 
   const handleSetPIN = async () => {
@@ -57,26 +70,111 @@ export default function WalletSettingsPage() {
       return;
     }
 
-    // Si un PIN existe déjà, vérifier l'ancien
-    if (wallet?.pin && !currentPin) {
-      setError('Veuillez entrer votre code PIN actuel');
+    // Si un PIN existe déjà et qu'on n'est pas en mode reset, vérifier l'ancien
+    if (wallet?.pin && !currentPin && resetStep !== 'code-verified') {
+      setError('Veuillez entrer votre code PIN actuel ou utiliser "PIN oublié"');
       return;
     }
 
     try {
       if (user) {
-        await setPIN(user.uid, newPin);
+        await setPIN(user.id, newPin);
         setSuccess(true);
         setCurrentPin('');
         setNewPin('');
         setConfirmPin('');
+        setResetStep('idle');
+        setShowResetModal(false);
         
         // Rafraîchir le portefeuille
-        await fetchWallet(user.uid);
+        await fetchWallet(user.id);
+        
+        toast.success('Code PIN configuré avec succès!');
       }
     } catch (err: any) {
       setError(err.message || 'Une erreur est survenue');
     }
+  };
+
+  const handleSendResetCode = async () => {
+    if (!user) return;
+
+    setSendingCode(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/wallet/pin/send-reset-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          email: user.email,
+          displayName: user.displayName
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erreur lors de l\'envoi du code');
+      }
+
+      setResetStep('email-sent');
+      toast.success('Code envoyé par email!');
+
+      // En dev, afficher le code
+      if (data.code) {
+        console.log('🔑 Code de réinitialisation:', data.code);
+        toast.success(`Code (dev): ${data.code}`, { duration: 10000 });
+      }
+
+    } catch (err: any) {
+      setError(err.message);
+      toast.error(err.message);
+    } finally {
+      setSendingCode(false);
+    }
+  };
+
+  const handleVerifyResetCode = async () => {
+    if (!user || !resetCode) return;
+
+    setVerifyingCode(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/wallet/pin/verify-reset-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          code: resetCode
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Code incorrect');
+      }
+
+      setResetStep('code-verified');
+      setShowResetModal(false);
+      toast.success('Code vérifié! Vous pouvez maintenant définir un nouveau PIN.');
+
+    } catch (err: any) {
+      setError(err.message);
+      toast.error(err.message);
+    } finally {
+      setVerifyingCode(false);
+    }
+  };
+
+  const handleCancelReset = () => {
+    setShowResetModal(false);
+    setResetStep('idle');
+    setResetCode('');
+    setError('');
   };
 
   if (loading && !wallet) {
@@ -88,7 +186,7 @@ export default function WalletSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-green-50 to-yellow-50 py-8">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -110,19 +208,38 @@ export default function WalletSettingsPage() {
         {/* Statut du PIN */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="flex items-center gap-3 mb-4">
-            <Lock className="w-6 h-6 text-gray-600" />
+            <Lock className="w-6 h-6 text-green-600" />
             <h2 className="text-xl font-semibold text-gray-900">Code PIN</h2>
           </div>
 
           {wallet?.pin ? (
-            <div className="flex items-center gap-2 text-green-600 mb-4">
-              <CheckCircle className="w-5 h-5" />
-              <span className="font-medium">Code PIN configuré</span>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-green-600">
+                <CheckCircle className="w-5 h-5" />
+                <span className="font-medium">Code PIN configuré</span>
+              </div>
+              {resetStep !== 'code-verified' && (
+                <button
+                  onClick={() => setShowResetModal(true)}
+                  className="text-sm text-yellow-600 hover:text-yellow-700 font-medium"
+                >
+                  PIN oublié?
+                </button>
+              )}
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-orange-600 mb-4">
+            <div className="flex items-center gap-2 text-yellow-600 mb-4">
               <AlertCircle className="w-5 h-5" />
               <span className="font-medium">Aucun code PIN configuré</span>
+            </div>
+          )}
+
+          {resetStep === 'code-verified' && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-start gap-2">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-green-800">
+                Code vérifié! Vous pouvez maintenant définir un nouveau code PIN.
+              </p>
             </div>
           )}
 
@@ -133,8 +250,8 @@ export default function WalletSettingsPage() {
 
           {/* Formulaire */}
           <div className="space-y-4">
-            {/* PIN actuel (si existe) */}
-            {wallet?.pin && (
+            {/* PIN actuel (si existe et pas en mode reset) */}
+            {wallet?.pin && resetStep !== 'code-verified' && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Code PIN actuel
@@ -145,7 +262,7 @@ export default function WalletSettingsPage() {
                     value={currentPin}
                     onChange={(e) => setCurrentPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     placeholder="••••"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     maxLength={6}
                   />
                   <button
@@ -170,7 +287,7 @@ export default function WalletSettingsPage() {
                   value={newPin}
                   onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="••••"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   maxLength={6}
                 />
                 <button
@@ -187,7 +304,7 @@ export default function WalletSettingsPage() {
                     <div 
                       className={`h-full transition-all ${
                         newPin.length < 4 ? 'bg-red-500 w-1/3' :
-                        newPin.length === 4 ? 'bg-orange-500 w-2/3' :
+                        newPin.length === 4 ? 'bg-yellow-500 w-2/3' :
                         'bg-green-500 w-full'
                       }`}
                     />
@@ -210,7 +327,7 @@ export default function WalletSettingsPage() {
                   value={confirmPin}
                   onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="••••"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   maxLength={6}
                 />
                 <button
@@ -251,7 +368,7 @@ export default function WalletSettingsPage() {
             <button
               onClick={handleSetPIN}
               disabled={loading || !newPin || newPin.length < 4 || newPin !== confirmPin}
-              className="w-full bg-orange-600 text-white py-3 rounded-lg font-medium hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -278,6 +395,157 @@ export default function WalletSettingsPage() {
             <li>• Changez régulièrement votre code PIN pour plus de sécurité</li>
           </ul>
         </div>
+
+        {/* Modal de réinitialisation du PIN */}
+        <AnimatePresence>
+          {showResetModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+              onClick={handleCancelReset}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6"
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <Shield className="w-8 h-8 text-yellow-600" />
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Réinitialiser le PIN
+                  </h2>
+                </div>
+
+                {resetStep === 'idle' && (
+                  <>
+                    <p className="text-gray-600 mb-6">
+                      Nous allons vous envoyer un code de vérification par email pour réinitialiser votre code PIN.
+                    </p>
+
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                      <div className="flex items-start gap-3">
+                        <Mail className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-yellow-900 mb-1">
+                            Email de vérification
+                          </p>
+                          <p className="text-sm text-yellow-800">
+                            Le code sera envoyé à: <strong>{user?.email}</strong>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleCancelReset}
+                        disabled={sendingCode}
+                        className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50"
+                      >
+                        Annuler
+                      </button>
+                      <button
+                        onClick={handleSendResetCode}
+                        disabled={sendingCode}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {sendingCode ? (
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            Envoi...
+                          </>
+                        ) : (
+                          <>
+                            <Mail className="w-5 h-5" />
+                            Envoyer le code
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {resetStep === 'email-sent' && (
+                  <>
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-green-900 mb-1">
+                            Code envoyé!
+                          </p>
+                          <p className="text-sm text-green-800">
+                            Vérifiez votre boîte email et entrez le code ci-dessous.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Code de vérification (6 chiffres)
+                      </label>
+                      <input
+                        type="text"
+                        value={resetCode}
+                        onChange={(e) => setResetCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        placeholder="000000"
+                        maxLength={6}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center text-2xl font-bold tracking-widest"
+                      />
+                      <p className="text-xs text-gray-500 mt-2 text-center">
+                        Le code expire dans 10 minutes
+                      </p>
+                    </div>
+
+                    {error && (
+                      <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                        <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                        <p className="text-sm text-red-800">{error}</p>
+                      </div>
+                    )}
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleCancelReset}
+                        disabled={verifyingCode}
+                        className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50"
+                      >
+                        Annuler
+                      </button>
+                      <button
+                        onClick={handleVerifyResetCode}
+                        disabled={verifyingCode || resetCode.length !== 6}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {verifyingCode ? (
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            Vérification...
+                          </>
+                        ) : (
+                          'Vérifier'
+                        )}
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={handleSendResetCode}
+                      disabled={sendingCode}
+                      className="w-full mt-4 text-sm text-green-600 hover:text-green-700 font-medium"
+                    >
+                      Renvoyer le code
+                    </button>
+                  </>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

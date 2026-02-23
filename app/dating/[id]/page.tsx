@@ -7,6 +7,8 @@ import { getDatingProfile, incrementProfileViews } from '@/lib/firebase/datingPr
 import { Heart, MapPin, Briefcase, Ruler, Eye, MessageCircle, ArrowLeft, Shield, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
+import { ContactButton } from '@/components/products/ContactButton';
+import { BackButton } from '@/components/ui/BackButton';
 import toast from 'react-hot-toast';
 
 export default function DatingProfileDetailPage() {
@@ -49,7 +51,7 @@ export default function DatingProfileDetailPage() {
       router.push('/login');
       return;
     }
-    router.push(`/chat?intermediary=${profile?.fournisseurId}&profile=${profile?.id}`);
+    // Le ContactButton gère maintenant la logique
   };
 
   if (loading) {
@@ -68,13 +70,7 @@ export default function DatingProfileDetailPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Back Button */}
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
-        >
-          <ArrowLeft size={20} />
-          Retour
-        </button>
+        <BackButton className="mb-6" />
 
         {/* Privacy Notice */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start gap-3">
@@ -208,13 +204,14 @@ export default function DatingProfileDetailPage() {
             )}
 
             {/* Contact Button */}
-            <button
-              onClick={handleContactRequest}
-              className="w-full bg-pink-500 text-white py-4 rounded-lg font-bold text-lg hover:bg-pink-600 transition-colors flex items-center justify-center gap-2 shadow-lg"
-            >
-              <MessageCircle size={24} />
-              Demander le contact
-            </button>
+            <ContactButton
+              type="dating"
+              ownerId={profile.fournisseurId}
+              ownerName="Intermédiaire"
+              ownerRole="fournisseur"
+              itemId={profile.id}
+              itemName={`${profile.firstName}, ${profile.age} ans`}
+            />
 
             <p className="text-sm text-gray-500 mt-3 text-center">
               Un intermédiaire vous mettra en relation

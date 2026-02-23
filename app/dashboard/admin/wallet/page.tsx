@@ -70,7 +70,7 @@ export default function AdminWalletPage() {
 
     try {
       setProcessing(transactionId);
-      await validateDeposit(transactionId, user!.uid, mobileMoneyId);
+      await validateDeposit(transactionId, user!.id, mobileMoneyId);
       await loadData();
       alert('Dépôt validé avec succès !');
     } catch (err: any) {
@@ -86,7 +86,7 @@ export default function AdminWalletPage() {
 
     try {
       setProcessing(transactionId);
-      await rejectDeposit(transactionId, user!.uid, reason);
+      await rejectDeposit(transactionId, user!.id, reason);
       await loadData();
       alert('Dépôt rejeté');
     } catch (err: any) {
@@ -102,7 +102,7 @@ export default function AdminWalletPage() {
 
     try {
       setProcessing(transactionId);
-      await validateWithdrawal(transactionId, user!.uid, mobileMoneyId);
+      await validateWithdrawal(transactionId, user!.id, mobileMoneyId);
       await loadData();
       alert('Retrait validé avec succès !');
     } catch (err: any) {
@@ -118,7 +118,7 @@ export default function AdminWalletPage() {
 
     try {
       setProcessing(transactionId);
-      await rejectWithdrawal(transactionId, user!.uid, reason);
+      await rejectWithdrawal(transactionId, user!.id, reason);
       await loadData();
       alert('Retrait rejeté et solde recrédité');
     } catch (err: any) {

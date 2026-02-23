@@ -23,10 +23,11 @@ export function BackButton({ label = 'Retour', href, className = '' }: BackButto
   return (
     <button
       onClick={handleClick}
-      className={`flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors font-medium ${className}`}
+      className={`flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors ${className}`}
+      aria-label={label}
     >
       <ArrowLeft size={20} />
-      {label}
+      <span>{label}</span>
     </button>
   );
 }

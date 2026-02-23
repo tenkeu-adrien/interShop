@@ -27,6 +27,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { CurrencySelector } from '@/components/ui/CurrencySelector';
 import { NotificationsModal } from '@/components/ui/NotificationsModal';
+import { ImageSearchButton } from '@/components/search/ImageSearchButton';
 
 export default function Header() {
   const router = useRouter();
@@ -115,72 +116,94 @@ export default function Header() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-      <Link href="/" className='mt-20 mb-20'>
-    <Image
-        src="/logo.png"
-        alt="InterAppshop"
-        className="object-contain h-auto" // Ajout de h-auto
-        width={200}
-        height={50}
-        priority={true} // Améliore le LCP (Largest Contentful Paint)
-        sizes="(max-width: 768px) 200px, 300px" // Responsive
-    />
-</Link>
+          <Link href="/" className="flex-shrink-0">
+            <Image
+              src="/logo.png"
+              alt="InterAppshop"
+              className="object-contain"
+              width={150}
+              height={40}
+              priority={true}
+              sizes="(max-width: 768px) 120px, 150px"
+            />
+          </Link>
 
           {/* Barre de recherche */}
-          <div className="flex-1 max-w-2xl mx-4 md:mx-8 ">
-            <form onSubmit={handleSearch} className="relative">
+          <div className="hidden md:flex flex-1 max-w-2xl mx-4 lg:mx-8">
+            <form onSubmit={handleSearch} className="relative w-full">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Rechercher des produits..."
-                className="w-full px-4 py-2 rounded-full bg-white text-gray-900 border-2 border-green-500 focus:outline-none focus:border-green-600 shadow-sm"
+                placeholder="Rechercher des produits, restaurants, hôtels..."
+                className="w-full px-4 py-2.5 pr-24 rounded-full bg-white text-gray-900 border-2 border-green-500 focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-200 shadow-sm transition-all"
               />
-              <button 
-                type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-green-500 hover:bg-green-600 text-white p-2 rounded-full transition-colors"
-              >
-                <Search size={18} />
-              </button>
+              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                <ImageSearchButton />
+                <button 
+                  type="submit"
+                  className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full transition-colors"
+                  aria-label="Rechercher"
+                >
+                  <Search size={18} />
+                </button>
+              </div>
             </form>
           </div>
 
           {/* Navigation */}
-          <nav className="flex items-center gap-4 md:gap-6 ">
+          <nav className="flex items-center gap-2 md:gap-4">
+            {/* Mobile Search Button */}
+            <button
+              onClick={() => router.push('/products')}
+              className="md:hidden p-2 hover:bg-white/20 rounded-full transition-colors"
+              aria-label="Rechercher"
+            >
+              <Search size={20} className="text-gray-900" />
+            </button>
+
             {/* Currency Selector */}
-            <CurrencySelector />
+            <div className="hidden lg:block">
+              <CurrencySelector />
+            </div>
             
             {/* Chat */}
-            <Link 
-              href="/chat" 
-              className="hover:scale-110 transition-transform relative p-2 hover:bg-white/20 rounded-full"
-            >
-              <MessageCircle size={24} className="text-gray-900" />
-              {totalUnreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-md">
-                  {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
-                </span>
-              )}
-            </Link>
+            {user && (
+              <Link 
+                href="/chat" 
+                className="hover:scale-110 transition-transform relative p-2 hover:bg-white/20 rounded-full"
+                aria-label="Messages"
+              >
+                <MessageCircle size={22} className="text-gray-900" />
+                {totalUnreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center shadow-md">
+                    {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
+                  </span>
+                )}
+              </Link>
+            )}
             
             {/* Notifications */}
-            <button
-              onClick={() => setShowNotifications(true)}
-              className="hover:scale-110 transition-transform relative p-2 hover:bg-white/20 rounded-full"
-            >
-              <Bell size={24} className="text-gray-900" />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
+            {user && (
+              <button
+                onClick={() => setShowNotifications(true)}
+                className="hover:scale-110 transition-transform relative p-2 hover:bg-white/20 rounded-full"
+                aria-label="Notifications"
+              >
+                <Bell size={22} className="text-gray-900" />
+                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+              </button>
+            )}
 
             {/* Panier */}
             <Link 
               href="/cart" 
               className="hover:scale-110 transition-transform relative p-2 hover:bg-white/20 rounded-full"
+              aria-label="Panier"
             >
-              <ShoppingCart size={24} className="text-gray-900" />
+              <ShoppingCart size={22} className="text-gray-900" />
               {items.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-md">
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center shadow-md animate-bounce">
                   {items.length}
                 </span>
               )}
@@ -323,36 +346,36 @@ export default function Header() {
       />
 
       {/* Navigation secondaire */}
-      <div className="bg-green-600 border-t border-green-500 mt-10">
+      <div className="bg-green-600 border-t border-green-500">
         <div className="container mx-auto px-4">
-          <nav className="flex items-center gap-6 h-12 text-sm">
-            <Link href="/products" className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2">
+          <nav className="flex items-center gap-4 md:gap-6 h-12 text-sm overflow-x-auto scrollbar-hide">
+            <Link href="/products" className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
               <ShoppingBag size={16} />
-              E-commerce
+              <span className="hidden sm:inline">E-commerce</span>
             </Link>
-            <Link href="/restaurants" className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2">
+            <Link href="/restaurants" className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
               <UtensilsCrossed size={16} />
-              Restaurants
+              <span className="hidden sm:inline">Restaurants</span>
             </Link>
-            <Link href="/hotels" className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2">
+            <Link href="/hotels" className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
               <Hotel size={16} />
-              Hôtels
+              <span className="hidden sm:inline">Hôtels</span>
             </Link>
-            <Link href="/dating" className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2">
+            <Link href="/dating" className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
               <Heart size={16} />
-              Rencontres
+              <span className="hidden sm:inline">Rencontres</span>
             </Link>
-            <div className="h-6 w-px bg-green-500"></div>
-            <Link href="/categories" className="text-white hover:text-yellow-300 font-medium transition-colors">
+            <div className="hidden md:block h-6 w-px bg-green-500"></div>
+            <Link href="/categories" className="text-white hover:text-yellow-300 font-medium transition-colors whitespace-nowrap">
               Catégories
             </Link>
-            <Link href="/suppliers" className="text-white hover:text-yellow-300 font-medium transition-colors">
+            <Link href="/suppliers" className="text-white hover:text-yellow-300 font-medium transition-colors whitespace-nowrap hidden md:inline">
               Fournisseurs
             </Link>
-            <Link href="/deals" className="text-white hover:text-yellow-300 font-medium transition-colors">
+            <Link href="/deals" className="text-white hover:text-yellow-300 font-medium transition-colors whitespace-nowrap">
               Offres
             </Link>
-            <Link href="/help" className="text-white hover:text-yellow-300 font-medium transition-colors">
+            <Link href="/help" className="text-white hover:text-yellow-300 font-medium transition-colors whitespace-nowrap hidden lg:inline">
               Aide
             </Link>
           </nav>

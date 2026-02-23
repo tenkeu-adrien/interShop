@@ -139,15 +139,19 @@ export async function initiateFlexibleWithdrawal(
   data: FlexibleWithdrawalData
 ): Promise<FlexibleTransaction> {
   try {
-    const { paymentMethodId, amount, accountDetails } = data;
+    const { paymentMethodId, amount, accountName, accountNumber } = data;
     
     // Validation
     if (amount <= 0) {
       throw new Error('Le montant doit être positif');
     }
     
-    if (!accountDetails || accountDetails.trim() === '') {
-      throw new Error('Les détails du compte sont obligatoires');
+    if (!accountName || accountName.trim() === '') {
+      throw new Error('Le nom du compte est obligatoire');
+    }
+    
+    if (!accountNumber || accountNumber.trim() === '') {
+      throw new Error('Le numéro de compte est obligatoire');
     }
     
     // Récupérer la méthode de paiement
@@ -176,7 +180,8 @@ export async function initiateFlexibleWithdrawal(
       paymentMethodId,
       paymentMethodName: paymentMethod.name,
       paymentMethodType: paymentMethod.type,
-      clientAccountDetails: accountDetails.trim(),
+      recipientAccountName: accountName.trim(),
+      recipientAccountNumber: accountNumber.trim(),
       reference: generateReference('FLEX-WTH'),
       description: `Retrait flexible vers ${paymentMethod.name}`,
       createdAt: new Date(),

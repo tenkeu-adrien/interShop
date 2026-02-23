@@ -19,6 +19,8 @@ import {
   Users
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { ContactButton } from '@/components/products/ContactButton';
+import { BackButton } from '@/components/ui/BackButton';
 import toast from 'react-hot-toast';
 
 export default function RestaurantDetailPage() {
@@ -79,13 +81,7 @@ export default function RestaurantDetailPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Back Button */}
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
-        >
-          <ArrowLeft size={20} />
-          Retour
-        </button>
+        <BackButton className="mb-6" />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Images Gallery */}
@@ -218,27 +214,29 @@ export default function RestaurantDetailPage() {
             )}
 
             {/* Call to Action */}
-            <div className="flex gap-3">
-              {/* Téléphone temporairement désactivé
-              {restaurant.phone && (
-                <a
-                  href={`tel:${restaurant.phone}`}
-                  className="flex-1 bg-orange-500 text-white py-3 rounded-lg font-bold text-center hover:bg-orange-600 transition-colors"
-                >
-                  Appeler
-                </a>
-              )}
-              */}
-              {restaurant.location && (
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${restaurant.location.latitude},${restaurant.location.longitude}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold text-center hover:bg-gray-300 transition-colors"
-                >
-                  Itinéraire
-                </a>
-              )}
+            <div className="space-y-3">
+              <ContactButton
+                type="restaurant"
+                ownerId={restaurant.fournisseurId}
+                ownerName={restaurant.name}
+                ownerRole="fournisseur"
+                itemId={restaurant.id!}
+                itemName={restaurant.name}
+                itemImage={restaurant.images[0]}
+              />
+              
+              <div className="flex gap-3">
+                {restaurant.location && (
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${restaurant.location.latitude},${restaurant.location.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-bold text-center hover:bg-gray-300 transition-colors"
+                  >
+                    Itinéraire
+                  </a>
+                )}
+              </div>
             </div>
           </motion.div>
         </div>

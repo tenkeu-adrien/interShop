@@ -20,7 +20,8 @@ export default function FlexibleWithdrawalForm({
   const { wallet, fetchWallet } = useWalletStore();
   
   const [amount, setAmount] = useState('');
-  const [accountDetails, setAccountDetails] = useState('');
+  const [accountName, setAccountName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -52,8 +53,13 @@ export default function FlexibleWithdrawalForm({
       return;
     }
 
-    if (!accountDetails.trim()) {
-      setError('Veuillez entrer vos coordonnées de réception');
+    if (!accountName.trim()) {
+      setError('Veuillez entrer le nom du compte');
+      return;
+    }
+
+    if (!accountNumber.trim()) {
+      setError('Veuillez entrer le numéro de compte');
       return;
     }
 
@@ -68,7 +74,8 @@ export default function FlexibleWithdrawalForm({
       await onSubmit({
         paymentMethodId: paymentMethod.id,
         amount: numAmount,
-        accountDetails: accountDetails.trim()
+        accountName: accountName.trim(),
+        accountNumber: accountNumber.trim()
       });
     } catch (err: any) {
       setError(err.message || 'Erreur lors de la demande de retrait');
@@ -76,7 +83,7 @@ export default function FlexibleWithdrawalForm({
     }
   };
 
-  const getAccountDetailsPlaceholder = () => {
+  const getAccountNumberPlaceholder = () => {
     switch (paymentMethod.type) {
       case 'mobile_money':
       case 'mpesa':
@@ -84,13 +91,13 @@ export default function FlexibleWithdrawalForm({
       case 'crypto':
         return 'Ex: 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb';
       case 'bank_transfer':
-        return 'Ex: Ecobank - 1234567890 - Jean Dupont';
+        return 'Ex: 1234567890';
       default:
-        return 'Entrez vos coordonnées de réception';
+        return 'Entrez le numéro de compte';
     }
   };
 
-  const getAccountDetailsLabel = () => {
+  const getAccountNumberLabel = () => {
     switch (paymentMethod.type) {
       case 'mobile_money':
       case 'mpesa':
@@ -98,9 +105,9 @@ export default function FlexibleWithdrawalForm({
       case 'crypto':
         return 'Votre adresse wallet';
       case 'bank_transfer':
-        return 'Vos coordonnées bancaires';
+        return 'Votre numéro de compte';
       default:
-        return 'Vos coordonnées de réception';
+        return 'Numéro de compte';
     }
   };
 
@@ -183,21 +190,39 @@ export default function FlexibleWithdrawalForm({
             )}
           </div>
 
-          {/* Coordonnées de réception */}
+          {/* Nom du compte */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {getAccountDetailsLabel()} *
+              Nom du compte *
             </label>
-            <textarea
-              value={accountDetails}
-              onChange={(e) => setAccountDetails(e.target.value)}
-              placeholder={getAccountDetailsPlaceholder()}
-              rows={3}
+            <input
+              type="text"
+              value={accountName}
+              onChange={(e) => setAccountName(e.target.value)}
+              placeholder="Ex: Jean Dupont"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               required
             />
             <p className="text-xs text-gray-600 mt-1">
-              Entrez les coordonnées où vous souhaitez recevoir le paiement
+              Le nom qui apparaîtra lors du transfert
+            </p>
+          </div>
+
+          {/* Numéro de compte */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {getAccountNumberLabel()} *
+            </label>
+            <input
+              type="text"
+              value={accountNumber}
+              onChange={(e) => setAccountNumber(e.target.value)}
+              placeholder={getAccountNumberPlaceholder()}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              required
+            />
+            <p className="text-xs text-gray-600 mt-1">
+              Le numéro où vous souhaitez recevoir le paiement
             </p>
           </div>
 
@@ -211,7 +236,7 @@ export default function FlexibleWithdrawalForm({
           {/* Avertissement */}
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <p className="text-sm text-yellow-800">
-              ⚠️ Vérifiez bien vos coordonnées. Une erreur peut entraîner un retard ou une perte du paiement.
+              ⚠️ Vérifiez bien le nom et le numéro de compte. Une erreur peut entraîner un retard ou une perte du paiement.
             </p>
           </div>
 

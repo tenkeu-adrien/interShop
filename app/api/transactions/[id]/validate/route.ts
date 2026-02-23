@@ -4,11 +4,13 @@ import { validateFlexibleDeposit, validateFlexibleWithdrawal, getFlexibleTransac
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+    
     // Vérifier l'authentification
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('session');
     
     if (!sessionCookie) {
@@ -24,12 +26,12 @@ export async function POST(
     const { notes } = await request.json();
 
     // Récupérer la transaction pour savoir si c'est un dépôt ou retrait
-    const transaction = await getFlexibleTransaction(params.id);
+    const transaction = await getFlexibleTransaction(id);
 
     if (transaction.type === 'deposit') {
-      await validateFlexibleDeposit(params.id, adminId, notes);
+      await validateFlexibleDeposit(id, adminId, notes);
     } else if (transaction.type === 'withdrawal') {
-      await validateFlexibleWithdrawal(params.id, adminId, notes);
+      await validateFlexibleWithdrawal(id, adminId, notes);
     } else {
       throw new Error('Type de transaction invalide');
     }

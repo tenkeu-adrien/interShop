@@ -44,6 +44,7 @@ export default function Footer() {
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
           <p>&copy; 2026 InterAppshop. Tous droits réservés.</p>
+                <p>Notre devise <span className=""> Le marché digital sans frontières</span></p>
         </div>
       </div>
     </footer>

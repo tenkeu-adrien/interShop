@@ -7,7 +7,8 @@ import { useWalletStore } from '@/store/walletStore';
 import { 
   Wallet as WalletIcon, 
   ArrowDownCircle, 
-  ArrowUpCircle, 
+  ArrowUpCircle,
+  ArrowRight,
   History, 
   Settings,
   Loader2,
@@ -41,12 +42,12 @@ export default function WalletPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-green-50 to-yellow-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <WalletIcon className="w-8 h-8 text-orange-600" />
+            <WalletIcon className="w-8 h-8 text-green-600" />
             Mon Portefeuille
           </h1>
           <p className="text-gray-600 mt-2">
@@ -63,20 +64,20 @@ export default function WalletPage() {
         )}
 
         {/* Carte du portefeuille */}
-        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-8 text-white mb-8 shadow-xl">
+        <div className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 rounded-2xl p-8 text-gray-900 mb-8 shadow-xl">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="text-orange-100 text-sm mb-1">Solde disponible</p>
+              <p className="text-sm mb-1 opacity-90">Solde disponible</p>
               <p className="text-4xl font-bold">
                 {wallet?.balance.toLocaleString('fr-FR')} FCFA
               </p>
             </div>
-            <WalletIcon className="w-16 h-16 text-orange-200 opacity-50" />
+            <WalletIcon className="w-16 h-16 opacity-30" />
           </div>
 
           {wallet && wallet.pendingBalance > 0 && (
-            <div className="bg-white/10 rounded-lg p-4 mb-6">
-              <p className="text-orange-100 text-sm mb-1">Solde en attente</p>
+            <div className="bg-white/20 rounded-lg p-4 mb-6">
+              <p className="text-sm mb-1 opacity-90">Solde en attente</p>
               <p className="text-2xl font-semibold">
                 {wallet.pendingBalance.toLocaleString('fr-FR')} FCFA
               </p>
@@ -84,17 +85,24 @@ export default function WalletPage() {
           )}
 
           {/* Actions */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <button
               onClick={() => router.push('/wallet/deposit')}
-              className="bg-white text-orange-600 py-3 rounded-lg font-medium hover:bg-orange-50 transition flex items-center justify-center gap-2"
+              className="bg-white text-green-600 py-3 rounded-lg font-medium hover:bg-green-50 transition flex items-center justify-center gap-2 shadow-md"
             >
               <ArrowDownCircle className="w-5 h-5" />
               Déposer
             </button>
             <button
+              onClick={() => router.push('/wallet/transfer')}
+              className="bg-white text-yellow-600 py-3 rounded-lg font-medium hover:bg-yellow-50 transition flex items-center justify-center gap-2 shadow-md"
+            >
+              <ArrowRight className="w-5 h-5" />
+              Transférer
+            </button>
+            <button
               onClick={() => router.push('/wallet/withdraw')}
-              className="bg-white/10 text-white py-3 rounded-lg font-medium hover:bg-white/20 transition flex items-center justify-center gap-2 border border-white/20"
+              className="bg-white/10 text-gray-900 py-3 rounded-lg font-medium hover:bg-white/20 transition flex items-center justify-center gap-2 border border-white/20"
             >
               <ArrowUpCircle className="w-5 h-5" />
               Retirer

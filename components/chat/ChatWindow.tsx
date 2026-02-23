@@ -16,10 +16,14 @@ import {
   ArrowLeft,
   Package,
   FileText,
-  ExternalLink
+  ExternalLink,
+  Heart,
+  Hotel as HotelIcon,
+  UtensilsCrossed
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { Conversation } from '@/types/chat';
 import toast from 'react-hot-toast';
 
 interface ChatWindowProps {
@@ -27,6 +31,7 @@ interface ChatWindowProps {
   receiverId: string;
   receiverName: string;
   receiverPhoto?: string;
+  conversation?: Conversation;
   productContext?: {
     productId: string;
     productName: string;
@@ -39,6 +44,7 @@ export function ChatWindow({
   receiverId, 
   receiverName,
   receiverPhoto,
+  conversation,
   productContext
 }: ChatWindowProps) {
   const router = useRouter();
@@ -172,6 +178,69 @@ export function ChatWindow({
     }
   };
 
+  // Get context link and icon based on conversation type
+  const getContextInfo = () => {
+    if (!conversation?.context) return null;
+
+    const { context } = conversation;
+    let link = '';
+    let icon = null;
+    let label = '';
+    let name = '';
+
+    switch (context.type) {
+      case 'product_inquiry':
+        if (context.productId) {
+          link = `/products/${context.productId}`;
+          icon = <Package size={14} className="text-blue-600" />;
+          label = 'Voir le produit';
+          name = context.metadata?.productName || 'Produit';
+        }
+        break;
+      
+      case 'dating_inquiry':
+        if (context.datingProfileId) {
+          link = `/dating/${context.datingProfileId}`;
+          icon = <Heart size={14} className="text-pink-600" />;
+          label = 'Voir le profil';
+          name = context.metadata?.profileName || 'Profil';
+        }
+        break;
+      
+      case 'hotel_inquiry':
+        if (context.hotelId) {
+          link = `/hotels/${context.hotelId}`;
+          icon = <HotelIcon size={14} className="text-purple-600" />;
+          label = 'Voir l\'hôtel';
+          name = context.metadata?.hotelName || 'Hôtel';
+        }
+        break;
+      
+      case 'restaurant_inquiry':
+        if (context.restaurantId) {
+          link = `/restaurants/${context.restaurantId}`;
+          icon = <UtensilsCrossed size={14} className="text-orange-600" />;
+          label = 'Voir le restaurant';
+          name = context.metadata?.restaurantName || 'Restaurant';
+        }
+        break;
+      
+      case 'order':
+        if (context.orderId) {
+          // Assuming orders page exists
+          link = `/orders/${context.orderId}`;
+          icon = <Package size={14} className="text-green-600" />;
+          label = 'Voir la commande';
+          name = `Commande #${context.metadata?.orderNumber || context.orderId}`;
+        }
+        break;
+    }
+
+    return link ? { link, icon, label, name } : null;
+  };
+
+  const contextInfo = getContextInfo();
+
   const renderMessage = (message: any) => {
     const isOwn = message.senderId === user?.id;
 
@@ -211,6 +280,7 @@ export function ChatWindow({
               {message.productReference && (
                 <Link
                   href={`/products/${message.productReference.productId}`}
+                  target="_blank"
                   className={`block mb-2 p-3 rounded-lg border-2 ${
                     isOwn 
                       ? 'bg-blue-600 border-blue-400 hover:bg-blue-700' 
@@ -246,7 +316,7 @@ export function ChatWindow({
                       <div className="flex items-center gap-1 mt-1">
                         <ExternalLink size={12} className={isOwn ? 'text-blue-200' : 'text-gray-500'} />
                         <span className={`text-xs ${isOwn ? 'text-blue-200' : 'text-gray-500'}`}>
-                          Voir le produit
+                          Cliquer pour voir le produit
                         </span>
                       </div>
                     </div>
@@ -355,8 +425,29 @@ export function ChatWindow({
           </div>
         </div>
 
-        {/* Product Context */}
-        {productContext && (
+        {/* Context Link (Product, Dating, Hotel, Restaurant, Order) */}
+        {contextInfo && (
+          <Link
+            href={contextInfo.link}
+            className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg hover:shadow-md transition-all"
+          >
+            <div className="flex-shrink-0 w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm">
+              {contextInfo.icon}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-900 truncate">
+                {contextInfo.name}
+              </p>
+              <div className="flex items-center gap-1 mt-1">
+                <ExternalLink size={12} className="text-blue-600" />
+                <span className="text-xs text-blue-600 font-medium">{contextInfo.label}</span>
+              </div>
+            </div>
+          </Link>
+        )}
+
+        {/* Legacy Product Context (for backward compatibility) */}
+        {!contextInfo && productContext && (
           <Link
             href={`/products/${productContext.productId}`}
             className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"

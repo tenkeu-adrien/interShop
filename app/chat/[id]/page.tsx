@@ -65,6 +65,7 @@ export default function ChatConversationPage() {
         receiverId={otherUserId!}
         receiverName={otherUser.name}
         receiverPhoto={otherUser.photo}
+        conversation={conversation}
         productContext={conversation.productContext}
       />
     </div>

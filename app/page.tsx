@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { 
   ArrowRight, 
@@ -26,6 +27,9 @@ import { CategorySelector } from '@/components/CategorySelector';
 import { CategoriesSidebar } from '@/components/CategoriesSidebar';
 import { RestaurantCard } from '@/components/RestaurantCard';
 import { DatingProfileCard } from '@/components/DatingProfileCard';
+import { ProductGridSkeleton } from '@/components/ui/Skeleton';
+import { Button } from '@/components/ui/Button';
+import toast from 'react-hot-toast';
 
 export default function HomePage() {
   const [bestDeals, setBestDeals] = useState<Product[]>([]);
@@ -45,80 +49,56 @@ export default function HomePage() {
     try {
       const productsRef = collection(db, 'products');
 
-      // Meilleures offres (produits avec le plus de ventes) - Augmenter à 24
-      const bestDealsQuery = query(
-        productsRef,
-        where('isActive', '==', true),
-        orderBy('sales', 'desc'),
-        limit(24)
-      );
-      const bestDealsSnapshot = await getDocs(bestDealsQuery);
-      const bestDealsData = bestDealsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Product[];
-      setBestDeals(bestDealsData);
+      // Charger en parallèle pour améliorer la performance
+      const [bestDealsSnapshot, topRankedSnapshot, newArrivalsSnapshot, restaurantsSnapshot, datingSnapshot] = await Promise.all([
+        // Meilleures offres (12 au lieu de 24)
+        getDocs(query(
+          productsRef,
+          where('isActive', '==', true),
+          orderBy('sales', 'desc'),
+          limit(12)
+        )),
+        // Top classement (12 au lieu de 24)
+        getDocs(query(
+          productsRef,
+          where('isActive', '==', true),
+          orderBy('rating', 'desc'),
+          limit(12)
+        )),
+        // Nouveautés (12 au lieu de 24)
+        getDocs(query(
+          productsRef,
+          where('isActive', '==', true),
+          orderBy('createdAt', 'desc'),
+          limit(12)
+        )),
+        // Restaurants
+        getDocs(query(
+          productsRef,
+          where('isActive', '==', true),
+          where('serviceCategory', '==', 'restaurant'),
+          orderBy('rating', 'desc'),
+          limit(6)
+        )),
+        // Dating profiles
+        getDocs(query(
+          productsRef,
+          where('isActive', '==', true),
+          where('serviceCategory', '==', 'dating'),
+          where('datingProfile.status', '==', 'available'),
+          limit(6)
+        ))
+      ]);
 
-      // Produits au top du classement (meilleure note) - Augmenter à 24
-      const topRankedQuery = query(
-        productsRef,
-        where('isActive', '==', true),
-        orderBy('rating', 'desc'),
-        limit(24)
-      );
-      const topRankedSnapshot = await getDocs(topRankedQuery);
-      const topRankedData = topRankedSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Product[];
-      setTopRanked(topRankedData);
-
-      // Nouveautés (produits récents) - Augmenter à 24
-      const newArrivalsQuery = query(
-        productsRef,
-        where('isActive', '==', true),
-        orderBy('createdAt', 'desc'),
-        limit(24)
-      );
-      const newArrivalsSnapshot = await getDocs(newArrivalsQuery);
-      const newArrivalsData = newArrivalsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Product[];
-      setNewArrivals(newArrivalsData);
-
-      // Restaurants populaires
-      const restaurantsQuery = query(
-        productsRef,
-        where('isActive', '==', true),
-        where('serviceCategory', '==', 'restaurant'),
-        orderBy('rating', 'desc'),
-        limit(6)
-      );
-      const restaurantsSnapshot = await getDocs(restaurantsQuery);
-      const restaurantsData = restaurantsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Product[];
-      setRestaurants(restaurantsData);
-
-      // Profils en vedette
-      const datingQuery = query(
-        productsRef,
-        where('isActive', '==', true),
-        where('serviceCategory', '==', 'dating'),
-        where('datingProfile.status', '==', 'available'),
-        limit(6)
-      );
-      const datingSnapshot = await getDocs(datingQuery);
-      const datingData = datingSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Product[];
-      setDatingProfiles(datingData);
+      setBestDeals(bestDealsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[]);
+      setTopRanked(topRankedSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[]);
+      setNewArrivals(newArrivalsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[]);
+      setRestaurants(restaurantsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[]);
+      setDatingProfiles(datingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[]);
 
     } catch (error) {
       console.error('Error loading products:', error);
+      toast.error('Erreur lors du chargement des produits');
     } finally {
       setLoading(false);
     }
@@ -154,18 +134,20 @@ export default function HomePage() {
                 Connectez-vous avec des millions de fournisseurs et acheteurs à travers le monde
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  href="/products"
-                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-semibold text-center transition-all transform hover:scale-105 shadow-lg"
+                <Button
+                  onClick={() => window.location.href = '/products'}
+                  variant="primary"
+                  size="lg"
                 >
                   Commencer à acheter
-                </Link>
-                <Link
-                  href="/sell"
-                  className="bg-white text-green-600 border-2 border-green-600 px-8 py-4 rounded-lg font-semibold text-center hover:bg-green-50 transition-all transform hover:scale-105 shadow-lg"
+                </Button>
+                <Button
+                  onClick={() => window.location.href = '/sell'}
+                  variant="outline"
+                  size="lg"
                 >
                   Commencer à vendre
-                </Link>
+                </Button>
               </div>
             </motion.div>
 
@@ -350,9 +332,7 @@ export default function HomePage() {
           </div>
 
           {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-            </div>
+            <ProductGridSkeleton count={12} />
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
               {bestDeals.map((product, index) => (
@@ -368,10 +348,13 @@ export default function HomePage() {
                     className="bg-white border-2 border-red-200 rounded-lg overflow-hidden hover:shadow-2xl hover:border-red-400 transition-all transform hover:scale-105 block group"
                   >
                     <div className="relative h-48 bg-gray-100">
-                      <img
+                      <Image
                         src={product.images[0] || '/placeholder.png'}
                         alt={product.name}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                        loading="lazy"
                       />
                       {/* Badge Hot Deal */}
                       <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
@@ -439,9 +422,7 @@ export default function HomePage() {
           </div>
 
           {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600"></div>
-            </div>
+            <ProductGridSkeleton count={12} />
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
               {topRanked.map((product, index) => (
@@ -457,10 +438,13 @@ export default function HomePage() {
                     className="bg-white border-2 border-yellow-200 rounded-lg overflow-hidden hover:shadow-2xl hover:border-yellow-400 transition-all transform hover:scale-105 block group"
                   >
                     <div className="relative h-48 bg-gray-100">
-                      <img
+                      <Image
                         src={product.images[0] || '/placeholder.png'}
                         alt={product.name}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                        loading="lazy"
                       />
                       {/* Badge Top Rated */}
                       <div className="absolute top-2 left-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
@@ -533,9 +517,7 @@ export default function HomePage() {
           </div>
 
           {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-            </div>
+            <ProductGridSkeleton count={12} />
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
               {newArrivals.map((product, index) => (
@@ -551,10 +533,13 @@ export default function HomePage() {
                     className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all transform hover:scale-105 block group"
                   >
                     <div className="relative h-48 bg-gray-100">
-                      <img
+                      <Image
                         src={product.images[0] || '/placeholder.png'}
                         alt={product.name}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                        loading="lazy"
                       />
                       {/* Badge New */}
                       <div className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
@@ -611,9 +596,11 @@ export default function HomePage() {
             </p>
             <Link
               href="/register"
-              className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-8 py-4 rounded-lg font-bold inline-block transition-all transform hover:scale-105 shadow-lg"
+              className="inline-block"
             >
-              Créer un compte gratuitement
+              <Button variant="secondary" size="lg">
+                Créer un compte gratuitement
+              </Button>
             </Link>
           </motion.div>
         </div>

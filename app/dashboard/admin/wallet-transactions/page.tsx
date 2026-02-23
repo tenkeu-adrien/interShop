@@ -267,10 +267,15 @@ export default function AdminWalletTransactionsPage() {
                     </div>
                   </div>
 
-                  {transaction.clientAccountDetails && (
+                  {(transaction.recipientAccountName || transaction.recipientAccountNumber) && (
                     <div className="mt-3 p-3 bg-gray-50 rounded">
-                      <span className="text-gray-500 text-sm">Détails du compte client:</span>
-                      <p className="font-medium">{transaction.clientAccountDetails}</p>
+                      <span className="text-gray-500 text-sm">Détails du compte destinataire:</span>
+                      {transaction.recipientAccountName && (
+                        <p className="font-medium">Nom: {transaction.recipientAccountName}</p>
+                      )}
+                      {transaction.recipientAccountNumber && (
+                        <p className="font-medium">Numéro: {transaction.recipientAccountNumber}</p>
+                      )}
                     </div>
                   )}
                 </div>

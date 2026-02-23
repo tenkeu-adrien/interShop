@@ -5,7 +5,7 @@ import { getPendingFlexibleTransactions } from '@/lib/firebase/flexibleWallet';
 export async function GET(request: NextRequest) {
   try {
     // Vérifier l'authentification
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('session');
     
     if (!sessionCookie) {

@@ -30,6 +30,7 @@ import { collection, getDocs, doc, updateDoc, deleteDoc, addDoc } from 'firebase
 import { db } from '@/lib/firebase/config';
 import { User as UserType, UserRole, ApprovalStatus } from '@/types';
 import Link from 'next/link';
+import { BackButton } from '@/components/ui/BackButton';
 import toast from 'react-hot-toast';
 
 export default function AdminUsersPage() {
@@ -243,7 +244,7 @@ export default function AdminUsersPage() {
               className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
             >
               <ChevronLeft size={20} />
-              Retour
+              Retour au dashboard
             </Link>
           </div>
 

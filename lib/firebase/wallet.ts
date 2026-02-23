@@ -293,7 +293,10 @@ export async function initiateDeposit(
   userId: string,
   data: DepositData
 ): Promise<Transaction> {
-  const { amount, provider, phoneNumber } = data;
+  const { amount, provider, phoneNumber, pin } = data;
+
+  // Vérifier le PIN pour TOUS les dépôts
+  await verifyPIN(userId, pin);
 
   // Valider le montant
   const settings = await getWalletSettings();
@@ -624,10 +627,8 @@ export async function processPayment(
 ): Promise<Transaction> {
   const { toUserId, amount, orderId, description, pin } = data;
 
-  // Vérifier le PIN si montant > 10,000 FCFA
-  if (amount > 10000) {
-    await verifyPIN(fromUserId, pin);
-  }
+  // Vérifier le PIN pour TOUS les montants
+  await verifyPIN(fromUserId, pin);
 
   // Transaction atomique
   return await runTransaction(db, async (transaction) => {
@@ -651,7 +652,7 @@ export async function processPayment(
     }
 
     // Créer la transaction de débit
-    const debitTransactionData: Partial<Transaction> = {
+    const debitTransactionData: any = {
       walletId: fromUserId,
       userId: fromUserId,
       type: 'payment',
@@ -662,12 +663,16 @@ export async function processPayment(
       status: 'completed',
       recipientWalletId: toUserId,
       recipientUserId: toUserId,
-      orderId,
       reference: generateReference('PAY'),
       description: description || `Paiement vers ${toUserId}`,
       createdAt: new Date(),
       updatedAt: new Date()
     };
+
+    // Ajouter orderId seulement s'il existe
+    if (orderId) {
+      debitTransactionData.orderId = orderId;
+    }
 
     const debitRef = doc(collection(db, 'transactions'));
     transaction.set(debitRef, {
@@ -677,13 +682,28 @@ export async function processPayment(
     });
 
     // Créer la transaction de crédit
-    const creditTransactionData: Partial<Transaction> = {
-      ...debitTransactionData,
+    const creditTransactionData: any = {
       walletId: toUserId,
       userId: toUserId,
+      type: 'payment',
+      amount,
+      fees: 0,
+      totalAmount: amount,
+      currency: 'XAF',
+      status: 'completed',
+      recipientWalletId: fromUserId,
+      recipientUserId: fromUserId,
       relatedTransactionId: debitRef.id,
-      description: description || `Réception paiement de ${fromUserId}`
+      reference: generateReference('PAY'),
+      description: description || `Réception paiement de ${fromUserId}`,
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
+
+    // Ajouter orderId seulement s'il existe
+    if (orderId) {
+      creditTransactionData.orderId = orderId;
+    }
 
     const creditRef = doc(collection(db, 'transactions'));
     transaction.set(creditRef, {

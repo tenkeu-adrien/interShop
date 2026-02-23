@@ -646,6 +646,7 @@ export interface DepositData {
   amount: number;
   provider: MobileMoneyProvider;
   phoneNumber: string;
+  pin: string;
 }
 
 export interface WithdrawalData {
@@ -702,10 +703,20 @@ export interface FlexibleTransaction extends Transaction {
   paymentMethodName?: string;
   paymentMethodType?: PaymentMethodType;
   
+  // Pour dépôts
   clientName?: string;
-  clientAccountDetails?: string;
   
-  // PAS de proofOfPayment - l'admin vérifie manuellement
+  // Pour retraits
+  recipientAccountName?: string;   // Nom du compte de destination (qui apparaîtra lors du transfert)
+  recipientAccountNumber?: string; // Numéro de compte/téléphone de destination
+  
+  proofOfPayment?: {
+    url: string;
+    fileName: string;
+    fileSize: number;
+    mimeType: string;
+    uploadedAt: Date;
+  };
   
   adminNotes?: string;
 }
@@ -714,13 +725,14 @@ export interface FlexibleDepositData {
   paymentMethodId: string;
   clientName: string;
   amount: number;
-  // PAS de proofOfPayment - le client indique juste qu'il a payé
+  proofOfPayment?: File;
 }
 
 export interface FlexibleWithdrawalData {
   paymentMethodId: string;
   amount: number;
-  accountDetails: string;
+  accountName: string;      // Nom du compte de destination
+  accountNumber: string;    // Numéro de compte/téléphone
 }
 
 export interface CreatePaymentMethodData {
