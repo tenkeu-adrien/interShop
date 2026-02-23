@@ -7,24 +7,33 @@ export async function GET(request: NextRequest) {
     const city = searchParams.get('city') || undefined;
     const priceRange = searchParams.get('priceRange') || undefined;
     const features = searchParams.get('features')?.split(',') || undefined;
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const maxDistance = searchParams.get('maxDistance') 
+      ? Number(searchParams.get('maxDistance')) 
+      : undefined;
+    
+    // Get user location if provided
+    const lat = searchParams.get('lat');
+    const lng = searchParams.get('lng');
+    const userLocation = lat && lng 
+      ? { lat: Number(lat), lng: Number(lng) }
+      : undefined;
 
     const restaurants = await getProductsByCategory('restaurant', {
       city,
       priceRange,
       features,
-      limitCount: limit,
+      userLocation,
+      maxDistance,
     });
 
-    return NextResponse.json({
-      success: true,
-      restaurants,
-      count: restaurants.length,
+    return NextResponse.json({ 
+      success: true, 
+      data: restaurants 
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching restaurants:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch restaurants' },
+      { success: false, error: error.message || 'Failed to fetch restaurants' },
       { status: 500 }
     );
   }

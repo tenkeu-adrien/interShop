@@ -6,29 +6,32 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const city = searchParams.get('city') || undefined;
     const features = searchParams.get('features')?.split(',') || undefined;
-    const starRating = searchParams.get('starRating') ? parseInt(searchParams.get('starRating')!) : undefined;
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const maxDistance = searchParams.get('maxDistance') 
+      ? Number(searchParams.get('maxDistance')) 
+      : undefined;
+    
+    // Get user location if provided
+    const lat = searchParams.get('lat');
+    const lng = searchParams.get('lng');
+    const userLocation = lat && lng 
+      ? { lat: Number(lat), lng: Number(lng) }
+      : undefined;
 
     const hotels = await getProductsByCategory('hotel', {
       city,
       features,
-      limitCount: limit,
+      userLocation,
+      maxDistance,
     });
 
-    // Filter by star rating if provided
-    const filteredHotels = starRating
-      ? hotels.filter(h => h.hotelData?.starRating === starRating)
-      : hotels;
-
-    return NextResponse.json({
-      success: true,
-      hotels: filteredHotels,
-      count: filteredHotels.length,
+    return NextResponse.json({ 
+      success: true, 
+      data: hotels 
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching hotels:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch hotels' },
+      { success: false, error: error.message || 'Failed to fetch hotels' },
       { status: 500 }
     );
   }
