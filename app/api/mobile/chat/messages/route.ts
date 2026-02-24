@@ -1,37 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getConversationMessages, sendMessage, markMessagesAsRead } from '@/lib/firebase/chat';
+import { sendMessage, getConversationMessages } from '@/lib/firebase/chat';
 
-// GET /api/mobile/chat/messages - Get conversation messages
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const conversationId = searchParams.get('conversationId');
-    const limitParam = searchParams.get('limit');
-    const limit = limitParam ? parseInt(limitParam) : 50;
-
-    if (!conversationId) {
-      return NextResponse.json(
-        { success: false, error: 'conversationId requis' },
-        { status: 400 }
-      );
-    }
-
-    const messages = await getConversationMessages(conversationId, limit);
-
-    return NextResponse.json({
-      success: true,
-      messages,
-    });
-  } catch (error: any) {
-    console.error('Error getting messages:', error);
-    return NextResponse.json(
-      { success: false, error: error.message || 'Erreur serveur' },
-      { status: 500 }
-    );
-  }
-}
-
-// POST /api/mobile/chat/messages - Send message
+// POST - Send message
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -52,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     if (!conversationId || !senderId || !senderName || !receiverId || !content) {
       return NextResponse.json(
-        { success: false, error: 'Données manquantes' },
+        { success: false, error: 'Missing required fields' },
         { status: 400 }
       );
     }
@@ -79,34 +49,37 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error sending message:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Erreur serveur' },
+      { success: false, error: error.message || 'Failed to send message' },
       { status: 500 }
     );
   }
 }
 
-// PUT /api/mobile/chat/messages - Mark messages as read
-export async function PUT(request: NextRequest) {
+// GET - Get conversation messages
+export async function GET(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { conversationId, userId } = body;
+    const { searchParams } = new URL(request.url);
+    const conversationId = searchParams.get('conversationId');
+    const limitParam = searchParams.get('limit');
+    const limit = limitParam ? parseInt(limitParam) : 50;
 
-    if (!conversationId || !userId) {
+    if (!conversationId) {
       return NextResponse.json(
-        { success: false, error: 'Données manquantes' },
+        { success: false, error: 'conversationId is required' },
         { status: 400 }
       );
     }
 
-    await markMessagesAsRead(conversationId, userId);
+    const messages = await getConversationMessages(conversationId, limit);
 
     return NextResponse.json({
       success: true,
+      messages,
     });
   } catch (error: any) {
-    console.error('Error marking messages as read:', error);
+    console.error('Error fetching messages:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Erreur serveur' },
+      { success: false, error: error.message || 'Failed to fetch messages' },
       { status: 500 }
     );
   }

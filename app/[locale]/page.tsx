@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { 
-  ArrowRight, 
-  Shield, 
-  Truck, 
-  DollarSign, 
+import {
+  ArrowRight,
+  Shield,
+  Truck,
+  DollarSign,
   Users,
   Star,
   TrendingUp,
@@ -26,17 +26,23 @@ import { PriceDisplay } from '@/components/ui/PriceDisplay';
 import { CategorySelector } from '@/components/CategorySelector';
 import { CategoriesSidebar } from '@/components/CategoriesSidebar';
 import { RestaurantCard } from '@/components/RestaurantCard';
-import { DatingProfileCard } from '@/components/DatingProfileCard';
 import { ProductGridSkeleton } from '@/components/ui/Skeleton';
 import { Button } from '@/components/ui/Button';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 export default function HomePage() {
+  const tHome = useTranslations('home');
+  const tCommon = useTranslations('common');
+  const tNav = useTranslations('nav');
+  const tProducts = useTranslations('products');
+  const tAuth = useTranslations('auth');
+  const tErrors = useTranslations('errors');
+
   const [bestDeals, setBestDeals] = useState<Product[]>([]);
   const [topRanked, setTopRanked] = useState<Product[]>([]);
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
   const [restaurants, setRestaurants] = useState<Product[]>([]);
-  const [datingProfiles, setDatingProfiles] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Charger les différentes sections de produits
@@ -50,42 +56,30 @@ export default function HomePage() {
       const productsRef = collection(db, 'products');
 
       // Charger en parallèle pour améliorer la performance
-      const [bestDealsSnapshot, topRankedSnapshot, newArrivalsSnapshot, restaurantsSnapshot, datingSnapshot] = await Promise.all([
-        // Meilleures offres (12 au lieu de 24)
+      const [bestDealsSnapshot, topRankedSnapshot, newArrivalsSnapshot, restaurantsSnapshot] = await Promise.all([
         getDocs(query(
           productsRef,
           where('isActive', '==', true),
           orderBy('sales', 'desc'),
           limit(12)
         )),
-        // Top classement (12 au lieu de 24)
         getDocs(query(
           productsRef,
           where('isActive', '==', true),
           orderBy('rating', 'desc'),
           limit(12)
         )),
-        // Nouveautés (12 au lieu de 24)
         getDocs(query(
           productsRef,
           where('isActive', '==', true),
           orderBy('createdAt', 'desc'),
           limit(12)
         )),
-        // Restaurants
         getDocs(query(
           productsRef,
           where('isActive', '==', true),
           where('serviceCategory', '==', 'restaurant'),
           orderBy('rating', 'desc'),
-          limit(6)
-        )),
-        // Dating profiles
-        getDocs(query(
-          productsRef,
-          where('isActive', '==', true),
-          where('serviceCategory', '==', 'dating'),
-          where('datingProfile.status', '==', 'available'),
           limit(6)
         ))
       ]);
@@ -94,25 +88,24 @@ export default function HomePage() {
       setTopRanked(topRankedSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[]);
       setNewArrivals(newArrivalsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[]);
       setRestaurants(restaurantsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[]);
-      setDatingProfiles(datingSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[]);
 
     } catch (error) {
       console.error('Error loading products:', error);
-      toast.error('Erreur lors du chargement des produits');
+      toast.error(tErrors('server_error'));
     } finally {
       setLoading(false);
     }
   };
 
   const categories = [
-    { name: 'Électronique', icon: '💻', color: 'bg-blue-100', link: '/categories/electronique' },
-    { name: 'Mode', icon: '👔', color: 'bg-pink-100', link: '/categories/mode' },
-    { name: 'Maison & Jardin', icon: '🏡', color: 'bg-green-100', link: '/categories/maison-jardin' },
-    { name: 'Sport & Loisirs', icon: '⚽', color: 'bg-orange-100', link: '/categories/sport-loisirs' },
-    { name: 'Beauté & Santé', icon: '💄', color: 'bg-purple-100', link: '/categories/beaute-sante' },
-    { name: 'Jouets & Bébé', icon: '🧸', color: 'bg-yellow-100', link: '/categories/jouets-bebe' },
-    { name: 'Automobile', icon: '🚗', color: 'bg-red-100', link: '/categories/automobile' },
-    { name: 'Alimentation', icon: '🍔', color: 'bg-green-100', link: '/categories/alimentation' },
+    { name: tNav('electronics', 'Électronique'), icon: '💻', color: 'bg-blue-100', link: '/categories/electronique' },
+    { name: tNav('fashion', 'Mode'), icon: '👔', color: 'bg-pink-100', link: '/categories/mode' },
+    { name: tNav('home_garden', 'Maison & Jardin'), icon: '🏡', color: 'bg-green-100', link: '/categories/maison-jardin' },
+    { name: tNav('sport', 'Sport & Loisirs'), icon: '⚽', color: 'bg-orange-100', link: '/categories/sport-loisirs' },
+    { name: tNav('beauty', 'Beauté & Santé'), icon: '💄', color: 'bg-purple-100', link: '/categories/beaute-sante' },
+    { name: tNav('toys', 'Jouets & Bébé'), icon: '🧸', color: 'bg-yellow-100', link: '/categories/jouets-bebe' },
+    { name: tNav('automotive', 'Automobile'), icon: '🚗', color: 'bg-red-100', link: '/categories/automobile' },
+    { name: tNav('food', 'Alimentation'), icon: '🍔', color: 'bg-green-100', link: '/categories/alimentation' },
   ];
 
   return (
@@ -127,11 +120,11 @@ export default function HomePage() {
               transition={{ duration: 0.6 }}
             >
               <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-                La plateforme B2B/B2C
-                <span className="block text-green-700">leader mondial</span>
+                {tHome('hero_title')}
+                <span className="block text-green-700">{tHome('hero_highlight', 'leader mondial')}</span>
               </h1>
               <p className="text-xl md:text-2xl mb-8 text-gray-800">
-                Connectez-vous avec des millions de fournisseurs et acheteurs à travers le monde
+                {tHome('hero_subtitle')}
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
@@ -139,14 +132,14 @@ export default function HomePage() {
                   variant="primary"
                   size="lg"
                 >
-                  Commencer à acheter
+                  {tHome('hero_cta_buy', 'Commencer à acheter')}
                 </Button>
                 <Button
                   onClick={() => window.location.href = '/sell'}
                   variant="outline"
                   size="lg"
                 >
-                  Commencer à vendre
+                  {tHome('hero_cta_sell', 'Commencer à vendre')}
                 </Button>
               </div>
             </motion.div>
@@ -161,17 +154,17 @@ export default function HomePage() {
                 <div className="bg-white p-6 rounded-lg shadow-lg">
                   <TrendingUp className="text-green-600 mb-2" size={32} />
                   <h3 className="font-bold text-2xl mb-1">10M+</h3>
-                  <p className="text-gray-600">Produits</p>
+                  <p className="text-gray-600">{tNav('products')}</p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-lg">
                   <Users className="text-yellow-500 mb-2" size={32} />
                   <h3 className="font-bold text-2xl mb-1">5M+</h3>
-                  <p className="text-gray-600">Utilisateurs</p>
+                  <p className="text-gray-600">{tAuth('users', 'Utilisateurs')}</p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-lg">
                   <Package className="text-green-600 mb-2" size={32} />
                   <h3 className="font-bold text-2xl mb-1">200K+</h3>
-                  <p className="text-gray-600">Fournisseurs</p>
+                  <p className="text-gray-600">{tNav('suppliers', 'Fournisseurs')}</p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-lg">
                   <Zap className="text-yellow-500 mb-2" size={32} />
@@ -188,14 +181,14 @@ export default function HomePage() {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-gray-900">
-            Pourquoi nous choisir
+            {tHome('why_choose_us', 'Pourquoi nous choisir')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
-              { icon: Shield, title: 'Protection acheteur', desc: 'Vos achats sont protégés à 100%', color: 'text-green-600' },
-              { icon: Truck, title: 'Livraison rapide', desc: 'Expédition mondiale fiable', color: 'text-yellow-500' },
-              { icon: DollarSign, title: 'Prix compétitifs', desc: 'Meilleurs prix du marché', color: 'text-green-600' },
-              { icon: Users, title: 'Millions d\'utilisateurs', desc: 'Rejoignez notre communauté', color: 'text-yellow-500' },
+              { icon: Shield, title: tNav('buyer_protection', 'Protection acheteur'), desc: tHome('protection_desc', 'Vos achats sont protégés à 100%'), color: 'text-green-600' },
+              { icon: Truck, title: tNav('shipping', 'Livraison rapide'), desc: tHome('shipping_desc', 'Expédition mondiale fiable'), color: 'text-yellow-500' },
+              { icon: DollarSign, title: tHome('competitive_prices', 'Prix compétitifs'), desc: tHome('prices_desc', 'Meilleurs prix du marché'), color: 'text-green-600' },
+              { icon: Users, title: tHome('millions_users', "Millions d'utilisateurs"), desc: tHome('community_desc', 'Rejoignez notre communauté'), color: 'text-yellow-500' },
             ].map((feature, index) => (
               <motion.div
                 key={index}
@@ -220,16 +213,16 @@ export default function HomePage() {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 text-gray-900">
-            Explorez nos services
+            {tHome('explore_services', 'Explorez nos services')}
           </h2>
-          
+
           {/* Layout avec sidebar et CategorySelector */}
           <div className="flex gap-6">
             {/* Sidebar des catégories */}
             <div className="hidden lg:block flex-shrink-0">
               <CategoriesSidebar />
             </div>
-            
+
             {/* CategorySelector principal */}
             <div className="flex-1">
               <CategorySelector />
@@ -244,14 +237,14 @@ export default function HomePage() {
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Restaurants populaires</h2>
-                <p className="text-gray-600">Découvrez les meilleurs restaurants près de vous</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{tNav('restaurants')}</h2>
+                <p className="text-gray-600">{tHome('restaurants_desc', 'Découvrez les meilleurs restaurants près de vous')}</p>
               </div>
-              <Link 
-                href="/restaurants" 
+              <Link
+                href="/restaurants"
                 className="text-orange-600 hover:text-orange-700 flex items-center gap-2 font-medium group"
               >
-                Voir tout 
+                {tCommon('view_all', 'Voir tout')}
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
@@ -272,18 +265,16 @@ export default function HomePage() {
         </section>
       )}
 
-
-
       {/* Categories */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Catégories e-commerce</h2>
-            <Link 
-              href="/categories" 
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{tHome('ecommerce_categories', 'Catégories e-commerce')}</h2>
+            <Link
+              href="/categories"
               className="text-green-600 hover:text-green-700 flex items-center gap-2 font-medium group"
             >
-              Voir tout 
+              {tCommon('view_all', 'Voir tout')}
               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -318,15 +309,15 @@ export default function HomePage() {
                 <Flame className="text-white" size={32} />
               </div>
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Meilleures offres</h2>
-                <p className="text-gray-600">Les produits les plus vendus du moment</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{tHome('best_deals')}</h2>
+                <p className="text-gray-600">{tHome('best_deals_desc', 'Les produits les plus vendus du moment')}</p>
               </div>
             </div>
-            <Link 
-              href="/products?sort=sales" 
+            <Link
+              href="/products?sort=sales"
               className="text-red-600 hover:text-red-700 flex items-center gap-2 font-medium group"
             >
-              Voir tout 
+              {tCommon('view_all', 'Voir tout')}
               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -363,11 +354,11 @@ export default function HomePage() {
                       </div>
                       {/* Badge de ventes */}
                       <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                        {product.sales}+ vendus
+                        {product.sales}+ {tProducts('sold')}
                       </div>
                       {product.stock === 0 && (
                         <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
-                          Rupture
+                          {tProducts('out_of_stock')}
                         </div>
                       )}
                     </div>
@@ -382,7 +373,7 @@ export default function HomePage() {
                         </span>
                       </div>
                       <div className="flex flex-col gap-1">
-                        <PriceDisplay 
+                        <PriceDisplay
                           priceUSD={product.prices[0].price}
                           className="text-lg font-bold text-red-600"
                         />
@@ -408,15 +399,15 @@ export default function HomePage() {
                 <Award className="text-white" size={32} />
               </div>
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Produits au top du classement</h2>
-                <p className="text-gray-600">Les mieux notés par nos clients</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{tHome('top_products')}</h2>
+                <p className="text-gray-600">{tHome('top_products_desc', 'Les mieux notés par nos clients')}</p>
               </div>
             </div>
-            <Link 
-              href="/products?sort=rating" 
+            <Link
+              href="/products?sort=rating"
               className="text-yellow-600 hover:text-yellow-700 flex items-center gap-2 font-medium group"
             >
-              Voir tout 
+              {tCommon('view_all', 'Voir tout')}
               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -459,7 +450,7 @@ export default function HomePage() {
                       )}
                       {product.stock === 0 && (
                         <div className="absolute bottom-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
-                          Rupture
+                          {tProducts('out_of_stock')}
                         </div>
                       )}
                     </div>
@@ -473,11 +464,11 @@ export default function HomePage() {
                           {product.rating.toFixed(1)}
                         </span>
                         <span className="text-xs text-gray-600">
-                          ({product.reviewCount} avis)
+                          ({product.reviewCount} {tProducts('reviews')})
                         </span>
                       </div>
                       <div className="flex flex-col gap-1">
-                        <PriceDisplay 
+                        <PriceDisplay
                           priceUSD={product.prices[0].price}
                           className="text-lg font-bold text-green-600"
                         />
@@ -503,15 +494,15 @@ export default function HomePage() {
                 <Clock className="text-white" size={32} />
               </div>
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Nouveautés</h2>
-                <p className="text-gray-600">Découvrez les derniers produits ajoutés</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{tHome('new_products')}</h2>
+                <p className="text-gray-600">{tHome('new_products_desc', 'Découvrez les derniers produits ajoutés')}</p>
               </div>
             </div>
-            <Link 
-              href="/products?sort=newest" 
+            <Link
+              href="/products?sort=newest"
               className="text-green-600 hover:text-green-700 flex items-center gap-2 font-medium group"
             >
-              Voir tout 
+              {tCommon('view_all', 'Voir tout')}
               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -544,11 +535,11 @@ export default function HomePage() {
                       {/* Badge New */}
                       <div className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
                         <Tag size={12} />
-                        NOUVEAU
+                        {tHome('badge_new', 'NOUVEAU')}
                       </div>
                       {product.stock === 0 && (
                         <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
-                          Rupture
+                          {tProducts('out_of_stock')}
                         </div>
                       )}
                     </div>
@@ -563,7 +554,7 @@ export default function HomePage() {
                         </span>
                       </div>
                       <div className="flex flex-col gap-1">
-                        <PriceDisplay 
+                        <PriceDisplay
                           priceUSD={product.prices[0].price}
                           className="text-lg font-bold text-green-600"
                         />
@@ -589,17 +580,17 @@ export default function HomePage() {
             viewport={{ once: true }}
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Prêt à développer votre business ?
+              {tHome('cta_title', 'Prêt à développer votre business ?')}
             </h2>
             <p className="text-xl mb-8">
-              Rejoignez des milliers de vendeurs qui réussissent
+              {tHome('cta_subtitle', 'Rejoignez des milliers de vendeurs qui réussissent')}
             </p>
             <Link
               href="/register"
               className="inline-block"
             >
               <Button variant="secondary" size="lg">
-                Créer un compte gratuitement
+                {tHome('cta_button', 'Créer un compte gratuitement')}
               </Button>
             </Link>
           </motion.div>

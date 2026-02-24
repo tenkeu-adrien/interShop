@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      data: profiles 
+      profiles: profiles 
     });
   } catch (error: any) {
     console.error('Error fetching dating profiles:', error);

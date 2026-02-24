@@ -1,39 +1,31 @@
 import { NextResponse } from 'next/server';
 import { collection, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { DepositSchema, zodValidate } from '@/lib/validators';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { userId, paymentMethodId, clientName, amount } = body;
-    
-    console.log('💰 [API] POST /api/mobile/wallet/deposit', { userId, paymentMethodId, amount });
-    
-    // Validation
-    if (!userId || !paymentMethodId || !clientName || !amount) {
+
+    console.log('💰 [API] POST /api/mobile/wallet/deposit');
+
+    // Validation Zod
+    const validation = zodValidate(DepositSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Paramètres manquants'
-        },
+        { success: false, error: 'Données invalides', details: validation.errors.flatten() },
         { status: 400 }
       );
     }
-    
-    if (amount <= 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Le montant doit être supérieur à 0'
-        },
-        { status: 400 }
-      );
-    }
-    
+    const { userId, paymentMethodId, clientName, amount } = validation.data;
+
+    console.log('💰 [API] Validated deposit data:', { userId, paymentMethodId, amount });
+
+
     // Vérifier que l'utilisateur existe
     const userRef = doc(db, 'users', userId);
     const userSnap = await getDoc(userRef);
-    
+
     if (!userSnap.exists()) {
       return NextResponse.json(
         {
@@ -43,11 +35,11 @@ export async function POST(request: Request) {
         { status: 404 }
       );
     }
-    
+
     // Vérifier que la méthode de paiement existe
     const methodRef = doc(db, 'paymentMethods', paymentMethodId);
     const methodSnap = await getDoc(methodRef);
-    
+
     if (!methodSnap.exists()) {
       return NextResponse.json(
         {
@@ -57,9 +49,9 @@ export async function POST(request: Request) {
         { status: 404 }
       );
     }
-    
+
     const paymentMethod = methodSnap.data();
-    
+
     // Créer la transaction
     const transactionData = {
       userId,
@@ -78,11 +70,11 @@ export async function POST(request: Request) {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     };
-    
+
     const transactionRef = await addDoc(collection(db, 'transactions'), transactionData);
-    
+
     console.log(`✅ [API] Deposit transaction created: ${transactionRef.id}`);
-    
+
     return NextResponse.json({
       success: true,
       transaction: {

@@ -1,27 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getConversation } from '@/lib/firebase/chat';
 
-// GET /api/mobile/chat/conversations/[id] - Get conversation by ID
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Await params in Next.js 15+
-    const { id: conversationId } = await params;
-
-    if (!conversationId) {
-      return NextResponse.json(
-        { success: false, error: 'conversationId requis' },
-        { status: 400 }
-      );
-    }
-
-    const conversation = await getConversation(conversationId);
+    const { id } = await params;
+    const conversation = await getConversation(id);
 
     if (!conversation) {
       return NextResponse.json(
-        { success: false, error: 'Conversation non trouvée' },
+        { success: false, error: 'Conversation not found' },
         { status: 404 }
       );
     }
@@ -31,9 +21,9 @@ export async function GET(
       conversation,
     });
   } catch (error: any) {
-    console.error('Error getting conversation:', error);
+    console.error('Error fetching conversation:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Erreur serveur' },
+      { success: false, error: error.message || 'Failed to fetch conversation' },
       { status: 500 }
     );
   }

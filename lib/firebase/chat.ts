@@ -5,22 +5,75 @@ import {
   getDocs,
   addDoc,
   updateDoc,
-  deleteDoc,
   query,
   where,
   orderBy,
   limit,
-  onSnapshot,
-  Timestamp,
-  serverTimestamp,
   increment,
-  arrayUnion,
   writeBatch,
+  Timestamp,
+  onSnapshot,
+  Unsubscribe,
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './config';
-import { ChatMessage, Conversation, MessageType, ProductReference } from '@/types/chat';
-import { createNotification } from './notifications';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+
+// Types
+export interface ConversationContext {
+  type: 'product_inquiry' | 'hotel_inquiry' | 'restaurant_inquiry' | 'dating_inquiry';
+  itemId?: string;
+  itemName?: string;
+}
+
+export interface ProductReference {
+  productId: string;
+  productName: string;
+  productImage?: string;
+}
+
+export interface Conversation {
+  id: string;
+  participants: string[];
+  participantsData: {
+    [userId: string]: {
+      name: string;
+      photo?: string;
+      role: string;
+    };
+  };
+  unreadCount: {
+    [userId: string]: number;
+  };
+  context?: ConversationContext;
+  productContext?: ProductReference;
+  lastMessage?: {
+    content: string;
+    type: string;
+    senderId: string;
+    createdAt: Date;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  senderName: string;
+  senderPhoto?: string;
+  receiverId: string;
+  content: string;
+  type: 'text' | 'image' | 'video' | 'file' | 'product' | 'quote_request';
+  isRead: boolean;
+  fileUrl?: string;
+  fileName?: string;
+  fileSize?: number;
+  thumbnailUrl?: string;
+  productReference?: ProductReference;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 // Create or Get Conversation
 export async function getOrCreateConversation(
@@ -28,10 +81,13 @@ export async function getOrCreateConversation(
   userId2: string,
   user1Data: { name: string; photo?: string; role: string },
   user2Data: { name: string; photo?: string; role: string },
+  context?: ConversationContext,
   productContext?: ProductReference
 ): Promise<string> {
-  // Check if conversation already exists
+  // Check if conversation already exists FOR THIS SPECIFIC ITEM
   const conversationsRef = collection(db, 'conversations');
+  
+  // Build query to find conversation between these users
   const q = query(
     conversationsRef,
     where('participants', 'array-contains', userId1)
@@ -39,32 +95,48 @@ export async function getOrCreateConversation(
   
   const snapshot = await getDocs(q);
   
-  for (const doc of snapshot.docs) {
-    const data = doc.data();
-    if (data.participants.includes(userId2)) {
-      // Update product context if provided
-      if (productContext) {
-        await updateDoc(doc.ref, {
-          productContext,
-          updatedAt: new Date(),
-        });
+  // Check if a conversation exists for THIS SPECIFIC ITEM
+  for (const docSnap of snapshot.docs) {
+    const data = docSnap.data();
+    
+    // Must have both participants
+    if (!data.participants.includes(userId2)) continue;
+    
+    // If we have a productContext, check if it matches
+    if (productContext && data.productContext) {
+      // Same product/service = same conversation
+      if (data.productContext.productId === productContext.productId) {
+        // Update context if provided
+        if (context) {
+          await updateDoc(docSnap.ref, { 
+            context,
+            updatedAt: Timestamp.now() 
+          });
+        }
+        return docSnap.id;
       }
-      return doc.id;
+    }
+    
+    // If no productContext provided, check context type and itemId
+    if (!productContext && context && data.context) {
+      if (data.context.type === context.type && data.context.itemId === context.itemId) {
+        return docSnap.id;
+      }
     }
   }
   
-  // Nettoyer les données utilisateur pour éviter les undefined
-  const cleanUser1Data = {
+  // No existing conversation found for this item - create new one
+  const cleanUser1Data: any = {
     name: user1Data.name,
     role: user1Data.role,
-    ...(user1Data.photo && { photo: user1Data.photo })
   };
+  if (user1Data.photo) cleanUser1Data.photo = user1Data.photo;
   
-  const cleanUser2Data = {
+  const cleanUser2Data: any = {
     name: user2Data.name,
     role: user2Data.role,
-    ...(user2Data.photo && { photo: user2Data.photo })
   };
+  if (user2Data.photo) cleanUser2Data.photo = user2Data.photo;
   
   // Create new conversation
   const conversationData: any = {
@@ -77,14 +149,12 @@ export async function getOrCreateConversation(
       [userId1]: 0,
       [userId2]: 0,
     },
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
   };
   
-  // Ajouter productContext seulement s'il existe
-  if (productContext) {
-    conversationData.productContext = productContext;
-  }
+  if (context) conversationData.context = context;
+  if (productContext) conversationData.productContext = productContext;
   
   const docRef = await addDoc(conversationsRef, conversationData);
   return docRef.id;
@@ -105,49 +175,17 @@ export async function getUserConversations(userId: string): Promise<Conversation
     return {
       id: doc.id,
       ...data,
-      // Convertir les Timestamps en Dates
       createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
       updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
       lastMessage: data.lastMessage ? {
         ...data.lastMessage,
         createdAt: data.lastMessage.createdAt?.toDate ? data.lastMessage.createdAt.toDate() : new Date(data.lastMessage.createdAt),
       } : undefined,
-    };
-  }) as Conversation[];
-}
-
-// Listen to User Conversations (Real-time)
-export function subscribeToUserConversations(
-  userId: string,
-  callback: (conversations: Conversation[]) => void
-) {
-  const conversationsRef = collection(db, 'conversations');
-  const q = query(
-    conversationsRef,
-    where('participants', 'array-contains', userId),
-    orderBy('updatedAt', 'desc')
-  );
-  
-  return onSnapshot(q, (snapshot) => {
-    const conversations = snapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        // Convertir les Timestamps en Dates
-        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
-        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
-        lastMessage: data.lastMessage ? {
-          ...data.lastMessage,
-          createdAt: data.lastMessage.createdAt?.toDate ? data.lastMessage.createdAt.toDate() : new Date(data.lastMessage.createdAt),
-        } : undefined,
-      };
-    }) as Conversation[];
-    callback(conversations);
+    } as Conversation;
   });
 }
 
-// Send Text Message
+// Send Message
 export async function sendMessage(
   conversationId: string,
   senderId: string,
@@ -155,7 +193,7 @@ export async function sendMessage(
   senderPhoto: string | undefined,
   receiverId: string,
   content: string,
-  type: MessageType = 'text',
+  type: 'text' | 'image' | 'video' | 'file' | 'product' | 'quote_request' = 'text',
   fileUrl?: string,
   fileName?: string,
   fileSize?: number,
@@ -164,7 +202,7 @@ export async function sendMessage(
 ): Promise<string> {
   const messagesRef = collection(db, 'messages');
   
-  // Construire messageData en omettant les champs undefined
+  // Build message data
   const messageData: any = {
     conversationId,
     senderId,
@@ -173,11 +211,10 @@ export async function sendMessage(
     content,
     type,
     isRead: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
   };
   
-  // Ajouter les champs optionnels seulement s'ils existent
   if (senderPhoto) messageData.senderPhoto = senderPhoto;
   if (fileUrl) messageData.fileUrl = fileUrl;
   if (fileName) messageData.fileName = fileName;
@@ -198,77 +235,13 @@ export async function sendMessage(
                type === 'video' ? '🎥 Vidéo' : '📎 Fichier',
       type,
       senderId,
-      createdAt: new Date(),
+      createdAt: Timestamp.now(),
     },
-    updatedAt: new Date(),
+    updatedAt: Timestamp.now(),
     [`unreadCount.${receiverId}`]: increment(1),
   });
   
-  // Create notification for receiver
-  await createNotification(
-    receiverId,
-    'message_received',
-    'Nouveau message',
-    type === 'quote_request' 
-      ? `${senderName} a demandé un devis`
-      : `${senderName} vous a envoyé un message`,
-    {
-      conversationId,
-      senderId,
-      messageType: type,
-      ...(productReference?.productId && { productId: productReference.productId })
-    }
-  );
-  
   return docRef.id;
-}
-
-// Upload Image
-export async function uploadChatImage(
-  file: File,
-  conversationId: string,
-  userId: string
-): Promise<string> {
-  const timestamp = Date.now();
-  const fileName = `${timestamp}_${file.name}`;
-  const storageRef = ref(storage, `chat/${conversationId}/images/${fileName}`);
-  
-  await uploadBytes(storageRef, file);
-  const downloadURL = await getDownloadURL(storageRef);
-  
-  return downloadURL;
-}
-
-// Upload Video
-export async function uploadChatVideo(
-  file: File,
-  conversationId: string,
-  userId: string
-): Promise<string> {
-  const timestamp = Date.now();
-  const fileName = `${timestamp}_${file.name}`;
-  const storageRef = ref(storage, `chat/${conversationId}/videos/${fileName}`);
-  
-  await uploadBytes(storageRef, file);
-  const downloadURL = await getDownloadURL(storageRef);
-  
-  return downloadURL;
-}
-
-// Upload File
-export async function uploadChatFile(
-  file: File,
-  conversationId: string,
-  userId: string
-): Promise<string> {
-  const timestamp = Date.now();
-  const fileName = `${timestamp}_${file.name}`;
-  const storageRef = ref(storage, `chat/${conversationId}/files/${fileName}`);
-  
-  await uploadBytes(storageRef, file);
-  const downloadURL = await getDownloadURL(storageRef);
-  
-  return downloadURL;
 }
 
 // Get Conversation Messages
@@ -290,40 +263,32 @@ export async function getConversationMessages(
     return {
       id: doc.id,
       ...data,
-      // Convertir les Timestamps Firestore en Dates JavaScript
       createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
       updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
-    };
-  }) as ChatMessage[];
+    } as ChatMessage;
+  });
   
-  return messages.reverse(); // Reverse to show oldest first
+  return messages.reverse(); // Oldest first
 }
 
-// Listen to Conversation Messages (Real-time)
-export function subscribeToConversationMessages(
-  conversationId: string,
-  callback: (messages: ChatMessage[]) => void
-) {
-  const messagesRef = collection(db, 'messages');
-  const q = query(
-    messagesRef,
-    where('conversationId', '==', conversationId),
-    orderBy('createdAt', 'asc')
-  );
+// Get Conversation by ID
+export async function getConversation(conversationId: string): Promise<Conversation | null> {
+  const docRef = doc(db, 'conversations', conversationId);
+  const docSnap = await getDoc(docRef);
   
-  return onSnapshot(q, (snapshot) => {
-    const messages = snapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-        // Convertir les Timestamps Firestore en Dates JavaScript
-        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
-        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
-      };
-    }) as ChatMessage[];
-    callback(messages);
-  });
+  if (!docSnap.exists()) return null;
+  
+  const data = docSnap.data();
+  return {
+    id: docSnap.id,
+    ...data,
+    createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+    updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
+    lastMessage: data.lastMessage ? {
+      ...data.lastMessage,
+      createdAt: data.lastMessage.createdAt?.toDate ? data.lastMessage.createdAt.toDate() : new Date(data.lastMessage.createdAt),
+    } : undefined,
+  } as Conversation;
 }
 
 // Mark Messages as Read
@@ -342,37 +307,81 @@ export async function markMessagesAsRead(
   const snapshot = await getDocs(q);
   const batch = writeBatch(db);
   
-  snapshot.docs.forEach(doc => {
-    batch.update(doc.ref, { isRead: true });
+  snapshot.docs.forEach(docSnap => {
+    batch.update(docSnap.ref, { isRead: true });
   });
   
   await batch.commit();
   
-  // Reset unread count in conversation
+  // Reset unread count
   const conversationRef = doc(db, 'conversations', conversationId);
   await updateDoc(conversationRef, {
     [`unreadCount.${userId}`]: 0,
   });
 }
 
-// Delete Message
-export async function deleteMessage(messageId: string): Promise<void> {
-  await deleteDoc(doc(db, 'messages', messageId));
+
+// Subscribe to User Conversations (Real-time)
+export function subscribeToUserConversations(
+  userId: string,
+  callback: (conversations: Conversation[]) => void
+): Unsubscribe {
+  const conversationsRef = collection(db, 'conversations');
+  const q = query(
+    conversationsRef,
+    where('participants', 'array-contains', userId),
+    orderBy('updatedAt', 'desc')
+  );
+  
+  return onSnapshot(q, (snapshot) => {
+    const conversations = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
+        lastMessage: data.lastMessage ? {
+          ...data.lastMessage,
+          createdAt: data.lastMessage.createdAt?.toDate ? data.lastMessage.createdAt.toDate() : new Date(data.lastMessage.createdAt),
+        } : undefined,
+      } as Conversation;
+    });
+    callback(conversations);
+  });
 }
 
-// Get Total Unread Count for User
-export async function getTotalUnreadCount(userId: string): Promise<number> {
-  const conversations = await getUserConversations(userId);
-  return conversations.reduce((total, conv) => {
-    return total + (conv.unreadCount[userId] || 0);
-  }, 0);
+// Subscribe to Conversation Messages (Real-time)
+export function subscribeToConversationMessages(
+  conversationId: string,
+  callback: (messages: ChatMessage[]) => void
+): Unsubscribe {
+  const messagesRef = collection(db, 'messages');
+  const q = query(
+    messagesRef,
+    where('conversationId', '==', conversationId),
+    orderBy('createdAt', 'asc')
+  );
+  
+  return onSnapshot(q, (snapshot) => {
+    const messages = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
+      } as ChatMessage;
+    });
+    callback(messages);
+  });
 }
 
-// Listen to Total Unread Count (Real-time)
+// Subscribe to Total Unread Count (Real-time)
 export function subscribeToTotalUnreadCount(
   userId: string,
   callback: (count: number) => void
-) {
+): Unsubscribe {
   return subscribeToUserConversations(userId, (conversations) => {
     const total = conversations.reduce((sum, conv) => {
       return sum + (conv.unreadCount[userId] || 0);
@@ -381,34 +390,50 @@ export function subscribeToTotalUnreadCount(
   });
 }
 
-// Search Messages
-export async function searchMessages(
+// Upload Chat Image
+export async function uploadChatImage(
+  file: File,
   conversationId: string,
-  searchTerm: string
-): Promise<ChatMessage[]> {
-  const messages = await getConversationMessages(conversationId, 1000);
-  return messages.filter(msg => 
-    msg.content.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  userId: string
+): Promise<string> {
+  const timestamp = Date.now();
+  const fileName = `${timestamp}_${file.name}`;
+  const storageRef = ref(storage, `chat/${conversationId}/images/${fileName}`);
+  
+  await uploadBytes(storageRef, file);
+  const downloadURL = await getDownloadURL(storageRef);
+  
+  return downloadURL;
 }
 
-// Get Conversation by ID
-export async function getConversation(conversationId: string): Promise<Conversation | null> {
-  const docRef = doc(db, 'conversations', conversationId);
-  const docSnap = await getDoc(docRef);
+// Upload Chat Video
+export async function uploadChatVideo(
+  file: File,
+  conversationId: string,
+  userId: string
+): Promise<string> {
+  const timestamp = Date.now();
+  const fileName = `${timestamp}_${file.name}`;
+  const storageRef = ref(storage, `chat/${conversationId}/videos/${fileName}`);
   
-  if (!docSnap.exists()) return null;
+  await uploadBytes(storageRef, file);
+  const downloadURL = await getDownloadURL(storageRef);
   
-  const data = docSnap.data();
-  return {
-    id: docSnap.id,
-    ...data,
-    // Convertir les Timestamps en Dates
-    createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
-    updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
-    lastMessage: data.lastMessage ? {
-      ...data.lastMessage,
-      createdAt: data.lastMessage.createdAt?.toDate ? data.lastMessage.createdAt.toDate() : new Date(data.lastMessage.createdAt),
-    } : undefined,
-  } as Conversation;
+  return downloadURL;
+}
+
+// Upload Chat File
+export async function uploadChatFile(
+  file: File,
+  conversationId: string,
+  userId: string
+): Promise<string> {
+  const timestamp = Date.now();
+  const fileName = `${timestamp}_${file.name}`;
+  const storageRef = ref(storage, `chat/${conversationId}/files/${fileName}`);
+  
+  await uploadBytes(storageRef, file);
+  const downloadURL = await getDownloadURL(storageRef);
+  
+  return downloadURL;
 }

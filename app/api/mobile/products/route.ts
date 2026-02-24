@@ -1,22 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { collection, query, getDocs, orderBy, limit as firestoreLimit, startAfter, doc, getDoc, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { ProductQuerySchema, zodValidate } from '@/lib/validators';
+import { searchProducts } from '@/lib/algolia';
 
 export async function GET(request: NextRequest) {
   try {
     console.log('🔍 [API Products] GET /api/mobile/products - Start');
-    
+
     const searchParams = request.nextUrl.searchParams;
-    const limitCount = parseInt(searchParams.get('limit') || '20');
-    const category = searchParams.get('category');
-    const searchQuery = searchParams.get('search');
-    const lastDocId = searchParams.get('lastDocId');
-    const similarTo = searchParams.get('similarTo'); // Pour produits similaires
-    
+    const rawParams = {
+      limit: searchParams.get('limit') || '20',
+      category: searchParams.get('category') || undefined,
+      search: searchParams.get('search') || undefined,
+      lastDocId: searchParams.get('lastDocId') || undefined,
+      similarTo: searchParams.get('similarTo') || undefined,
+    };
+
+    // Validation Zod des paramètres
+    const validation = zodValidate(ProductQuerySchema, rawParams);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Paramètres invalides', details: validation.errors.flatten() },
+        { status: 400 }
+      );
+    }
+    const { limit: limitCount, category, search: searchQuery, lastDocId, similarTo } = validation.data;
+
     console.log('📋 [API Products] Params:', { limitCount, category, searchQuery, lastDocId, similarTo });
 
+    // --- LOGIQUE ALGOLIA POUR LA RECHERCHE ---
+    if (searchQuery) {
+      console.log(`🚀 [API Products] Using Algolia for search: "${searchQuery}"`);
+      try {
+        const algoliaResult = await searchProducts(searchQuery, {
+          category: category !== 'all' ? category : undefined,
+          limit: limitCount,
+          page: lastDocId ? parseInt(lastDocId) : 0, // Dans le cas d'Algolia, on pourrait utiliser la page
+        });
+
+        return NextResponse.json({
+          success: true,
+          products: algoliaResult.hits,
+          total: algoliaResult.total,
+          hasMore: algoliaResult.hasMore,
+          lastDocId: algoliaResult.hasMore ? (algoliaResult.currentPage + 1).toString() : null,
+          source: 'algolia'
+        });
+      } catch (algoliaError) {
+        console.error('⚠️ [API Products] Algolia search failed, falling back to manual search:', algoliaError);
+        // Fallback sur la logique Firestore existante ci-dessous
+      }
+    }
+
     let q;
-    
+
     // Si c'est une requête pour produits similaires
     if (similarTo && category) {
       console.log('🔍 [API Products] Fetching similar products for category:', category);
@@ -33,7 +71,7 @@ export async function GET(request: NextRequest) {
       console.log('🔍 [API Products] Pagination with lastDocId:', lastDocId);
       const lastDocRef = doc(db, 'products', lastDocId);
       const lastDocSnap = await getDoc(lastDocRef);
-      
+
       if (!lastDocSnap.exists()) {
         console.warn('⚠️ [API Products] lastDoc not found');
         return NextResponse.json({
@@ -64,7 +102,6 @@ export async function GET(request: NextRequest) {
 
     console.log('🔍 [API Products] Executing query...');
     const snapshot = await getDocs(q);
-    console.log('📦 [API Products] Firestore snapshot size:', snapshot.size);
 
     let allProducts = snapshot.docs.map(doc => {
       const data = doc.data();
@@ -82,39 +119,25 @@ export async function GET(request: NextRequest) {
       allProducts = allProducts.slice(0, limitCount); // Limiter au nombre demandé
     }
 
-    console.log('📦 [API Products] Total products from Firestore:', allProducts.length);
-
-    // Filtrage côté serveur
+    // Filtrage côté serveur (Fallback pour catégories/search)
     let products = allProducts;
 
     // Filtre par catégorie si spécifié (et pas déjà filtré pour similaires)
     if (category && category !== 'all' && !similarTo) {
-      const beforeFilter = products.length;
       products = products.filter((p: any) => p.category === category);
-      console.log(`🔍 [API Products] Category filter (${category}): ${beforeFilter} → ${products.length}`);
     }
 
-    // Filtre par recherche si spécifié
+    // Filtre par recherche si spécifié (Fallback)
     if (searchQuery) {
-      const beforeFilter = products.length;
       const searchLower = searchQuery.toLowerCase();
       products = products.filter((product: any) =>
         product.name?.toLowerCase().includes(searchLower) ||
-        product.description?.toLowerCase().includes(searchLower) ||
-        product.tags?.some((tag: string) => tag.toLowerCase().includes(searchLower))
+        product.description?.toLowerCase().includes(searchLower)
       );
-      console.log(`🔍 [API Products] Search filter (${searchQuery}): ${beforeFilter} → ${products.length}`);
     }
 
-    // Déterminer s'il y a plus de produits
     const hasMore = products.length === limitCount;
     const newLastDocId = products.length > 0 ? products[products.length - 1].id : null;
-
-    console.log('✅ [API Products] Returning:', {
-      count: products.length,
-      hasMore,
-      lastDocId: newLastDocId,
-    });
 
     return NextResponse.json({
       success: true,
@@ -122,14 +145,14 @@ export async function GET(request: NextRequest) {
       total: products.length,
       hasMore,
       lastDocId: newLastDocId,
+      source: 'firestore'
     });
   } catch (error: any) {
     console.error('❌ [API Products] Error:', error);
-    console.error('❌ [API Products] Error message:', error.message);
-    console.error('❌ [API Products] Error stack:', error.stack);
     return NextResponse.json(
       { error: error.message || 'Erreur serveur' },
       { status: 500 }
     );
   }
 }
+

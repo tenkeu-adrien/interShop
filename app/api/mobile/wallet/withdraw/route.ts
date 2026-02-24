@@ -1,39 +1,30 @@
 import { NextResponse } from 'next/server';
 import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { WithdrawSchema, zodValidate } from '@/lib/validators';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { userId, paymentMethodId, amount, accountName, accountNumber } = body;
-    
-    console.log('💸 [API] POST /api/mobile/wallet/withdraw', { userId, paymentMethodId, amount });
-    
-    // Validation
-    if (!userId || !paymentMethodId || !amount || !accountName || !accountNumber) {
+
+    console.log('💸 [API] POST /api/mobile/wallet/withdraw');
+
+    // Validation Zod
+    const validation = zodValidate(WithdrawSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Paramètres manquants'
-        },
+        { success: false, error: 'Données invalides', details: validation.errors.flatten() },
         { status: 400 }
       );
     }
-    
-    if (amount <= 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Le montant doit être supérieur à 0'
-        },
-        { status: 400 }
-      );
-    }
-    
+    const { userId, paymentMethodId, amount } = validation.data;
+
+    console.log('💸 [API] Validated withdraw:', { userId, paymentMethodId, amount });
+
     // Vérifier que l'utilisateur existe et récupérer son wallet
     const userRef = doc(db, 'users', userId);
     const userSnap = await getDoc(userRef);
-    
+
     if (!userSnap.exists()) {
       return NextResponse.json(
         {
@@ -43,11 +34,11 @@ export async function POST(request: Request) {
         { status: 404 }
       );
     }
-    
+
     // Récupérer le wallet
     const walletRef = doc(db, 'wallets', userId);
     const walletSnap = await getDoc(walletRef);
-    
+
     if (!walletSnap.exists()) {
       return NextResponse.json(
         {
@@ -57,9 +48,9 @@ export async function POST(request: Request) {
         { status: 404 }
       );
     }
-    
+
     const wallet = walletSnap.data();
-    
+
     // Vérifier le solde
     if (wallet.balance < amount) {
       return NextResponse.json(
@@ -70,11 +61,11 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    
+
     // Vérifier que la méthode de paiement existe
     const methodRef = doc(db, 'paymentMethods', paymentMethodId);
     const methodSnap = await getDoc(methodRef);
-    
+
     if (!methodSnap.exists()) {
       return NextResponse.json(
         {
@@ -84,9 +75,9 @@ export async function POST(request: Request) {
         { status: 404 }
       );
     }
-    
+
     const paymentMethod = methodSnap.data();
-    
+
     // Créer la transaction
     const transactionData = {
       userId,
@@ -106,18 +97,18 @@ export async function POST(request: Request) {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     };
-    
+
     const transactionRef = await addDoc(collection(db, 'transactions'), transactionData);
-    
+
     // Mettre à jour le solde (déduire du balance, ajouter au pendingBalance)
     await updateDoc(walletRef, {
       balance: increment(-amount),
       pendingBalance: increment(amount),
       updatedAt: serverTimestamp()
     });
-    
+
     console.log(`✅ [API] Withdrawal transaction created: ${transactionRef.id}`);
-    
+
     return NextResponse.json({
       success: true,
       transaction: {
