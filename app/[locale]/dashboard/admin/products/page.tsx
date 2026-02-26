@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
+import { useTranslations } from 'next-intl';
 import { 
   Package, 
   Search, 
@@ -32,6 +33,9 @@ import { PriceDisplay } from '@/components/ui/PriceDisplay';
 export default function AdminProductsPage() {
   const router = useRouter();
   const { user, loading } = useAuthStore();
+  const tAdmin = useTranslations('admin');
+  const tCommon = useTranslations('common');
+  const tProducts = useTranslations('products');
   
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -72,7 +76,7 @@ export default function AdminProductsPage() {
       setProducts(productsData);
     } catch (error) {
       console.error('Error loading products:', error);
-      toast.error('Erreur lors du chargement des produits');
+      toast.error(tCommon('error'));
     } finally {
       setLoadingProducts(false);
     }
@@ -111,25 +115,25 @@ export default function AdminProductsPage() {
         isActive: !isActive,
         updatedAt: new Date()
       });
-      toast.success(isActive ? 'Produit désactivé' : 'Produit activé');
+      toast.success(isActive ? tProducts('product_deleted') : tProducts('product_created'));
       loadProducts();
     } catch (error) {
       console.error('Error toggling product status:', error);
-      toast.error('Erreur lors de la modification');
+      toast.error(tCommon('error'));
     }
   };
 
   const handleDelete = async (productId: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) return;
+    if (!confirm(tProducts('delete_confirmation'))) return;
     
     try {
       await deleteDoc(doc(db, 'products', productId));
-      toast.success('Produit supprimé');
+      toast.success(tProducts('product_deleted'));
       loadProducts();
       setShowModal(false);
     } catch (error) {
       console.error('Error deleting product:', error);
-      toast.error('Erreur lors de la suppression');
+      toast.error(tCommon('error'));
     }
   };
 
@@ -171,16 +175,16 @@ export default function AdminProductsPage() {
             <div>
               <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
                 <Package className="text-purple-600" size={40} />
-                Gestion des produits
+                {tAdmin('product_management')}
               </h1>
-              <p className="text-gray-600">Gérez tous les produits de la plateforme</p>
+              <p className="text-gray-600">{tAdmin('manage_your_products')}</p>
             </div>
             <Link
               href="/dashboard/admin"
               className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
             >
               <ChevronLeft size={20} />
-              Retour
+              {tCommon('back')}
             </Link>
           </div>
 

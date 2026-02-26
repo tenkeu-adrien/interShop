@@ -241,69 +241,7 @@ export default function AdminDashboardPage() {
       link: '/dashboard/admin/revenue'
     },
   ];
-      title: 'Clients',
-      value: stats.totalClients,
-      icon: UserCheck,
-      color: 'bg-green-500',
-      change: '+8%',
-      isPositive: true,
-      link: '/dashboard/admin/users?role=client'
-    },
-    {
-      title: 'Fournisseurs',
-      value: stats.totalFournisseurs,
-      icon: Store,
-      color: 'bg-purple-500',
-      change: '+5%',
-      isPositive: true,
-      link: '/dashboard/admin/users?role=fournisseur'
-    },
-    {
-      title: 'Marketistes',
-      value: stats.totalMarketistes,
-      icon: Tag,
-      color: 'bg-yellow-500',
-      change: '+15%',
-      isPositive: true,
-      link: '/dashboard/admin/users?role=marketiste'
-    },
-    {
-      title: 'Produits totaux',
-      value: stats.totalProducts,
-      icon: Package,
-      color: 'bg-indigo-500',
-      change: `${stats.activeProducts} actifs`,
-      isPositive: true,
-      link: '/dashboard/admin/products'
-    },
-    {
-      title: 'Commandes totales',
-      value: stats.totalOrders,
-      icon: ShoppingCart,
-      color: 'bg-orange-500',
-      change: `${stats.pendingOrders} en attente`,
-      isPositive: stats.pendingOrders === 0,
-      link: '/dashboard/admin/orders'
-    },
-    {
-      title: 'Revenu total',
-      value: `$${stats.totalRevenue.toFixed(2)}`,
-      icon: DollarSign,
-      color: 'bg-green-600',
-      change: '+23%',
-      isPositive: true,
-      link: '/dashboard/admin/revenue'
-    },
-    {
-      title: 'Revenu mensuel',
-      value: `$${stats.monthlyRevenue.toFixed(2)}`,
-      icon: TrendingUp,
-      color: 'bg-emerald-500',
-      change: '+18%',
-      isPositive: true,
-      link: '/dashboard/admin/revenue'
-    },
-  ];
+      
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
+import { useTranslations } from 'next-intl';
 import { 
   Users, 
   Search, 
@@ -37,6 +38,8 @@ export default function AdminUsersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading } = useAuthStore();
+  const tAdmin = useTranslations('admin');
+  const tCommon = useTranslations('common');
   
   const [users, setUsers] = useState<UserType[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserType[]>([]);
@@ -84,7 +87,7 @@ export default function AdminUsersPage() {
       setUsers(usersData);
     } catch (error) {
       console.error('Error loading users:', error);
-      toast.error('Erreur lors du chargement des utilisateurs');
+      toast.error(tAdmin('error_loading_users'));
     } finally {
       setLoadingUsers(false);
     }
@@ -123,11 +126,11 @@ export default function AdminUsersPage() {
         approvedAt: new Date(),
         isActive: true
       });
-      toast.success('Utilisateur approuvé');
+      toast.success(tAdmin('user_approved'));
       loadUsers();
     } catch (error) {
       console.error('Error approving user:', error);
-      toast.error('Erreur lors de l\'approbation');
+      toast.error(tAdmin('error_approving'));
     }
   };
 
@@ -138,25 +141,25 @@ export default function AdminUsersPage() {
         rejectionReason: reason,
         isActive: false
       });
-      toast.success('Utilisateur rejeté');
+      toast.success(tAdmin('user_rejected'));
       loadUsers();
     } catch (error) {
       console.error('Error rejecting user:', error);
-      toast.error('Erreur lors du rejet');
+      toast.error(tAdmin('error_rejecting'));
     }
   };
 
   const handleDelete = async (userId: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) return;
+    if (!confirm(tAdmin('delete_confirmation') + ' ?')) return;
     
     try {
       await deleteDoc(doc(db, 'users', userId));
-      toast.success('Utilisateur supprimé');
+      toast.success(tAdmin('user_deleted'));
       loadUsers();
       setShowModal(false);
     } catch (error) {
       console.error('Error deleting user:', error);
-      toast.error('Erreur lors de la suppression');
+      toast.error(tAdmin('error_deleting'));
     }
   };
 
@@ -165,11 +168,11 @@ export default function AdminUsersPage() {
       await updateDoc(doc(db, 'users', userId), {
         isActive: !isActive
       });
-      toast.success(isActive ? 'Utilisateur désactivé' : 'Utilisateur activé');
+      toast.success(isActive ? tAdmin('user_deactivated') : tAdmin('user_activated'));
       loadUsers();
     } catch (error) {
       console.error('Error toggling user status:', error);
-      toast.error('Erreur lors de la modification');
+      toast.error(tAdmin('error_updating'));
     }
   };
 
@@ -235,28 +238,28 @@ export default function AdminUsersPage() {
             <div>
               <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
                 <Users className="text-green-600" size={40} />
-                Gestion des utilisateurs
+                {tAdmin('user_management')}
               </h1>
-              <p className="text-gray-600">Gérez tous les utilisateurs de la plateforme</p>
+              <p className="text-gray-600">{tAdmin('manage_all_users')}</p>
             </div>
             <Link
               href="/dashboard/admin"
               className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
             >
               <ChevronLeft size={20} />
-              Retour au dashboard
+              {tAdmin('back_to_dashboard')}
             </Link>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="bg-white p-4 rounded-lg shadow">
-              <p className="text-gray-600 text-sm">Total</p>
+              <p className="text-gray-600 text-sm">{tAdmin('total')}</p>
               <p className="text-2xl font-bold">{users.length}</p>
             </div>
             <div className="bg-blue-50 p-4 rounded-lg shadow">
               <p className="text-blue-600 text-sm flex items-center gap-1">
-                <UserCheck size={14} /> Clients
+                <UserCheck size={14} /> {tAdmin('clients')}
               </p>
               <p className="text-2xl font-bold text-blue-600">
                 {users.filter(u => u.role === 'client').length}
@@ -264,7 +267,7 @@ export default function AdminUsersPage() {
             </div>
             <div className="bg-purple-50 p-4 rounded-lg shadow">
               <p className="text-purple-600 text-sm flex items-center gap-1">
-                <Store size={14} /> Fournisseurs
+                <Store size={14} /> {tAdmin('suppliers')}
               </p>
               <p className="text-2xl font-bold text-purple-600">
                 {users.filter(u => u.role === 'fournisseur').length}
@@ -272,7 +275,7 @@ export default function AdminUsersPage() {
             </div>
             <div className="bg-yellow-50 p-4 rounded-lg shadow">
               <p className="text-yellow-600 text-sm flex items-center gap-1">
-                <Tag size={14} /> Marketistes
+                <Tag size={14} /> {tAdmin('marketers')}
               </p>
               <p className="text-2xl font-bold text-yellow-600">
                 {users.filter(u => u.role === 'marketiste').length}
@@ -280,7 +283,7 @@ export default function AdminUsersPage() {
             </div>
             <div className="bg-green-50 p-4 rounded-lg shadow">
               <p className="text-green-600 text-sm flex items-center gap-1">
-                <Check size={14} /> Approuvés
+                <Check size={14} /> {tAdmin('approved')}
               </p>
               <p className="text-2xl font-bold text-green-600">
                 {users.filter(u => u.approvalStatus === 'approved').length}
@@ -297,7 +300,7 @@ export default function AdminUsersPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
-                placeholder="Rechercher par nom ou email..."
+                placeholder={tAdmin('search_placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
@@ -312,10 +315,10 @@ export default function AdminUsersPage() {
                 onChange={(e) => setRoleFilter(e.target.value as UserRole | 'all')}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent appearance-none"
               >
-                <option value="all">Tous les rôles</option>
-                <option value="client">Clients</option>
-                <option value="fournisseur">Fournisseurs</option>
-                <option value="marketiste">Marketistes</option>
+                <option value="all">{tAdmin('all_roles')}</option>
+                <option value="client">{tAdmin('clients')}</option>
+                <option value="fournisseur">{tAdmin('suppliers')}</option>
+                <option value="marketiste">{tAdmin('marketers')}</option>
                 <option value="admin">Admins</option>
               </select>
             </div>
@@ -328,10 +331,10 @@ export default function AdminUsersPage() {
                 onChange={(e) => setStatusFilter(e.target.value as ApprovalStatus | 'all')}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent appearance-none"
               >
-                <option value="all">Tous les statuts</option>
-                <option value="approved">Approuvés</option>
-                <option value="pending">En attente</option>
-                <option value="rejected">Rejetés</option>
+                <option value="all">{tAdmin('all_statuses')}</option>
+                <option value="approved">{tAdmin('approved')}</option>
+                <option value="pending">{tAdmin('pending_approval')}</option>
+                <option value="rejected">{tAdmin('rejected')}</option>
               </select>
             </div>
           </div>
@@ -344,22 +347,22 @@ export default function AdminUsersPage() {
               <thead className="bg-gray-50 border-b">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Utilisateur
+                    {tAdmin('user')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Rôle
+                    {tAdmin('role')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Statut
+                    {tAdmin('status')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date d'inscription
+                    {tAdmin('registration_date')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actif
+                    {tAdmin('active')}
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    {tAdmin('actions')}
                   </th>
                 </tr>
               </thead>
@@ -413,7 +416,7 @@ export default function AdminUsersPage() {
                         }`}
                       >
                         {u.isActive ? <Check size={12} /> : <X size={12} />}
-                        {u.isActive ? 'Actif' : 'Inactif'}
+                        {u.isActive ? tAdmin('active') : tAdmin('inactive')}
                       </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -421,7 +424,7 @@ export default function AdminUsersPage() {
                         <button
                           onClick={() => openModal(u, 'view')}
                           className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
-                          title="Voir"
+                          title={tAdmin('view')}
                         >
                           <Eye size={18} />
                         </button>
@@ -430,14 +433,14 @@ export default function AdminUsersPage() {
                             <button
                               onClick={() => handleApprove(u.id)}
                               className="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 rounded"
-                              title="Approuver"
+                              title={tAdmin('approve')}
                             >
                               <Check size={18} />
                             </button>
                             <button
                               onClick={() => handleReject(u.id, 'Rejeté par admin')}
                               className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded"
-                              title="Rejeter"
+                              title={tAdmin('reject')}
                             >
                               <X size={18} />
                             </button>
@@ -446,7 +449,7 @@ export default function AdminUsersPage() {
                         <button
                           onClick={() => openModal(u, 'delete')}
                           className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded"
-                          title="Supprimer"
+                          title={tAdmin('delete')}
                         >
                           <Trash2 size={18} />
                         </button>
@@ -462,7 +465,7 @@ export default function AdminUsersPage() {
           {totalPages > 1 && (
             <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t">
               <div className="text-sm text-gray-700">
-                Affichage de {indexOfFirstUser + 1} à {Math.min(indexOfLastUser, filteredUsers.length)} sur {filteredUsers.length} utilisateurs
+                {tAdmin('showing')} {indexOfFirstUser + 1} {tAdmin('to')} {Math.min(indexOfLastUser, filteredUsers.length)} {tAdmin('of')} {filteredUsers.length} {tAdmin('users_text')}
               </div>
               <div className="flex gap-2">
                 <button
@@ -471,7 +474,7 @@ export default function AdminUsersPage() {
                   className="px-3 py-1 border rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                 >
                   <ChevronLeft size={16} />
-                  Précédent
+                  {tAdmin('previous')}
                 </button>
                 <span className="px-4 py-1 bg-green-100 text-green-800 rounded-lg font-semibold">
                   {currentPage} / {totalPages}
@@ -481,7 +484,7 @@ export default function AdminUsersPage() {
                   disabled={currentPage === totalPages}
                   className="px-3 py-1 border rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                 >
-                  Suivant
+                  {tAdmin('next')}
                   <ChevronRight size={16} />
                 </button>
               </div>
@@ -500,9 +503,9 @@ export default function AdminUsersPage() {
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">
-                    {modalMode === 'view' && 'Détails de l\'utilisateur'}
-                    {modalMode === 'edit' && 'Modifier l\'utilisateur'}
-                    {modalMode === 'delete' && 'Supprimer l\'utilisateur'}
+                    {modalMode === 'view' && tAdmin('user_details')}
+                    {modalMode === 'edit' && tAdmin('edit_user')}
+                    {modalMode === 'delete' && tAdmin('delete_user')}
                   </h2>
                   <button
                     onClick={() => setShowModal(false)}
@@ -526,32 +529,32 @@ export default function AdminUsersPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-gray-600">Rôle</p>
+                        <p className="text-sm text-gray-600">{tAdmin('role')}</p>
                         <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${getRoleColor(selectedUser.role)}`}>
                           {getRoleIcon(selectedUser.role)}
                           {selectedUser.role}
                         </span>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Statut</p>
+                        <p className="text-sm text-gray-600">{tAdmin('status')}</p>
                         <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(selectedUser.approvalStatus)}`}>
                           {selectedUser.approvalStatus}
                         </span>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Actif</p>
-                        <p className="font-semibold">{selectedUser.isActive ? 'Oui' : 'Non'}</p>
+                        <p className="text-sm text-gray-600">{tAdmin('active')}</p>
+                        <p className="font-semibold">{selectedUser.isActive ? tAdmin('yes') : tAdmin('no')}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Vérifié</p>
-                        <p className="font-semibold">{selectedUser.isVerified ? 'Oui' : 'Non'}</p>
+                        <p className="text-sm text-gray-600">{tAdmin('verified')}</p>
+                        <p className="font-semibold">{selectedUser.isVerified ? tAdmin('yes') : tAdmin('no')}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Téléphone</p>
-                        <p className="font-semibold">{selectedUser.phoneNumber || 'N/A'}</p>
+                        <p className="text-sm text-gray-600">{tAdmin('phone')}</p>
+                        <p className="font-semibold">{selectedUser.phoneNumber || tAdmin('na')}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Date d'inscription</p>
+                        <p className="text-sm text-gray-600">{tAdmin('registration_date')}</p>
                         <p className="font-semibold">
                           {new Date(selectedUser.createdAt).toLocaleDateString('fr-FR')}
                         </p>
@@ -564,8 +567,8 @@ export default function AdminUsersPage() {
                   <div>
                     <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
                       <p className="text-red-800">
-                        Êtes-vous sûr de vouloir supprimer l'utilisateur <strong>{selectedUser.displayName}</strong> ?
-                        Cette action est irréversible.
+                        {tAdmin('delete_confirmation')} <strong>{selectedUser.displayName}</strong> ?
+                        {tAdmin('action_irreversible')}
                       </p>
                     </div>
                     <div className="flex gap-3">
@@ -573,13 +576,13 @@ export default function AdminUsersPage() {
                         onClick={() => handleDelete(selectedUser.id)}
                         className="flex-1 bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors"
                       >
-                        Supprimer
+                        {tAdmin('delete')}
                       </button>
                       <button
                         onClick={() => setShowModal(false)}
                         className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
                       >
-                        Annuler
+                        {tAdmin('cancel')}
                       </button>
                     </div>
                   </div>
