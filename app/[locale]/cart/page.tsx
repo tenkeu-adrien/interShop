@@ -5,8 +5,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Trash2, Plus, Minus } from 'lucide-react';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
+import { useTranslations } from 'next-intl';
 
 export default function CartPage() {
+  const t = useTranslations();
   const { items, removeItem, updateQuantity, getTotal, marketingCode, removeMarketingCode } =
     useCartStore();
 
@@ -17,13 +19,13 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-3xl font-bold mb-4">Votre panier est vide</h1>
-        <p className="text-gray-600 mb-8">Commencez vos achats dès maintenant !</p>
+        <h1 className="text-3xl font-bold mb-4">{t('cart.empty_cart')}</h1>
+        <p className="text-gray-600 mb-8">{t('cart.empty_message')}</p>
         <Link
           href="/products"
           className="bg-orange-500 text-white px-8 py-3 rounded-lg hover:bg-orange-600 inline-block"
         >
-          Découvrir les produits
+          {t('cart.discover_products')}
         </Link>
       </div>
     );
@@ -31,7 +33,7 @@ export default function CartPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Panier ({items.length})</h1>
+      <h1 className="text-3xl font-bold mb-8">{t('cart.cart_count')} ({items.length})</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">
@@ -91,11 +93,11 @@ export default function CartPage() {
 
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow p-6 sticky top-20">
-            <h2 className="font-bold text-xl mb-6">Résumé</h2>
+            <h2 className="font-bold text-xl mb-6">{t('cart.summary')}</h2>
 
             <div className="space-y-4 mb-6">
               <div className="flex justify-between">
-                <span className="text-gray-600">Sous-total</span>
+                <span className="text-gray-600">{t('cart.subtotal')}</span>
                 <PriceDisplay 
                   priceUSD={subtotal}
                   className="font-semibold"
@@ -104,7 +106,7 @@ export default function CartPage() {
 
               {marketingCode && (
                 <div className="flex justify-between text-green-600">
-                  <span>Réduction ({marketingCode})</span>
+                  <span>{t('cart.discount')} ({marketingCode})</span>
                   <PriceDisplay 
                     priceUSD={-discount}
                     className=""
@@ -113,7 +115,7 @@ export default function CartPage() {
               )}
 
               <div className="border-t pt-4 flex justify-between text-lg font-bold">
-                <span>Total</span>
+                <span>{t('cart.total')}</span>
                 <PriceDisplay 
                   priceUSD={total}
                   className="text-orange-600"
@@ -125,11 +127,11 @@ export default function CartPage() {
               <div className="mb-6">
                 <input
                   type="text"
-                  placeholder="Code marketiste"
+                  placeholder={t('cart.marketing_code')}
                   className="w-full px-4 py-2 border rounded-lg mb-2"
                 />
                 <button className="w-full text-orange-600 border border-orange-600 py-2 rounded-lg hover:bg-orange-50">
-                  Appliquer
+                  {t('cart.apply')}
                 </button>
               </div>
             )}
@@ -139,7 +141,7 @@ export default function CartPage() {
                 onClick={removeMarketingCode}
                 className="w-full text-red-600 border border-red-600 py-2 rounded-lg hover:bg-red-50 mb-4"
               >
-                Retirer le code
+                {t('cart.remove_code')}
               </button>
             )}
 
@@ -147,7 +149,7 @@ export default function CartPage() {
               href="/checkout"
               className="block w-full bg-orange-500 text-white text-center py-3 rounded-lg font-semibold hover:bg-orange-600"
             >
-              Passer la commande
+              {t('cart.place_order')}
             </Link>
           </div>
         </div>

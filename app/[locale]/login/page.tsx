@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { loginUser } from '@/lib/firebase/auth';
 import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,6 +14,9 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const tAuth = useTranslations('auth');
+  const tCommon = useTranslations('common');
+  const tErrors = useTranslations('errors');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,10 +25,10 @@ export default function LoginPage() {
     try {
       const user = await loginUser(email, password);
       setUser(user);
-      toast.success('Connexion réussie !');
+      toast.success(tAuth('login_success'));
       router.push('/dashboard');
     } catch (error: any) {
-      toast.error(error.message || 'Erreur de connexion');
+      toast.error(error.message || tErrors('server_error'));
     } finally {
       setLoading(false);
     }
@@ -34,12 +38,12 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
       <div className="max-w-md w-full">
         <div className="bg-white rounded-lg shadow-lg p-8">
-          <h2 className="text-3xl font-bold text-center mb-8">Connexion</h2>
+          <h2 className="text-3xl font-bold text-center mb-8">{tAuth('sign_in')}</h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
+                {tAuth('email')}
               </label>
               <input
                 type="email"
@@ -52,7 +56,7 @@ export default function LoginPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Mot de passe
+                {tAuth('password')}
               </label>
               <input
                 type="password"
@@ -68,18 +72,18 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Connexion...' : 'Se connecter'}
+              {loading ? tCommon('loading') : tAuth('sign_in')}
             </button>
           </form>
 
           <div className="mt-6 text-center space-y-2">
             <Link href="/forgot-password" className="text-orange-600 hover:underline block">
-              Mot de passe oublié ?
+              {tAuth('forgot_password')}
             </Link>
             <p className="text-gray-600">
-              Pas encore de compte ?{' '}
+              {tAuth('no_account')}{' '}
               <Link href="/register" className="text-orange-600 hover:underline">
-                S'inscrire
+                {tAuth('sign_up')}
               </Link>
             </p>
           </div>

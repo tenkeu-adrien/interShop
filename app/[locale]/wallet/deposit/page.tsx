@@ -7,11 +7,13 @@ import { useWalletStore } from '@/store/walletStore';
 import PaymentMethodSelector from '@/components/wallet/PaymentMethodSelector';
 import FlexibleDepositForm from '@/components/wallet/FlexibleDepositForm';
 import type { PaymentMethod, FlexibleDepositData } from '@/types';
+import { useTranslations } from 'next-intl';
 
 export default function DepositPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { initiateFlexibleDeposit } = useWalletStore();
+  const t = useTranslations('wallet');
   
   const [step, setStep] = useState<'select' | 'form'>('select');
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
@@ -56,16 +58,15 @@ export default function DepositPage() {
           </div>
           
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Demande envoyée !
+            {t('deposit_success_title')}
           </h2>
           
           <p className="text-gray-600 mb-6">
-            Votre demande de dépôt a été envoyée avec succès. 
-            Un administrateur va la vérifier et valider votre paiement.
+            {t('deposit_success_description')}
           </p>
           
           <p className="text-sm text-gray-500">
-            Vous serez notifié par email une fois votre dépôt validé.
+            {t('deposit_success_note')}
           </p>
           
           <div className="mt-6">
@@ -73,7 +74,7 @@ export default function DepositPage() {
               onClick={() => router.push('/wallet/history')}
               className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
             >
-              Voir l'historique
+              {t('see_history')}
             </button>
           </div>
         </div>
@@ -93,7 +94,7 @@ export default function DepositPage() {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Retour au portefeuille
+            {t('breadcrumb_back_to_wallet')}
           </button>
         </div>
 
@@ -106,7 +107,7 @@ export default function DepositPage() {
               }`}>
                 1
               </div>
-              <span className="font-medium">Choisir la méthode</span>
+              <span className="font-medium">{t('step_choose_method')}</span>
             </div>
             
             <div className="w-12 h-0.5 bg-gray-300"></div>
@@ -117,7 +118,7 @@ export default function DepositPage() {
               }`}>
                 2
               </div>
-              <span className="font-medium">Confirmer le dépôt</span>
+              <span className="font-medium">{t('step_confirm_deposit')}</span>
             </div>
           </div>
         </div>

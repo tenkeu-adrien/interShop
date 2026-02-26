@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
+import { useTranslations } from 'next-intl';
 import { 
   Tag, 
   DollarSign, 
@@ -36,6 +37,8 @@ import { PriceDisplay } from '@/components/ui/PriceDisplay';
 export default function MarketisteDashboardPage() {
   const router = useRouter();
   const { user, loading } = useAuthStore();
+  const tMarketiste = useTranslations('marketiste');
+  const tCommon = useTranslations('common');
   
   const [codes, setCodes] = useState<MarketingCode[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -90,7 +93,7 @@ export default function MarketisteDashboardPage() {
 
     } catch (error) {
       console.error('Error loading dashboard data:', error);
-      toast.error('Erreur lors du chargement des données');
+      toast.error(tCommon('error'));
     } finally {
       setLoadingData(false);
     }
@@ -98,7 +101,7 @@ export default function MarketisteDashboardPage() {
 
   const handleCreateCode = async () => {
     if (!user || !newCode.code) {
-      toast.error('Veuillez remplir tous les champs');
+      toast.error(tCommon('error'));
       return;
     }
 
@@ -115,7 +118,7 @@ export default function MarketisteDashboardPage() {
       };
 
       await addDoc(collection(db, 'marketingCodes'), codeData);
-      toast.success('Code créé avec succès !');
+      toast.success(tMarketiste('code_created'));
       setShowCreateModal(false);
       setNewCode({
         code: '',
@@ -126,7 +129,7 @@ export default function MarketisteDashboardPage() {
       loadDashboardData();
     } catch (error) {
       console.error('Error creating code:', error);
-      toast.error('Erreur lors de la création du code');
+      toast.error(tMarketiste('error_creating'));
     }
   };
 
@@ -135,30 +138,30 @@ export default function MarketisteDashboardPage() {
       await updateDoc(doc(db, 'marketingCodes', codeId), {
         isActive: !isActive
       });
-      toast.success(isActive ? 'Code désactivé' : 'Code activé');
+      toast.success(isActive ? tMarketiste('code_deleted') : tMarketiste('code_created'));
       loadDashboardData();
     } catch (error) {
       console.error('Error toggling code:', error);
-      toast.error('Erreur lors de la modification');
+      toast.error(tMarketiste('error_updating'));
     }
   };
 
   const handleDeleteCode = async (codeId: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce code ?')) return;
+    if (!confirm(tMarketiste('delete_confirmation'))) return;
     
     try {
       await deleteDoc(doc(db, 'marketingCodes', codeId));
-      toast.success('Code supprimé');
+      toast.success(tMarketiste('code_deleted'));
       loadDashboardData();
     } catch (error) {
       console.error('Error deleting code:', error);
-      toast.error('Erreur lors de la suppression');
+      toast.error(tMarketiste('error_deleting'));
     }
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success('Code copié !');
+    toast.success(tCommon('success'));
   };
 
   if (loading || loadingData) {
@@ -259,16 +262,16 @@ export default function MarketisteDashboardPage() {
             <div>
               <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
                 <Tag className="text-yellow-600" size={40} />
-                Dashboard Marketiste
+                {tMarketiste('dashboard_title')}
               </h1>
-              <p className="text-gray-600">Gérez vos codes marketing et suivez vos commissions</p>
+              <p className="text-gray-600">{tMarketiste('dashboard_subtitle')}</p>
             </div>
             <button
               onClick={() => setShowCreateModal(true)}
               className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2"
             >
               <Plus size={20} />
-              Créer un code
+              {tMarketiste('create_code')}
             </button>
           </div>
 
@@ -313,13 +316,13 @@ export default function MarketisteDashboardPage() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <Tag className="text-yellow-500" size={24} />
-                Mes codes marketing
+                {tMarketiste('my_codes')}
               </h2>
               <Link 
                 href="/dashboard/marketiste/codes"
                 className="text-green-600 hover:text-green-700 text-sm font-medium"
               >
-                Voir tout
+                {tCommon('view_all')}
               </Link>
             </div>
 
@@ -361,15 +364,15 @@ export default function MarketisteDashboardPage() {
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-sm">
                       <div>
-                        <p className="text-gray-600 text-xs">Commission</p>
+                        <p className="text-gray-600 text-xs">{tMarketiste('commission')}</p>
                         <p className="font-semibold">{(code.commissionRate * 100).toFixed(0)}%</p>
                       </div>
                       <div>
-                        <p className="text-gray-600 text-xs">Utilisations</p>
+                        <p className="text-gray-600 text-xs">{tMarketiste('uses')}</p>
                         <p className="font-semibold">{code.usageCount}</p>
                       </div>
                       <div>
-                        <p className="text-gray-600 text-xs">Gains</p>
+                        <p className="text-gray-600 text-xs">{tMarketiste('earnings')}</p>
                         <p className="font-semibold text-green-600">${code.totalEarnings.toFixed(2)}</p>
                       </div>
                     </div>
@@ -378,12 +381,12 @@ export default function MarketisteDashboardPage() {
               ) : (
                 <div className="text-center py-8">
                   <Tag className="mx-auto mb-3 text-gray-300" size={48} />
-                  <p className="text-gray-500 mb-4">Aucun code marketing</p>
+                  <p className="text-gray-500 mb-4">{tMarketiste('no_codes')}</p>
                   <button
                     onClick={() => setShowCreateModal(true)}
                     className="text-green-600 hover:text-green-700 font-medium"
                   >
-                    Créer votre premier code
+                    {tMarketiste('create_first_code')}
                   </button>
                 </div>
               )}
@@ -400,13 +403,13 @@ export default function MarketisteDashboardPage() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <ShoppingCart className="text-purple-500" size={24} />
-                Commandes récentes
+                {tMarketiste('order_history')}
               </h2>
               <Link 
                 href="/dashboard/marketiste/orders"
                 className="text-green-600 hover:text-green-700 text-sm font-medium"
               >
-                Voir tout
+                {tCommon('view_all')}
               </Link>
             </div>
 
@@ -418,7 +421,7 @@ export default function MarketisteDashboardPage() {
                       <div>
                         <p className="font-semibold text-gray-900">{order.orderNumber}</p>
                         <p className="text-xs text-gray-600">
-                          Code: <span className="font-mono font-semibold">{order.marketingCode}</span>
+                          {tMarketiste('code')}: <span className="font-mono font-semibold">{order.marketingCode}</span>
                         </p>
                       </div>
                       <span className={`text-xs px-2 py-1 rounded-full ${
@@ -432,14 +435,14 @@ export default function MarketisteDashboardPage() {
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <div>
-                        <p className="text-gray-600 text-xs">Total commande</p>
+                        <p className="text-gray-600 text-xs">{tMarketiste('amount')}</p>
                         <PriceDisplay 
                           priceUSD={order.total}
                           className="font-semibold"
                         />
                       </div>
                       <div className="text-right">
-                        <p className="text-gray-600 text-xs">Votre commission</p>
+                        <p className="text-gray-600 text-xs">{tMarketiste('commission')}</p>
                         <PriceDisplay 
                           priceUSD={order.marketingCommission}
                           className="font-bold text-green-600"
@@ -451,7 +454,7 @@ export default function MarketisteDashboardPage() {
               ) : (
                 <div className="text-center py-8">
                   <ShoppingCart className="mx-auto mb-3 text-gray-300" size={48} />
-                  <p className="text-gray-500">Aucune commande pour le moment</p>
+                  <p className="text-gray-500">{tCommon('loading')}</p>
                 </div>
               )}
             </div>
@@ -467,7 +470,7 @@ export default function MarketisteDashboardPage() {
         >
           <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
             <Award className="text-yellow-500" size={24} />
-            Top codes par performance
+            {tMarketiste('performance_overview')}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -483,11 +486,11 @@ export default function MarketisteDashboardPage() {
                   <p className="font-mono font-bold text-lg mb-2">{code.code}</p>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Gains:</span>
+                      <span className="text-gray-600">{tMarketiste('earnings')}:</span>
                       <span className="font-bold text-green-600">${code.totalEarnings.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Utilisations:</span>
+                      <span className="text-gray-600">{tMarketiste('uses')}:</span>
                       <span className="font-semibold">{code.usageCount}</span>
                     </div>
                   </div>
@@ -495,7 +498,7 @@ export default function MarketisteDashboardPage() {
               ))
             ) : (
               <div className="col-span-5 text-center py-8 text-gray-500">
-                Créez des codes pour voir les performances
+                {tMarketiste('create_first_code')}
               </div>
             )}
           </div>
@@ -510,7 +513,7 @@ export default function MarketisteDashboardPage() {
         >
           <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
             <Activity className="text-green-500" size={24} />
-            Actions rapides
+            {tCommon('settings')}
           </h2>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -519,7 +522,7 @@ export default function MarketisteDashboardPage() {
               className="p-4 border-2 border-gray-200 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-all text-center group"
             >
               <Tag className="mx-auto mb-2 text-gray-600 group-hover:text-yellow-600" size={32} />
-              <p className="font-semibold text-gray-900">Gérer mes codes</p>
+              <p className="font-semibold text-gray-900">{tMarketiste('code_management')}</p>
             </Link>
 
             <Link
@@ -527,7 +530,7 @@ export default function MarketisteDashboardPage() {
               className="p-4 border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-center group"
             >
               <ShoppingCart className="mx-auto mb-2 text-gray-600 group-hover:text-purple-600" size={32} />
-              <p className="font-semibold text-gray-900">Mes commandes</p>
+              <p className="font-semibold text-gray-900">{tMarketiste('my_orders')}</p>
             </Link>
 
             <Link
@@ -535,7 +538,7 @@ export default function MarketisteDashboardPage() {
               className="p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all text-center group"
             >
               <DollarSign className="mx-auto mb-2 text-gray-600 group-hover:text-green-600" size={32} />
-              <p className="font-semibold text-gray-900">Mes gains</p>
+              <p className="font-semibold text-gray-900">{tMarketiste('my_earnings')}</p>
             </Link>
 
             <Link
@@ -543,7 +546,7 @@ export default function MarketisteDashboardPage() {
               className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-center group"
             >
               <BarChart3 className="mx-auto mb-2 text-gray-600 group-hover:text-blue-600" size={32} />
-              <p className="font-semibold text-gray-900">Statistiques</p>
+              <p className="font-semibold text-gray-900">{tMarketiste('analytics')}</p>
             </Link>
           </div>
         </motion.div>
@@ -558,7 +561,7 @@ export default function MarketisteDashboardPage() {
             >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">Créer un code marketing</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">{tMarketiste('new_code')}</h2>
                   <button
                     onClick={() => setShowCreateModal(false)}
                     className="text-gray-400 hover:text-gray-600"
@@ -570,7 +573,7 @@ export default function MarketisteDashboardPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Code <span className="text-red-500">*</span>
+                      {tMarketiste('code')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -583,7 +586,7 @@ export default function MarketisteDashboardPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Taux de commission (%) <span className="text-red-500">*</span>
+                      {tMarketiste('commission_rate')} (%) <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"
@@ -598,7 +601,7 @@ export default function MarketisteDashboardPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Date de début <span className="text-red-500">*</span>
+                      {tMarketiste('date')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="date"
@@ -610,7 +613,7 @@ export default function MarketisteDashboardPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Date de fin (optionnel)
+                      {tMarketiste('expiry_date')}
                     </label>
                     <input
                       type="date"
@@ -625,13 +628,13 @@ export default function MarketisteDashboardPage() {
                       onClick={handleCreateCode}
                       className="flex-1 bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors"
                     >
-                      Créer le code
+                      {tMarketiste('create_code')}
                     </button>
                     <button
                       onClick={() => setShowCreateModal(false)}
                       className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
                     >
-                      Annuler
+                      {tCommon('cancel')}
                     </button>
                   </div>
                 </div>

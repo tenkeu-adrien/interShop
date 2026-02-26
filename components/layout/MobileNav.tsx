@@ -7,19 +7,22 @@ import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
 import { useChatStore } from '@/store/chatStore';
 import { motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 
 export default function MobileNav() {
   const pathname = usePathname();
   const { user } = useAuthStore();
   const { items } = useCartStore();
   const { totalUnreadCount } = useChatStore();
+  const tNav = useTranslations('nav');
+  const tCommon = useTranslations('common');
 
   const navItems = [
-    { href: '/', icon: Home, label: 'Accueil' },
-    { href: '/products', icon: ShoppingBag, label: 'Produits' },
-    { href: '/cart', icon: ShoppingCart, label: 'Panier', badge: items.length },
-    { href: '/chat', icon: MessageCircle, label: 'Chat', badge: totalUnreadCount, requireAuth: true },
-    { href: user ? '/dashboard' : '/login', icon: User, label: user ? 'Profil' : 'Connexion' },
+    { href: '/', icon: Home, label: tNav('home') },
+    { href: '/products', icon: ShoppingBag, label: tNav('products') },
+    { href: '/cart', icon: ShoppingCart, label: tNav('cart'), badge: items.length },
+    { href: '/chat', icon: MessageCircle, label: tNav('messages'), badge: totalUnreadCount, requireAuth: true },
+    { href: user ? '/dashboard' : '/login', icon: User, label: user ? tNav('profile') : tCommon('login') },
   ];
 
   return (

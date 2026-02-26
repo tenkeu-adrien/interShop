@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JMMOBJDDE</title>
+
+<style>
+
+/* ===============================
+   RESET
+=================================*/
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body{
+  background: linear-gradient(to bottom,#e9eef5,#dbe4f0);
+}
+
+/* ===============================
+   HEADER
+=================================*/
+/* .header{
+  background:#0c2d57;
+  color:white;
+  padding:15px 20px;
+}
+
+.header-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.logo{
+  font-size:22px;
+  font-weight:700;
+}
+
+.logo span{
+  color:#ffb703;
+}
+
+.search-bar{
+  margin-top:15px;
+}
+
+.search-bar input{
+  width:100%;
+  padding:12px 20px;
+  border-radius:30px;
+  border:none;
+  outline:none;
+  font-size:14px;
+}
+
+.header-icons{
+  display:flex;
+  gap:15px;
+  align-items:center;
+} */
+
+
+.header{
+  background:#0c2d57;
+  color:white;
+  padding:15px 20px;
+}
+
+.header-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.logo{
+  font-size:22px;
+  font-weight:700;
+}
+
+.logo span{
+  color:#ffb703;
+}
+
+.search-bar{
+  margin-top:15px;
+}
+
+.search-bar input{
+  width:100%;
+  padding:12px 20px;
+  border-radius:30px;
+  border:none;
+  outline:none;
+  font-size:14px;
+}
+
+.header-icons{
+  display:flex;
+  gap:15px;
+  align-items:center;
+}
+
+.header-icons img{
+  width:35px;
+  height:35px;
+  border-radius:50%;
+}
+
+/* Desktop layout */
+
+
+/* Desktop layout */
+/* @media(min-width:900px){
+
+  .header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+
+  .header-top{
+    gap:40px;
+  }
+
+  .search-bar{
+    flex:1;
+    margin:0 40px;
+  }
+
+  .search-bar input{
+    margin-top:0;
+  }
+} */
+
+/* ===============================
+   DESKTOP HEADER FIX
+=================================*/
+
+/* ===============================
+   LAYOUT
+=================================*/
+
+/* ===============================
+   MOBILE HEADER FIX
+=================================*/
+
+.header{
+  display:flex;
+  flex-direction:column;
+}
+
+@media(max-width:899px){
+
+  .header{
+    position:relative;
+  }
+
+  .logo{
+    align-self:flex-start;
+  }
+
+  .header-icons{
+    position:absolute;
+    right:20px;
+    top:15px;
+  }
+
+  .search-bar{
+    margin-top:15px;
+  }
+
+}
+@media(min-width:900px){
+
+  .header{
+    /* display:flex; */
+      flex-direction:row; 
+    align-items:center;
+    gap:40px;
+  }
+
+  /* IMPORTANT */
+  .header-top{
+    display:flex;
+    align-items:center;
+    gap:20px;
+    width:auto;        /* ← clé du problème */
+  }
+
+  .search-bar{
+    flex:1;
+    margin:0;
+  }
+
+  .search-bar input{
+    margin-top:0;
+  }
+
+}
+.container{
+  display:flex;
+  max-width:1300px;
+  margin:30px auto;
+  gap:30px;
+}
+
+/* ===============================
+   MAIN FEED
+=================================*/
+
+.feed{
+  flex:1;
+}
+
+/* STORIES */
+
+.stories{
+  display:flex;
+  gap:15px;
+  overflow-x:auto;
+  padding-bottom:15px;
+}
+
+.story{
+  text-align:center;
+  font-size:13px;
+}
+
+.story img{
+  width:75px;
+  height:75px;
+  border-radius:50%;
+  padding:3px;
+  background:linear-gradient(45deg,#ff006e,#ffbe0b);
+}
+
+.story span{
+  display:block;
+  margin-top:5px;
+}
+
+/* POST */
+
+.post{
+  background:white;
+  border-radius:20px;
+  margin-top:20px;
+  overflow:hidden;
+  box-shadow:0 10px 30px rgba(0,0,0,0.1);
+}
+
+.post-header{
+  display:flex;
+  justify-content:space-between;
+  padding:15px;
+}
+
+.post-header-left{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+.post-header-left img{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+}
+
+.post img.main-img{
+  width:100%;
+  height:350px;
+  object-fit:cover;
+}
+
+.badge-ia{
+  position:absolute;
+  top:15px;
+  right:15px;
+  background:#1abc9c;
+  color:white;
+  padding:6px 12px;
+  border-radius:20px;
+  font-size:12px;
+}
+
+.post-content{
+  padding:15px;
+}
+
+.price{
+  color:#e63946;
+  font-size:20px;
+  font-weight:bold;
+  margin-top:10px;
+}
+
+.actions{
+  display:flex;
+  gap:30px;
+  margin-top:10px;
+  color:#555;
+  font-size:14px;
+}
+
+/* ===============================
+   SIDEBAR IA
+=================================*/
+
+.sidebar{
+  width:350px;
+  position:sticky;
+  top:100px;
+  height:fit-content;
+}
+
+/* Tablet */
+@media(max-width:1024px){
+  .sidebar{
+    width:300px;
+  }
+}
+
+/* MOBILE */
+@media(max-width:900px){
+
+  .container{
+    flex-direction:column;
+  }
+
+  .sidebar{
+    width:100%;
+    position:relative;
+    top:0;
+    margin-top:30px;
+  }
+}
+@media(max-width:900px){
+  .sidebar{
+    display:none;
+  }
+}
+
+.ia-card{
+  background:linear-gradient(135deg,#142850,#27496d,#0f3057);
+  color:white;
+  padding:20px;
+  border-radius:25px;
+  box-shadow:0 15px 40px rgba(0,0,0,0.2);
+}
+
+.ia-card h3{
+  margin-bottom:15px;
+}
+
+.zone-img{
+  position:relative;
+  border-radius:15px;
+  overflow:hidden;
+  margin-bottom:15px;
+}
+
+.zone-img img{
+  width:100%;
+  height:160px;
+  object-fit:cover;
+}
+
+.zone-label{
+  position:absolute;
+  bottom:10px;
+  left:10px;
+  background:linear-gradient(45deg,#ff512f,#dd2476);
+  padding:5px 10px;
+  border-radius:15px;
+  font-size:12px;
+}
+
+.ia-list div{
+  display:flex;
+  justify-content:space-between;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+}
+
+.premium-btn{
+  margin-top:15px;
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:30px;
+  background:linear-gradient(45deg,#ffb703,#fb8500);
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.premium-btn:hover{
+  transform:scale(1.05);
+  transition:0.3s;
+}
+
+
+.features{
+  color:#666;
+  font-size:14px;
+  margin-bottom:10px;
+}
+
+/* GEO + PRICE */
+
+.location-price{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:15px;
+}
+
+.location{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:14px;
+  color:#444;
+}
+
+.price{
+  color:#e63946;
+  font-size:20px;
+  font-weight:bold;
+}
+
+/* ACTIONS FLEX AROUND */
+
+.actions{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding-top:10px;
+  border-top:1px solid #eee;
+}
+
+.action-item{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  cursor:pointer;
+  font-size:14px;
+  color:#555;
+  transition:0.3s;
+}
+
+.action-item:hover{
+  color:#0c2d57;
+  transform:scale(1.05);
+}
+
+.action-item svg{
+  transition:0.3s;
+}
+
+.action-item:hover svg{
+  transform:scale(1.2);
+}
+
+
+.features-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:15px 0;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.feature-item{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:14px;
+  color:#555;
+  background:#f5f7fa;
+  padding:6px 12px;
+  border-radius:20px;
+  transition:0.3s;
+}
+
+.feature-item svg{
+  color:#0c2d57;
+  transition:0.3s;
+}
+
+.feature-item:hover{
+  background:#0c2d57;
+  color:white;
+}
+
+.feature-item:hover svg{
+  color:#ffb703;
+  transform:scale(1.2);
+}
+
+@media(max-width:600px){
+  .features-row{
+    justify-content:space-around;
+  }
+}
+
+@media(max-width:600px){
+  .features-row{
+    justify-content:space-around;
+  }
+}
+
+.sidebar{
+  width:350px;
+  position:sticky;
+  top:100px;
+  height:fit-content;
+}
+
+/* Tablet */
+@media(max-width:1024px){
+  .sidebar{
+    width:300px;
+  }
+}
+
+/* MOBILE */
+/* @media(max-width:900px){
+
+  .container{
+    flex-direction:column;
+  }
+
+  .sidebar{
+    width:100%;
+    position:relative;
+    top:0;
+    margin-top:30px;
+  }
+} */
+
+
+</style>
+</head>
+<body>
+<!-- <div class="header">
+
+  <div class="header-top">
+    <div class="logo">JMM<span>OBJDDE</span></div>
+
+    <div class="header-icons">
+      🔔 💬
+      <img src="https://randomuser.me/api/portraits/men/32.jpg">
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" placeholder="Rechercher un quartier, un bien...">
+  </div>
+
+</div> -->
+<div class="header">
+
+  <div class="logo">JMM<span>OBJDDE</span></div>
+
+  <div class="search-bar">
+    <input type="text" placeholder="Rechercher un quartier, un bien...">
+  </div>
+
+  <div class="header-icons">
+    🔔 💬
+    <img src="https://randomuser.me/api/portraits/men/32.jpg">
+  </div>
+
+</div>
+
+
+<!-- MAIN CONTAINER -->
+<div class="container">
+
+  <!-- FEED -->
+  <div class="feed">
+
+    <!-- STORIES -->
+    <div class="stories">
+      <div class="story">
+        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c">
+        <span>Cocody</span>
+      </div>
+
+      <div class="story">
+        <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2">
+        <span>Plateau</span>
+      </div>
+
+      <div class="story">
+        <img src="https://images.unsplash.com/photo-1570129477492-45c003edd2be">
+        <span>Marcory</span>
+      </div>
+    </div>
+
+    <!-- POST -->
+    <div class="post">
+      <div class="post-header">
+        <div class="post-header-left">
+          <img src="https://randomuser.me/api/portraits/women/44.jpg">
+          <div>
+            <strong>Aicha Immobilier</strong><br>
+            <small>Il y a 2 heures</small>
+          </div>
+        </div>
+      </div>
+
+      <div style="position:relative">
+        <img class="main-img" src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c">
+        <div class="badge-ia">IA : Bon prix</div>
+      </div>
+<div class="post-content">
+
+  <h3>Villa Moderne – Cocody</h3>
+
+<div class="features-row">
+
+  <div class="feature-item">
+    <!-- ICON CHAMBRES -->
+    <svg viewBox="0 0 24 24" width="18" height="18">
+      <path fill="currentColor"
+        d="M3 10V3h7v7H3zm11 0V3h7v7h-7zM3 
+        21v-7h7v7H3zm11 
+        0v-7h7v7h-7z"/>
+    </svg>
+    <span>4 Chambres</span>
+  </div>
+
+  <div class="feature-item">
+    <!-- ICON QUARTIER -->
+    <svg viewBox="0 0 24 24" width="18" height="18">
+      <path fill="currentColor"
+        d="M12 2L2 7v6c0 5 3.8 9.7 
+        10 11 6.2-1.3 10-6 10-11V7L12 2z"/>
+    </svg>
+    <span>Quartier sécurisé</span>
+  </div>
+
+  <div class="feature-item">
+    <!-- ICON PISCINE -->
+    <svg viewBox="0 0 24 24" width="18" height="18">
+      <path fill="currentColor"
+        d="M2 18c2-2 4-2 6 0s4 
+        2 6 0 4-2 6 0v2c-2-2-4-2-6 
+        0s-4 2-6 0-4-2-6 0v-2zM4 
+        12a4 4 0 118 0v2H4v-2z"/>
+    </svg>
+    <span>Piscine</span>
+  </div>
+
+</div>
+
+  <!-- GEO + PRIX -->
+  <div class="location-price">
+    
+    <div class="location">
+      <!-- ICON LOCATION -->
+      <svg viewBox="0 0 24 24" width="16" height="16">
+        <path fill="#e63946"
+          d="M12 2C8.13 2 5 5.13 5 9c0 5.25 
+          7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 
+          9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 
+          6.5 12 6.5 14.5 7.62 14.5 9 13.38 
+          11.5 12 11.5z"/>
+      </svg>
+      <span>Abidjan – Cocody</span>
+    </div>
+
+    <div class="price">
+      120 000 000 FCFA
+    </div>
+
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+
+    <div class="action-item">
+      <!-- LIKE -->
+      <svg viewBox="0 0 24 24" width="20" height="20">
+        <path fill="currentColor"
+          d="M12 21.35l-1.45-1.32C5.4 
+          15.36 2 12.28 2 8.5 2 
+          5.42 4.42 3 7.5 3c1.74 
+          0 3.41.81 4.5 2.09C13.09 
+          3.81 14.76 3 16.5 
+          3 19.58 3 22 5.42 
+          22 8.5c0 3.78-3.4 6.86-8.55 
+          11.54L12 21.35z"/>
+      </svg>
+      <span>J’aime</span>
+    </div>
+
+    <div class="action-item">
+      <!-- COMMENT -->
+      <svg viewBox="0 0 24 24" width="20" height="20">
+        <path fill="currentColor"
+          d="M21 6h-18v12h4v4l4-4h10z"/>
+      </svg>
+      <span>Commenter</span>
+    </div>
+
+    <div class="action-item">
+      <!-- SHARE -->
+      <svg viewBox="0 0 24 24" width="20" height="20">
+        <path fill="currentColor"
+          d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 
+          12.7a2.48 2.48 0 000-1.39l7-4.11A2.5 
+          2.5 0 1014 5a2.5 2.5 0 00.04.46l-7 
+          4.11a2.5 2.5 0 100 4.86l7.05 4.14A2.5 
+          2.5 0 1018 16.08z"/>
+      </svg>
+      <span>Partager</span>
+    </div>
+
+  </div>
+
+</div>
+    </div>
+
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="ia-card">
+      <h3>📈 Zones Premium IA</h3>
+
+      <div class="zone-img">
+        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c">
+        <div class="zone-label">🔥 Zone Émergente 2026</div>
+      </div>
+
+      <div class="ia-list">
+        <div>
+          <span>Cocody Angré</span>
+          <strong>+14.8%</strong>
+        </div>
+        <div>
+          <span>Plateau Centre</span>
+          <strong>+12.4%</strong>
+        </div>
+      </div>
+
+      <button class="premium-btn">
+        🔒 Accès prédictions premium
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Animation bouton premium
+document.querySelector(".premium-btn").addEventListener("click",()=>{
+  alert("Accès réservé aux abonnés Premium IA 🚀");
+});
+</script>
+
+</body>
+</html>

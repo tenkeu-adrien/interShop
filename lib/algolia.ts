@@ -1,14 +1,20 @@
-import algoliasearch from 'algoliasearch';
+import { algoliasearch } from 'algoliasearch';
 
 const appId = process.env.NEXT_PUBLIC_ALGOLIA_APP_ID || '';
 const searchApiKey = process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY || '';
 const adminApiKey = process.env.ALGOLIA_ADMIN_KEY || '';
 
 // Client de recherche (côté client - clé publique uniquement)
-export const searchClient = algoliasearch(appId, searchApiKey);
+// Désactivé si les clés ne sont pas configurées
+export const searchClient = appId && searchApiKey 
+    ? algoliasearch(appId, searchApiKey)
+    : null;
 
 // Client admin (côté serveur uniquement - clé privée)
-export const adminClient = algoliasearch(appId, adminApiKey);
+// Désactivé si les clés ne sont pas configurées
+export const adminClient = appId && adminApiKey 
+    ? algoliasearch(appId, adminApiKey)
+    : null;
 
 // Noms des index
 export const ALGOLIA_INDICES = {
@@ -18,12 +24,12 @@ export const ALGOLIA_INDICES = {
 } as const;
 
 // Index de recherche (côté client)
-export const productsIndex = searchClient.initIndex(ALGOLIA_INDICES.PRODUCTS);
-export const hotelsIndex = searchClient.initIndex(ALGOLIA_INDICES.HOTELS);
-export const restaurantsIndex = searchClient.initIndex(ALGOLIA_INDICES.RESTAURANTS);
+export const productsIndex = searchClient?.initIndex(ALGOLIA_INDICES.PRODUCTS) || null;
+export const hotelsIndex = searchClient?.initIndex(ALGOLIA_INDICES.HOTELS) || null;
+export const restaurantsIndex = searchClient?.initIndex(ALGOLIA_INDICES.RESTAURANTS) || null;
 
 // Index admin (côté serveur, pour sync)
-export const productsAdminIndex = adminClient.initIndex(ALGOLIA_INDICES.PRODUCTS);
+export const productsAdminIndex = adminClient?.initIndex(ALGOLIA_INDICES.PRODUCTS) || null;
 
 /**
  * Recherche de produits via Algolia
@@ -33,31 +39,54 @@ export async function searchProducts(query: string, options?: {
     limit?: number;
     page?: number;
 }) {
+    // Si Algolia n'est pas configuré, retourner résultats vides
+    if (!productsIndex) {
+        console.warn('⚠️ Algolia not configured. Please add ALGOLIA keys to .env.local');
+        return {
+            hits: [],
+            total: 0,
+            hasMore: false,
+            currentPage: 0,
+            totalPages: 0,
+        };
+    }
+
     const { category, limit = 20, page = 0 } = options || {};
 
     const facetFilters = category && category !== 'all'
         ? [`category:${category}`]
         : [];
 
-    const result = await productsIndex.search(query, {
-        hitsPerPage: limit,
-        page,
-        facetFilters,
-        attributesToRetrieve: [
-            'objectID', 'name', 'description', 'images', 'prices',
-            'category', 'moq', 'rating', 'reviewCount', 'sales',
-            'stock', 'country', 'deliveryTime', 'fournisseurId',
-        ],
-        attributesToHighlight: ['name', 'description'],
-    });
+    try {
+        const result = await productsIndex.search(query, {
+            hitsPerPage: limit,
+            page,
+            facetFilters,
+            attributesToRetrieve: [
+                'objectID', 'name', 'description', 'images', 'prices',
+                'category', 'moq', 'rating', 'reviewCount', 'sales',
+                'stock', 'country', 'deliveryTime', 'fournisseurId',
+            ],
+            attributesToHighlight: ['name', 'description'],
+        });
 
-    return {
-        hits: result.hits.map((hit: any) => ({ ...hit, id: hit.objectID })),
-        total: result.nbHits,
-        hasMore: (page + 1) * limit < result.nbHits,
-        currentPage: page,
-        totalPages: result.nbPages,
-    };
+        return {
+            hits: result.hits.map((hit: any) => ({ ...hit, id: hit.objectID })),
+            total: result.nbHits,
+            hasMore: (page + 1) * limit < result.nbHits,
+            currentPage: page,
+            totalPages: result.nbPages,
+        };
+    } catch (error) {
+        console.error('❌ Algolia search error:', error);
+        return {
+            hits: [],
+            total: 0,
+            hasMore: false,
+            currentPage: 0,
+            totalPages: 0,
+        };
+    }
 }
 
 /**
@@ -80,6 +109,11 @@ export async function indexProduct(product: {
     fournisseurId: string;
     isActive: boolean;
 }) {
+    if (!productsAdminIndex) {
+        console.warn('⚠️ Algolia admin not configured. Skipping indexing.');
+        return;
+    }
+
     const algoliaRecord = {
         objectID: product.id,
         ...product,
@@ -91,6 +125,10 @@ export async function indexProduct(product: {
  * Supprimer un produit de l'index Algolia
  */
 export async function deleteProductFromIndex(productId: string) {
+    if (!productsAdminIndex) {
+        console.warn('⚠️ Algolia admin not configured. Skipping deletion.');
+        return;
+    }
     return productsAdminIndex.deleteObject(productId);
 }
 

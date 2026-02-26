@@ -4,12 +4,13 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { UserRole } from '@/types';
+import { useTranslations } from 'next-intl';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   allowedRoles?: UserRole[];
   redirectTo?: string;
-  requireVerification?: boolean; // Nouvelle option
+  requireVerification?: boolean;
 }
 
 export default function ProtectedRoute({
@@ -20,6 +21,7 @@ export default function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { user, loading } = useAuthStore();
   const router = useRouter();
+  const tCommon = useTranslations('common');
 
   useEffect(() => {
     if (loading) return;
@@ -29,13 +31,11 @@ export default function ProtectedRoute({
       return;
     }
 
-    // Vérifier le rôle
     if (allowedRoles && !allowedRoles.includes(user.role)) {
       router.push('/unauthorized');
       return;
     }
 
-    // Vérifier le statut du compte si requis
     if (requireVerification) {
       switch (user.accountStatus) {
         case 'email_unverified':
@@ -60,7 +60,7 @@ export default function ProtectedRoute({
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement...</p>
+          <p className="text-gray-600">{tCommon('loading')}</p>
         </div>
       </div>
     );
@@ -70,7 +70,6 @@ export default function ProtectedRoute({
     return null;
   }
 
-  // Bloquer l'accès si le compte n'est pas actif et que la vérification est requise
   if (requireVerification && user.accountStatus !== 'active') {
     return null;
   }

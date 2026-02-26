@@ -8,6 +8,7 @@ import { getOrCreateConversation } from '@/lib/firebase/chat';
 import { MessageCircle, FileText, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ProductReference } from '@/types/chat';
+import { useTranslations } from 'next-intl';
 
 interface ProductChatActionsProps {
   product: {
@@ -34,6 +35,8 @@ export function ProductChatActions({
   const { sendTextMessage } = useChatStore();
   const [loading, setLoading] = useState(false);
   const [loadingQuote, setLoadingQuote] = useState(false);
+  const tCommon = useTranslations('common');
+  const tChat = useTranslations('chat');
 
   const productReference: ProductReference = {
     productId: product.id,
@@ -45,13 +48,13 @@ export function ProductChatActions({
 
   const handleStartChat = async () => {
     if (!user) {
-      toast.error('Vous devez être connecté pour envoyer un message');
+      toast.error(tChat('login_required'));
       router.push('/login');
       return;
     }
 
     if (user.id === product.fournisseurId) {
-      toast.error('Vous ne pouvez pas vous envoyer un message à vous-même');
+      toast.error(tChat('cannot_message_self'));
       return;
     }
 
@@ -73,14 +76,13 @@ export function ProductChatActions({
         productReference
       );
 
-      // Envoyer un message automatique avec le produit
       await sendTextMessage(
         conversationId,
         user.id,
         user.displayName,
         user.photoURL || undefined,
         product.fournisseurId,
-        `Bonjour, je suis intéressé par ce produit.`,
+        tChat('interested_message'),
         'product',
         undefined,
         undefined,
@@ -92,7 +94,7 @@ export function ProductChatActions({
       router.push(`/chat/${conversationId}`);
     } catch (error) {
       console.error('Error starting chat:', error);
-      toast.error('Erreur lors de l\'ouverture du chat');
+      toast.error(tChat('error_opening_chat'));
     } finally {
       setLoading(false);
     }
@@ -100,13 +102,13 @@ export function ProductChatActions({
 
   const handleRequestQuote = async () => {
     if (!user) {
-      toast.error('Vous devez être connecté pour demander un devis');
+      toast.error(tChat('login_required_quote'));
       router.push('/login');
       return;
     }
 
     if (user.id === product.fournisseurId) {
-      toast.error('Vous ne pouvez pas demander un devis pour votre propre produit');
+      toast.error(tChat('cannot_quote_own_product'));
       return;
     }
 
@@ -128,14 +130,13 @@ export function ProductChatActions({
         productReference
       );
 
-      // Envoyer une demande de devis
       await sendTextMessage(
         conversationId,
         user.id,
         user.displayName,
         user.photoURL || undefined,
         product.fournisseurId,
-        `Je souhaiterais recevoir un devis détaillé pour ce produit. Merci de me communiquer vos meilleures conditions.`,
+        tChat('quote_request_message'),
         'quote_request',
         undefined,
         undefined,
@@ -144,11 +145,11 @@ export function ProductChatActions({
         productReference
       );
 
-      toast.success('Demande de devis envoyée avec succès');
+      toast.success(tChat('quote_sent_success'));
       router.push(`/chat/${conversationId}`);
     } catch (error) {
       console.error('Error requesting quote:', error);
-      toast.error('Erreur lors de l\'envoi de la demande');
+      toast.error(tChat('error_sending_request'));
     } finally {
       setLoadingQuote(false);
     }
@@ -156,7 +157,6 @@ export function ProductChatActions({
 
   return (
     <div className={`flex flex-col sm:flex-row gap-3 ${className}`}>
-      {/* Bouton Discuter */}
       <button
         onClick={handleStartChat}
         disabled={loading}
@@ -165,17 +165,16 @@ export function ProductChatActions({
         {loading ? (
           <>
             <Loader2 className="animate-spin" size={20} />
-            Chargement...
+            {tCommon('loading')}
           </>
         ) : (
           <>
             <MessageCircle size={20} />
-            Discuter avec le vendeur
+            {tChat('chat_with_seller')}
           </>
         )}
       </button>
 
-      {/* Bouton Demander un Devis */}
       <button
         onClick={handleRequestQuote}
         disabled={loadingQuote}
@@ -184,12 +183,12 @@ export function ProductChatActions({
         {loadingQuote ? (
           <>
             <Loader2 className="animate-spin" size={20} />
-            Envoi...
+            {tCommon('loading')}
           </>
         ) : (
           <>
             <FileText size={20} />
-            Demander un devis
+            {tChat('request_quote')}
           </>
         )}
       </button>

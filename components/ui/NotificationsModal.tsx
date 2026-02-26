@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 import { X, Bell, Check, Trash2, Package, ShoppingCart, MessageSquare, Star, AlertCircle } from 'lucide-react';
 import { collection, query, where, orderBy, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
@@ -15,6 +16,8 @@ interface NotificationsModalProps {
 }
 
 export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps) {
+  const tNotifications = useTranslations('notifications');
+  const tErrors = useTranslations('errors');
   const { user } = useAuthStore();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,7 +51,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
       setNotifications(notificationsData);
     } catch (error) {
       console.error('Error loading notifications:', error);
-      toast.error('Erreur lors du chargement des notifications');
+      toast.error(tErrors('server_error'));
     } finally {
       setLoading(false);
     }
@@ -79,10 +82,10 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
       );
       
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-      toast.success('Toutes les notifications ont été marquées comme lues');
+      toast.success(tNotifications('mark_all_read'));
     } catch (error) {
       console.error('Error marking all as read:', error);
-      toast.error('Erreur lors de la mise à jour');
+      toast.error(tErrors('server_error'));
     }
   };
 
@@ -90,10 +93,10 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
     try {
       await deleteDoc(doc(db, 'notifications', notificationId));
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
-      toast.success('Notification supprimée');
+      toast.success(tNotifications('deleted'));
     } catch (error) {
       console.error('Error deleting notification:', error);
-      toast.error('Erreur lors de la suppression');
+      toast.error(tErrors('server_error'));
     }
   };
 
@@ -121,10 +124,10 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
     
-    if (diffInSeconds < 60) return 'À l\'instant';
-    if (diffInSeconds < 3600) return `Il y a ${Math.floor(diffInSeconds / 60)} min`;
-    if (diffInSeconds < 86400) return `Il y a ${Math.floor(diffInSeconds / 3600)} h`;
-    if (diffInSeconds < 604800) return `Il y a ${Math.floor(diffInSeconds / 86400)} j`;
+    if (diffInSeconds < 60) return tNotifications('just_now');
+    if (diffInSeconds < 3600) return tNotifications('minutes_ago', { count: Math.floor(diffInSeconds / 60) });
+    if (diffInSeconds < 86400) return tNotifications('hours_ago', { count: Math.floor(diffInSeconds / 3600) });
+    if (diffInSeconds < 604800) return tNotifications('days_ago', { count: Math.floor(diffInSeconds / 86400) });
     return date.toLocaleDateString('fr-FR');
   };
 
@@ -163,9 +166,9 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
                     <Bell size={24} />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold">Notifications</h2>
+                    <h2 className="text-2xl font-bold">{tNotifications('title')}</h2>
                     {unreadCount > 0 && (
-                      <p className="text-sm text-white/90">{unreadCount} non lue(s)</p>
+                      <p className="text-sm text-white/90">{unreadCount} {unreadCount === 1 ? tNotifications('unread') : tNotifications('unread_plural')}</p>
                     )}
                   </div>
                 </div>
@@ -187,7 +190,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
                       : 'bg-white/20 text-white hover:bg-white/30'
                   }`}
                 >
-                  Toutes ({notifications.length})
+                  {tNotifications('all')} ({notifications.length})
                 </button>
                 <button
                   onClick={() => setFilter('unread')}
@@ -197,7 +200,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
                       : 'bg-white/20 text-white hover:bg-white/30'
                   }`}
                 >
-                  Non lues ({unreadCount})
+                  {tNotifications('unread')} ({unreadCount})
                 </button>
               </div>
             </div>
@@ -210,7 +213,7 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
                   className="text-sm text-green-600 hover:text-green-700 font-medium flex items-center gap-2"
                 >
                   <Check size={16} />
-                  Tout marquer comme lu
+                  {tNotifications('mark_all_read')}
                 </button>
               </div>
             )}
@@ -224,11 +227,11 @@ export function NotificationsModal({ isOpen, onClose }: NotificationsModalProps)
               ) : filteredNotifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-gray-500 p-8">
                   <Bell size={64} className="text-gray-300 mb-4" />
-                  <p className="text-lg font-medium">Aucune notification</p>
+                  <p className="text-lg font-medium">{tNotifications('empty')}</p>
                   <p className="text-sm text-center mt-2">
                     {filter === 'unread' 
-                      ? 'Vous n\'avez aucune notification non lue'
-                      : 'Vous n\'avez aucune notification pour le moment'}
+                      ? tNotifications('no_unread')
+                      : tNotifications('no_notifications')}
                   </p>
                 </div>
               ) : (

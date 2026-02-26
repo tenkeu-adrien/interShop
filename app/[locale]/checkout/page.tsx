@@ -12,12 +12,14 @@ import { PriceDisplay } from '@/components/ui/PriceDisplay';
 import { Address } from '@/types';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, getTotal, marketingCode, clearCart } = useCartStore();
   const { user } = useAuthStore();
   const { selectedCurrency } = useCurrencyStore();
+  const t = useTranslations('checkout');
   const [loading, setLoading] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [showAddressForm, setShowAddressForm] = useState(false);
@@ -35,7 +37,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (!user) {
-      toast.error('Veuillez vous connecter pour continuer');
+      toast.error(t('please_login'));
       router.push('/login');
       return;
     }
@@ -91,14 +93,14 @@ export default function CheckoutPage() {
     // Validate form
     if (!newAddress.fullName || !newAddress.phone || !newAddress.street || 
         !newAddress.city || !newAddress.country || !newAddress.postalCode) {
-      toast.error('Veuillez remplir tous les champs obligatoires');
+      toast.error(t('fill_required_fields'));
       return;
     }
 
     // Create temporary address with ID
     const tempAddress: Address = {
       id: 'temp-' + Date.now(),
-      label: newAddress.label || 'Domicile',
+      label: newAddress.label || t('home'),
       fullName: newAddress.fullName!,
       phone: newAddress.phone!,
       street: newAddress.street!,
@@ -111,7 +113,7 @@ export default function CheckoutPage() {
 
     setSelectedAddress(tempAddress);
     setShowAddressForm(false);
-    toast.success('Adresse ajoutée');
+    toast.success(t('address_added'));
   };
 
   const subtotal = getTotal();
@@ -121,7 +123,7 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async () => {
     if (!user || !selectedAddress) {
-      toast.error('Veuillez sélectionner une adresse de livraison');
+      toast.error(t('please_select_address'));
       return;
     }
 
@@ -166,11 +168,11 @@ export default function CheckoutPage() {
       // Clear cart
       clearCart();
       
-      toast.success('Commande créée avec succès !');
+      toast.success(t('success'));
       router.push(`/checkout/success?orderId=${orderId}`);
     } catch (error) {
       console.error('Error creating order:', error);
-      toast.error('Erreur lors de la création de la commande');
+      toast.error(t('error'));
     } finally {
       setLoading(false);
     }
@@ -194,9 +196,11 @@ export default function CheckoutPage() {
             className="flex items-center gap-2 text-green-600 hover:text-green-700 mb-4"
           >
             <ArrowLeft size={20} />
-            Retour au panier
+            {t('back_to_cart')}
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Finaliser la commande</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {t('finalize_order')}
+          </h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -210,7 +214,7 @@ export default function CheckoutPage() {
             >
               <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                 <MapPin size={24} className="text-green-600" />
-                Adresse de livraison
+                {t('shipping_address')}
               </h2>
 
               {user.role === 'client' && (user as any).addresses && (user as any).addresses.length > 0 ? (
@@ -241,7 +245,7 @@ export default function CheckoutPage() {
                         </div>
                         {address.isDefault && (
                           <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                            Par défaut
+                            {t('default')}
                           </span>
                         )}
                       </div>
@@ -255,7 +259,7 @@ export default function CheckoutPage() {
                       if (!showAddressForm) {
                         // Pre-fill with user info when opening form
                         setNewAddress({
-                          label: 'Domicile',
+                          label: t('home'),
                           fullName: user.displayName || '',
                           phone: user.phoneNumber || '',
                           street: '',
@@ -270,7 +274,7 @@ export default function CheckoutPage() {
                     className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all flex items-center justify-center gap-2 text-green-600 font-medium"
                   >
                     <Plus size={20} />
-                    Ajouter une nouvelle adresse
+                    {t('add_new_address')}
                   </button>
                 </div>
               ) : null}
@@ -285,20 +289,20 @@ export default function CheckoutPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Nom complet <span className="text-red-500">*</span>
+                        {t('full_name')} <span className="text-red-500">{t('required')}</span>
                       </label>
                       <input
                         type="text"
                         value={newAddress.fullName || ''}
                         onChange={(e) => handleAddressInputChange('fullName', e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="Jean Dupont"
+                        placeholder="John Doe"
                       />
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Téléphone <span className="text-red-500">*</span>
+                        {t('phone')} <span className="text-red-500">{t('required')}</span>
                       </label>
                       <input
                         type="tel"
@@ -312,21 +316,21 @@ export default function CheckoutPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Adresse <span className="text-red-500">*</span>
+                      {t('address')} <span className="text-red-500">{t('required')}</span>
                     </label>
                     <input
                       type="text"
                       value={newAddress.street || ''}
                       onChange={(e) => handleAddressInputChange('street', e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="123 Rue de la République"
+                      placeholder="123 Main Street"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Ville <span className="text-red-500">*</span>
+                        {t('city')} <span className="text-red-500">{t('required')}</span>
                       </label>
                       <input
                         type="text"
@@ -339,14 +343,14 @@ export default function CheckoutPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Région/État
+                        {t('state')}
                       </label>
                       <input
                         type="text"
                         value={newAddress.state || ''}
                         onChange={(e) => handleAddressInputChange('state', e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="Lagunes"
+                        placeholder="Region"
                       />
                     </div>
                   </div>
@@ -354,7 +358,7 @@ export default function CheckoutPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Pays <span className="text-red-500">*</span>
+                        {t('country')} <span className="text-red-500">{t('required')}</span>
                       </label>
                       <input
                         type="text"
@@ -367,7 +371,7 @@ export default function CheckoutPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Code postal <span className="text-red-500">*</span>
+                        {t('postal_code')} <span className="text-red-500">{t('required')}</span>
                       </label>
                       <input
                         type="text"
@@ -381,16 +385,16 @@ export default function CheckoutPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Libellé de l'adresse
+                      {t('address_label')}
                     </label>
                     <select
                       value={newAddress.label || 'Domicile'}
                       onChange={(e) => handleAddressInputChange('label', e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     >
-                      <option value="Domicile">Domicile</option>
-                      <option value="Bureau">Bureau</option>
-                      <option value="Autre">Autre</option>
+                      <option value={t('home')}>{t('home')}</option>
+                      <option value={t('office')}>{t('office')}</option>
+                      <option value={t('other')}>{t('other')}</option>
                     </select>
                   </div>
 
@@ -399,14 +403,14 @@ export default function CheckoutPage() {
                       onClick={handleUseNewAddress}
                       className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors"
                     >
-                      Utiliser cette adresse
+                      {t('use_this_address')}
                     </button>
                     {user.role === 'client' && (user as any).addresses && (user as any).addresses.length > 0 && (
                       <button
                         onClick={() => setShowAddressForm(false)}
                         className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                       >
-                        Annuler
+                        {t('cancel')}
                       </button>
                     )}
                   </div>
@@ -423,7 +427,7 @@ export default function CheckoutPage() {
             >
               <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                 <CreditCard size={24} className="text-green-600" />
-                Méthode de paiement
+                {t('payment_method')}
               </h2>
 
               <div className="space-y-3">
@@ -437,8 +441,10 @@ export default function CheckoutPage() {
                       className="w-4 h-4 text-green-600"
                     />
                     <div>
-                      <p className="font-semibold">Carte bancaire</p>
-                      <p className="text-sm text-gray-600">Paiement sécurisé par carte</p>
+                      <p className="font-semibold">{t('card_payment')}</p>
+                      <p className="text-sm text-gray-600">
+                        {t('secure_card_payment')}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -452,8 +458,8 @@ export default function CheckoutPage() {
                       className="w-4 h-4"
                     />
                     <div>
-                      <p className="font-semibold">PayPal</p>
-                      <p className="text-sm text-gray-600">Bientôt disponible</p>
+                      <p className="font-semibold">{t('paypal')}</p>
+                      <p className="text-sm text-gray-600">{t('coming_soon')}</p>
                     </div>
                   </div>
                 </div>
@@ -467,8 +473,8 @@ export default function CheckoutPage() {
                       className="w-4 h-4"
                     />
                     <div>
-                      <p className="font-semibold">Mobile Money</p>
-                      <p className="text-sm text-gray-600">Bientôt disponible</p>
+                      <p className="font-semibold">{t('mobile_money')}</p>
+                      <p className="text-sm text-gray-600">{t('coming_soon')}</p>
                     </div>
                   </div>
                 </div>
@@ -486,7 +492,7 @@ export default function CheckoutPage() {
             >
               <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                 <Package size={24} className="text-green-600" />
-                Résumé de la commande
+                {t('order_summary')}
               </h2>
 
               {/* Products */}
@@ -500,7 +506,9 @@ export default function CheckoutPage() {
                     />
                     <div className="flex-1">
                       <p className="text-sm font-medium line-clamp-2">{item.name}</p>
-                      <p className="text-xs text-gray-600">Qté: {item.quantity}</p>
+                      <p className="text-xs text-gray-600">
+                        {t('quantity_short')}: {item.quantity}
+                      </p>
                       <PriceDisplay 
                         priceUSD={item.price * item.quantity}
                         className="text-sm font-semibold text-green-600"
@@ -513,7 +521,7 @@ export default function CheckoutPage() {
               {/* Totals */}
               <div className="border-t pt-4 space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Sous-total</span>
+                  <span className="text-gray-600">{t('subtotal')}</span>
                   <PriceDisplay 
                     priceUSD={subtotal}
                     className="font-semibold"
@@ -521,7 +529,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Frais de livraison</span>
+                  <span className="text-gray-600">{t('shipping_fee')}</span>
                   <PriceDisplay 
                     priceUSD={shippingFee}
                     className="font-semibold"
@@ -530,7 +538,9 @@ export default function CheckoutPage() {
 
                 {marketingCode && (
                   <div className="flex justify-between text-sm text-green-600">
-                    <span>Réduction ({marketingCode})</span>
+                    <span>
+                      {t('discount')} ({marketingCode})
+                    </span>
                     <PriceDisplay 
                       priceUSD={-discount}
                       className=""
@@ -539,7 +549,7 @@ export default function CheckoutPage() {
                 )}
 
                 <div className="border-t pt-3 flex justify-between text-lg font-bold">
-                  <span>Total</span>
+                  <span>{t('total')}</span>
                   <PriceDisplay 
                     priceUSD={total}
                     className="text-green-600"
@@ -556,15 +566,15 @@ export default function CheckoutPage() {
                 {loading ? (
                   <>
                     <Loader className="animate-spin" size={20} />
-                    Traitement...
+                    {t('processing')}
                   </>
                 ) : (
-                  'Passer la commande'
+                  t('place_order')
                 )}
               </button>
 
               <p className="text-xs text-gray-500 text-center mt-4">
-                En passant commande, vous acceptez nos conditions générales de vente
+                {t('terms_accept')}
               </p>
             </motion.div>
           </div>

@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import { getOrCreateConversation } from '@/lib/firebase/chat';
 import { MessageCircle, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 interface ChatButtonProps {
   fournisseurId: string;
@@ -25,16 +26,18 @@ export function ChatButton({
   const router = useRouter();
   const { user } = useAuthStore();
   const [loading, setLoading] = useState(false);
+  const tCommon = useTranslations('common');
+  const tChat = useTranslations('chat');
 
   const handleStartChat = async () => {
     if (!user) {
-      toast.error('Vous devez être connecté pour envoyer un message');
+      toast.error(tChat('login_required'));
       router.push('/login');
       return;
     }
 
     if (user.id === fournisseurId) {
-      toast.error('Vous ne pouvez pas vous envoyer un message à vous-même');
+      toast.error(tChat('cannot_message_self'));
       return;
     }
 
@@ -58,7 +61,7 @@ export function ChatButton({
       router.push(`/chat/${conversationId}`);
     } catch (error) {
       console.error('Error starting chat:', error);
-      toast.error('Erreur lors de l\'ouverture du chat');
+      toast.error(tChat('error_opening_chat'));
     } finally {
       setLoading(false);
     }
@@ -73,12 +76,12 @@ export function ChatButton({
       {loading ? (
         <>
           <Loader2 className="animate-spin" size={20} />
-          Chargement...
+          {tCommon('loading')}
         </>
       ) : (
         <>
           <MessageCircle size={20} />
-          Contacter le vendeur
+          {tChat('contact_seller')}
         </>
       )}
     </button>

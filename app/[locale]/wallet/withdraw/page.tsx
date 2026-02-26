@@ -7,11 +7,13 @@ import { useWalletStore } from '@/store/walletStore';
 import PaymentMethodSelector from '@/components/wallet/PaymentMethodSelector';
 import FlexibleWithdrawalForm from '@/components/wallet/FlexibleWithdrawalForm';
 import type { PaymentMethod, FlexibleWithdrawalData } from '@/types';
+import { useTranslations } from 'next-intl';
 
 export default function WithdrawPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { initiateFlexibleWithdrawal } = useWalletStore();
+  const t = useTranslations('wallet');
   
   const [step, setStep] = useState<'select' | 'form'>('select');
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
@@ -56,16 +58,15 @@ export default function WithdrawPage() {
           </div>
           
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Demande envoyée !
+            {t('deposit_success_title')}
           </h2>
           
           <p className="text-gray-600 mb-6">
-            Votre demande de retrait a été envoyée avec succès. 
-            Un administrateur va la vérifier et effectuer le paiement.
+            {t('withdraw_success_description')}
           </p>
           
           <p className="text-sm text-gray-500">
-            Vous serez notifié par email une fois votre retrait traité.
+            {t('withdraw_success_note')}
           </p>
           
           <div className="mt-6">
@@ -73,7 +74,7 @@ export default function WithdrawPage() {
               onClick={() => router.push('/wallet/history')}
               className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
             >
-              Voir l'historique
+              {t('see_history')}
             </button>
           </div>
         </div>
@@ -93,7 +94,7 @@ export default function WithdrawPage() {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Retour au portefeuille
+            {t('breadcrumb_back_to_wallet')}
           </button>
         </div>
 
@@ -106,7 +107,7 @@ export default function WithdrawPage() {
               }`}>
                 1
               </div>
-              <span className="font-medium">Choisir la méthode</span>
+              <span className="font-medium">{t('step_choose_method')}</span>
             </div>
             
             <div className="w-12 h-0.5 bg-gray-300"></div>
@@ -117,7 +118,7 @@ export default function WithdrawPage() {
               }`}>
                 2
               </div>
-              <span className="font-medium">Confirmer le retrait</span>
+              <span className="font-medium">{t('step_confirm_withdraw')}</span>
             </div>
           </div>
         </div>

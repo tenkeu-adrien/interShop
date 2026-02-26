@@ -16,11 +16,13 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useTranslations } from 'next-intl';
 
 export default function WalletPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { wallet, transactions, loading, error, fetchWallet, fetchTransactions } = useWalletStore();
+  const t = useTranslations('wallet');
 
   useEffect(() => {
     if (!user) {
@@ -48,10 +50,10 @@ export default function WalletPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <WalletIcon className="w-8 h-8 text-green-600" />
-            Mon Portefeuille
+            {t('title')}
           </h1>
           <p className="text-gray-600 mt-2">
-            Gérez votre solde et vos transactions
+            {t('subtitle')}
           </p>
         </div>
 
@@ -67,7 +69,9 @@ export default function WalletPage() {
         <div className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 rounded-2xl p-8 text-gray-900 mb-8 shadow-xl">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="text-sm mb-1 opacity-90">Solde disponible</p>
+              <p className="text-sm mb-1 opacity-90">
+                {t('available_balance')}
+              </p>
               <p className="text-4xl font-bold">
                 {wallet?.balance.toLocaleString('fr-FR')} FCFA
               </p>
@@ -77,7 +81,9 @@ export default function WalletPage() {
 
           {wallet && wallet.pendingBalance > 0 && (
             <div className="bg-white/20 rounded-lg p-4 mb-6">
-              <p className="text-sm mb-1 opacity-90">Solde en attente</p>
+              <p className="text-sm mb-1 opacity-90">
+                {t('pending_balance')}
+              </p>
               <p className="text-2xl font-semibold">
                 {wallet.pendingBalance.toLocaleString('fr-FR')} FCFA
               </p>
@@ -91,21 +97,21 @@ export default function WalletPage() {
               className="bg-white text-green-600 py-3 rounded-lg font-medium hover:bg-green-50 transition flex items-center justify-center gap-2 shadow-md"
             >
               <ArrowDownCircle className="w-5 h-5" />
-              Déposer
+              {t('deposit')}
             </button>
             <button
               onClick={() => router.push('/wallet/transfer')}
               className="bg-white text-yellow-600 py-3 rounded-lg font-medium hover:bg-yellow-50 transition flex items-center justify-center gap-2 shadow-md"
             >
               <ArrowRight className="w-5 h-5" />
-              Transférer
+              {t('transfer')}
             </button>
             <button
               onClick={() => router.push('/wallet/withdraw')}
               className="bg-white/10 text-gray-900 py-3 rounded-lg font-medium hover:bg-white/20 transition flex items-center justify-center gap-2 border border-white/20"
             >
               <ArrowUpCircle className="w-5 h-5" />
-              Retirer
+              {t('withdraw')}
             </button>
           </div>
         </div>
@@ -118,8 +124,12 @@ export default function WalletPage() {
           >
             <History className="w-6 h-6 text-gray-600" />
             <div className="text-left">
-              <p className="font-medium text-gray-900">Historique</p>
-              <p className="text-sm text-gray-600">Voir toutes les transactions</p>
+              <p className="font-medium text-gray-900">
+                {t('history')}
+              </p>
+              <p className="text-sm text-gray-600">
+                {t('view_all_transactions')}
+              </p>
             </div>
           </button>
           <button
@@ -128,8 +138,12 @@ export default function WalletPage() {
           >
             <Settings className="w-6 h-6 text-gray-600" />
             <div className="text-left">
-              <p className="font-medium text-gray-900">Paramètres</p>
-              <p className="text-sm text-gray-600">Code PIN et sécurité</p>
+              <p className="font-medium text-gray-900">
+                {t('settings')}
+              </p>
+              <p className="text-sm text-gray-600">
+                {t('settings_description')}
+              </p>
             </div>
           </button>
         </div>
@@ -138,13 +152,13 @@ export default function WalletPage() {
         <div className="bg-white rounded-lg shadow">
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900">
-              Transactions récentes
+              {t('recent_transactions')}
             </h2>
           </div>
           <div className="divide-y divide-gray-200">
             {transactions.length === 0 ? (
               <div className="p-8 text-center text-gray-500">
-                Aucune transaction pour le moment
+                {t('no_transactions')}
               </div>
             ) : (
               transactions.slice(0, 5).map((transaction) => (
@@ -195,10 +209,13 @@ export default function WalletPage() {
                         transaction.status === 'failed' ? 'text-red-600' :
                         'text-gray-600'
                       }`}>
-                        {transaction.status === 'completed' ? 'Complété' :
-                         transaction.status === 'pending' ? 'En attente' :
-                         transaction.status === 'failed' ? 'Échoué' :
-                         transaction.status}
+                        {transaction.status === 'completed'
+                          ? t('status_completed')
+                          : transaction.status === 'pending'
+                            ? t('status_pending')
+                            : transaction.status === 'failed'
+                              ? t('status_failed')
+                              : transaction.status}
                       </p>
                     </div>
                   </div>
@@ -212,7 +229,7 @@ export default function WalletPage() {
                 onClick={() => router.push('/wallet/history')}
                 className="w-full text-center text-orange-600 hover:text-orange-700 font-medium"
               >
-                Voir toutes les transactions
+                {t('view_all_transactions')}
               </button>
             </div>
           )}

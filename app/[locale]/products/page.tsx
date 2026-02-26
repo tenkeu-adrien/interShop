@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ProductCard from '@/components/products/ProductCard';
 import { usePublicProductsStore } from '@/store/publicProductsStore';
@@ -8,8 +8,10 @@ import { SearchFilters, Product } from '@/types';
 import { Filter, X, Loader, Camera, Sparkles, AlertCircle } from 'lucide-react';
 import { searchProductsByImage } from '@/lib/services/imageSearchService';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 export default function ProductsPage() {
+  const t = useTranslations();
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('search');
   const sortParam = searchParams.get('sort');
@@ -144,12 +146,14 @@ export default function ProductsPage() {
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900">
-                      Résultats de la recherche par image
+                      {t('products.image_search_results_title')}
                     </h2>
                     <p className="text-gray-600">
-                      {loading ? 'Analyse en cours...' : 
-                       imageSearchError ? 'Aucun produit trouvé' :
-                       `${products.length} produit${products.length > 1 ? 's' : ''} similaire${products.length > 1 ? 's' : ''} trouvé${products.length > 1 ? 's' : ''}`}
+                      {loading
+                        ? t('products.image_search_loading')
+                        : imageSearchError
+                          ? t('products.image_search_no_results')
+                          : t('products.image_search_results_count', { count: products.length })}
                     </p>
                   </div>
                 </div>
@@ -159,7 +163,7 @@ export default function ProductsPage() {
                   <div className="mb-3">
                     <p className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                       <Sparkles size={16} className="text-blue-600" />
-                      Éléments détectés par l'IA:
+                      {t('products.image_search_detected_elements')}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {imageLabels.map((label, index) => (
@@ -180,7 +184,7 @@ export default function ProductsPage() {
                   className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-blue-300 text-blue-700 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
                 >
                   <X size={18} />
-                  Nouvelle recherche
+                  {t('products.image_search_new_search')}
                 </button>
               </div>
             </div>
@@ -193,19 +197,18 @@ export default function ProductsPage() {
                 <AlertCircle className="text-yellow-600 flex-shrink-0 mt-1" size={24} />
                 <div>
                   <h3 className="font-bold text-yellow-900 mb-2">
-                    Aucun produit correspondant trouvé
+                    {t('products.image_search_no_results_title')}
                   </h3>
                   <p className="text-yellow-800 mb-4">
-                    Nous n'avons pas trouvé de produits correspondant à votre image. 
-                    Cela peut être dû à:
+                    {t('products.image_search_no_results_intro')}
                   </p>
                   <ul className="list-disc list-inside text-yellow-800 space-y-1 mb-4">
-                    <li>L'image est trop floue ou mal éclairée</li>
-                    <li>Le produit n'est pas encore dans notre catalogue</li>
-                    <li>L'angle de la photo rend la détection difficile</li>
+                    <li>{t('products.image_search_no_results_reason_blur')}</li>
+                    <li>{t('products.image_search_no_results_reason_catalog')}</li>
+                    <li>{t('products.image_search_no_results_reason_angle')}</li>
                   </ul>
                   <p className="text-yellow-800 font-medium">
-                    💡 Astuce: Essayez avec une photo plus claire ou consultez nos produits populaires ci-dessous.
+                    {t('products.image_search_no_results_tip')}
                   </p>
                 </div>
               </div>
@@ -220,12 +223,14 @@ export default function ProductsPage() {
           <div className="bg-white rounded-lg shadow p-6 sticky top-20">
             <div className="flex items-center gap-2 mb-6">
               <Filter size={20} />
-              <h2 className="font-bold text-lg">Filtres</h2>
+              <h2 className="font-bold text-lg">{t('products.filters_title')}</h2>
             </div>
 
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium mb-2">Prix minimum</label>
+                <label className="block text-sm font-medium mb-2">
+                  {t('products.min_price')}
+                </label>
                 <input
                   type="number"
                   placeholder="0"
@@ -237,7 +242,9 @@ export default function ProductsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Prix maximum</label>
+                <label className="block text-sm font-medium mb-2">
+                  {t('products.max_price')}
+                </label>
                 <input
                   type="number"
                   placeholder="1000"
@@ -249,17 +256,19 @@ export default function ProductsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Notation minimum</label>
+                <label className="block text-sm font-medium mb-2">
+                  {t('products.min_rating')}
+                </label>
                 <select
                   className="w-full px-3 py-2 border rounded-lg"
                   onChange={(e) =>
                     setFilters({ ...filters, minRating: Number(e.target.value) })
                   }
                 >
-                  <option value="">Toutes</option>
-                  <option value="4">4+ étoiles</option>
-                  <option value="3">3+ étoiles</option>
-                  <option value="2">2+ étoiles</option>
+                  <option value="">{t('products.all_ratings')}</option>
+                  <option value="4">{t('products.rating_4_plus')}</option>
+                  <option value="3">{t('products.rating_3_plus')}</option>
+                  <option value="2">{t('products.rating_2_plus')}</option>
                 </select>
               </div>
 
@@ -271,7 +280,9 @@ export default function ProductsPage() {
                       setFilters({ ...filters, verifiedOnly: e.target.checked })
                     }
                   />
-                  <span className="text-sm">Fournisseurs vérifiés uniquement</span>
+                  <span className="text-sm">
+                    {t('products.verified_only')}
+                  </span>
                 </label>
               </div>
 
@@ -283,7 +294,9 @@ export default function ProductsPage() {
                       setFilters({ ...filters, fastDelivery: e.target.checked })
                     }
                   />
-                  <span className="text-sm">Livraison rapide</span>
+                  <span className="text-sm">
+                    {t('products.fast_delivery')}
+                  </span>
                 </label>
               </div>
             </div>
@@ -295,7 +308,9 @@ export default function ProductsPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold">
-                {searchQuery ? `Résultats pour "${searchQuery}"` : 'Tous les produits'}
+                {searchQuery
+                  ? t('products.results_for', { search: searchQuery })
+                  : t('products.all_products')}
               </h1>
               {searchQuery && (
                 <button
@@ -303,7 +318,7 @@ export default function ProductsPage() {
                   className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1 mt-1"
                 >
                   <X size={14} />
-                  Effacer la recherche
+                  {t('products.clear_search')}
                 </button>
               )}
             </div>
@@ -320,33 +335,34 @@ export default function ProductsPage() {
             </select>
           </div>
 
-          {loading && products.length === 0 ? (
+            {loading && products.length === 0 ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Chargement des produits...</p>
+                <p className="mt-4 text-gray-600">
+                  {t('products.loading_products')}
+                </p>
             </div>
           ) : products.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg mb-4">
-                {searchQuery 
-                  ? `Aucun produit trouvé pour "${searchQuery}"`
-                  : 'Aucun produit trouvé'
-                }
+                  {searchQuery
+                    ? t('products.no_results_for', { search: searchQuery })
+                    : t('products.no_results')}
               </p>
               {searchQuery && (
                 <button
                   onClick={clearSearch}
                   className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
                 >
-                  Voir tous les produits
+                    {t('products.view_all_products')}
                 </button>
               )}
             </div>
           ) : (
             <>
               <p className="text-sm text-gray-600 mb-4">
-                {products.length} produit{products.length > 1 ? 's' : ''} trouvé{products.length > 1 ? 's' : ''}
-                {hasMore && ' (scroll pour charger plus)'}
+                {t('products.results_summary', { count: products.length })}
+                {hasMore && ` ${t('products.scroll_to_load_more')}`}
               </p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -360,11 +376,13 @@ export default function ProductsPage() {
                 {loading && (
                   <div className="flex items-center justify-center gap-2 text-green-600">
                     <Loader className="animate-spin" size={24} />
-                    <span>Chargement de plus de produits...</span>
+                    <span>{t('products.loading_more_products')}</span>
                   </div>
                 )}
                 {!loading && !hasMore && products.length > 0 && (
-                  <p className="text-gray-500">Vous avez vu tous les produits disponibles</p>
+                  <p className="text-gray-500">
+                    {t('products.seen_all_products')}
+                  </p>
                 )}
               </div>
             </>

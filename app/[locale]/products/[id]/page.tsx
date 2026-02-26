@@ -26,8 +26,10 @@ import { PriceDisplay } from '@/components/ui/PriceDisplay';
 import { ProductChatActions } from '@/components/products/ProductChatActions';
 import { ContactButton } from '@/components/products/ContactButton';
 import { BackButton } from '@/components/ui/BackButton';
+import { useTranslations } from 'next-intl';
 
 export default function ProductDetailPage() {
+  const t = useTranslations();
   const params = useParams();
   const router = useRouter();
   const { addItem } = useCartStore();
@@ -107,7 +109,7 @@ export default function ProductDetailPage() {
       const productData = await getProduct(params.id as string);
       
       if (!productData) {
-        toast.error('Produit non trouvé');
+        toast.error(t('products.product_not_found'));
         router.push('/products');
         return;
       }
@@ -142,7 +144,7 @@ export default function ProductDetailPage() {
       }
     } catch (error) {
       console.error('Error loading product:', error);
-      toast.error('Erreur lors du chargement du produit');
+      toast.error(t('products.error_loading'));
       router.push('/products');
     } finally {
       setLoading(false);
@@ -213,11 +215,11 @@ export default function ProductDetailPage() {
       moq: product.moq,
     });
 
-    toast.success('Produit ajouté au panier !');
+    toast.success(t('products.add_to_cart') + ' !');
   };
 
   const handleAddToWishlist = () => {
-    toast.success('Ajouté à la liste de souhaits !');
+    toast.success(t('products.added_to_wishlist'));
   };
 
   const handleShare = () => {
@@ -229,7 +231,7 @@ export default function ProductDetailPage() {
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      toast.success('Lien copié !');
+      toast.success(t('products.link_copied'));
     }
   };
 
@@ -258,11 +260,11 @@ export default function ProductDetailPage() {
           className="flex items-center gap-2 text-sm text-gray-600 mb-6"
         >
           <Link href="/" className="hover:text-green-600">
-            Accueil
+            {t('nav.home')}
           </Link>
           <ChevronRight size={16} />
           <Link href="/products" className="hover:text-green-600">
-            Produits
+            {t('nav.products')}
           </Link>
           <ChevronRight size={16} />
           <Link href={`/categories/${product.category}`} className="hover:text-green-600">
@@ -318,7 +320,7 @@ export default function ProductDetailPage() {
               {/* Videos if available */}
               {product.videos && product.videos.length > 0 && (
                 <div className="p-4 border-t">
-                  <h3 className="font-semibold mb-2">Vidéos du produit</h3>
+                  <h3 className="font-semibold mb-2">{t('products.product_videos')}</h3>
                   <div className="grid grid-cols-2 gap-2">
                     {product.videos.map((video, index) => (
                       <video
@@ -360,8 +362,8 @@ export default function ProductDetailPage() {
                   ))}
                   <span className="ml-2 text-lg font-semibold">{product.rating.toFixed(1)}</span>
                 </div>
-                <span className="text-gray-600">({product.reviewCount} avis)</span>
-                <span className="text-gray-600">• {product.sales} vendus</span>
+                <span className="text-gray-600">({product.reviewCount} {t('products.reviews')})</span>
+                <span className="text-gray-600">• {product.sales} {t('products.sold')}</span>
               </div>
 
               {/* Price */}
@@ -371,11 +373,11 @@ export default function ProductDetailPage() {
                     priceUSD={currentPrice.price}
                     className="text-4xl font-bold text-green-600"
                   />
-                  <span className="text-gray-600">/ unité</span>
+                  <span className="text-gray-600">{t('products.per_unit')}</span>
                 </div>
                 {product.moq > 1 && (
                   <p className="text-sm text-gray-600">
-                    Quantité minimum de commande: {product.moq} unités
+                    {t('products.moq')}: {product.moq} {t('products.units')}
                   </p>
                 )}
               </div>
@@ -383,7 +385,7 @@ export default function ProductDetailPage() {
               {/* Price Tiers */}
               {product.prices.length > 1 && (
                 <div className="mb-6">
-                  <h3 className="font-semibold mb-3">Prix par quantité:</h3>
+                  <h3 className="font-semibold mb-3">{t('products.price_by_quantity')}</h3>
                   <div className="grid grid-cols-2 gap-2">
                     {product.prices.map((tier, index) => (
                       <motion.button
@@ -399,7 +401,7 @@ export default function ProductDetailPage() {
                       >
                         <div className="text-sm text-gray-600">
                           {tier.minQuantity}
-                          {tier.maxQuantity ? `-${tier.maxQuantity}` : '+'} unités
+                          {tier.maxQuantity ? `-${tier.maxQuantity}` : '+'} {t('products.units')}
                         </div>
                         <PriceDisplay 
                           priceUSD={tier.price}
@@ -413,7 +415,7 @@ export default function ProductDetailPage() {
 
               {/* Quantity Selector */}
               <div className="mb-6">
-                <label className="block text-sm font-medium mb-2">Quantité:</label>
+                <label className="block text-sm font-medium mb-2">{t('products.quantity_label')}</label>
                 <div className="flex items-center gap-3">
                   <motion.button
                     whileTap={{ scale: 0.9 }}
@@ -442,11 +444,11 @@ export default function ProductDetailPage() {
                     +
                   </motion.button>
                   <span className="text-sm text-gray-600">
-                    {product.stock} disponibles
+                    {product.stock} {t('products.available')}
                   </span>
                 </div>
                 <div className="mt-2 text-sm text-gray-600">
-                  Total: <PriceDisplay 
+                  {t('products.total')}: <PriceDisplay 
                     priceUSD={totalPrice}
                     className="font-bold text-green-600 text-lg inline"
                   />
@@ -484,7 +486,7 @@ export default function ProductDetailPage() {
                   className="flex-1 bg-green-500 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   <ShoppingCart size={20} />
-                  {product.stock === 0 ? 'Rupture de stock' : 'Ajouter au panier'}
+                  {product.stock === 0 ? t('products.out_of_stock') : t('products.add_to_cart')}
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -512,11 +514,11 @@ export default function ProductDetailPage() {
                 </div>
                 <div className="text-center">
                   <Shield className="mx-auto mb-2 text-green-500" size={24} />
-                  <p className="text-xs text-gray-600">Protection acheteur</p>
+                  <p className="text-xs text-gray-600">{t('products.buyer_protection')}</p>
                 </div>
                 <div className="text-center">
                   <MessageCircle className="mx-auto mb-2 text-green-500" size={24} />
-                  <p className="text-xs text-gray-600">Support 24/7</p>
+                  <p className="text-xs text-gray-600">{t('products.support_24_7')}</p>
                 </div>
               </div>
             </div>
@@ -530,12 +532,12 @@ export default function ProductDetailPage() {
           transition={{ duration: 0.5, delay: 0.4 }}
           className="bg-white rounded-lg shadow-lg p-6 mb-8"
         >
-          <h2 className="text-2xl font-bold mb-4">Description du produit</h2>
+          <h2 className="text-2xl font-bold mb-4">{t('products.product_description')}</h2>
           <p className="text-gray-700 whitespace-pre-line">{product.description}</p>
 
           {product.certifications.length > 0 && (
             <div className="mt-6">
-              <h3 className="font-semibold mb-3">Certifications:</h3>
+              <h3 className="font-semibold mb-3">{t('products.certifications')}:</h3>
               <div className="flex flex-wrap gap-2">
                 {product.certifications.map((cert, index) => (
                   <span
@@ -552,28 +554,28 @@ export default function ProductDetailPage() {
 
           <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-sm text-gray-600">Catégorie</p>
+              <p className="text-sm text-gray-600">{t('products.category')}</p>
               <p className="font-semibold">{product.category}</p>
             </div>
             {product.subcategory && (
               <div>
-                <p className="text-sm text-gray-600">Sous-catégorie</p>
+                <p className="text-sm text-gray-600">{t('products.subcategory')}</p>
                 <p className="font-semibold">{product.subcategory}</p>
               </div>
             )}
             <div>
-              <p className="text-sm text-gray-600">Pays d'origine</p>
+              <p className="text-sm text-gray-600">{t('products.country_origin')}</p>
               <p className="font-semibold">{product.country}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Stock</p>
-              <p className="font-semibold">{product.stock} unités</p>
+              <p className="text-sm text-gray-600">{t('products.stock')}</p>
+              <p className="font-semibold">{product.stock} {t('products.units')}</p>
             </div>
           </div>
 
           {product.tags.length > 0 && (
             <div className="mt-6">
-              <h3 className="font-semibold mb-3">Tags:</h3>
+              <h3 className="font-semibold mb-3">{t('products.tags')}:</h3>
               <div className="flex flex-wrap gap-2">
                 {product.tags.map((tag, index) => (
                   <span
@@ -595,12 +597,12 @@ export default function ProductDetailPage() {
           transition={{ duration: 0.5, delay: 0.6 }}
         >
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Produits similaires</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{t('products.similar_products')}</h2>
             <Link 
               href={`/categories/${product.category}`}
               className="text-green-600 hover:text-green-700 flex items-center gap-2 font-medium"
             >
-              Voir tout
+              {t('products.view_all')}
               <ChevronRight size={20} />
             </Link>
           </div>
@@ -626,7 +628,7 @@ export default function ProductDetailPage() {
                     />
                     {similarProduct.stock === 0 && (
                       <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
-                        Rupture
+                        {t('products.out_of_stock')}
                       </div>
                     )}
                   </div>
@@ -668,14 +670,14 @@ export default function ProductDetailPage() {
           {/* No More Products */}
           {!hasMore && similarProducts.length > 0 && (
             <div className="text-center py-8 text-gray-600">
-              Vous avez vu tous les produits similaires
+              {t('products.seen_all_similar')}
             </div>
           )}
 
           {/* No Similar Products */}
           {!loadingSimilar && similarProducts.length === 0 && (
             <div className="text-center py-12 text-gray-600">
-              Aucun produit similaire trouvé
+              {t('products.no_similar_found')}
             </div>
           )}
         </motion.div>

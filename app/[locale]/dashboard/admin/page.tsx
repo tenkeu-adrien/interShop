@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
+import { useTranslations } from 'next-intl';
 import { 
   Users, 
   Package, 
@@ -45,6 +46,8 @@ interface DashboardStats {
 export default function AdminDashboardPage() {
   const router = useRouter();
   const { user, loading } = useAuthStore();
+  const tAdmin = useTranslations('admin');
+  const tCommon = useTranslations('common');
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     totalClients: 0,
@@ -166,7 +169,7 @@ export default function AdminDashboardPage() {
 
   const statCards = [
     {
-      title: 'Utilisateurs totaux',
+      title: tAdmin('total_users'),
       value: stats.totalUsers,
       icon: Users,
       color: 'bg-blue-500',
@@ -175,6 +178,69 @@ export default function AdminDashboardPage() {
       link: '/dashboard/admin/users'
     },
     {
+      title: tAdmin('clients'),
+      value: stats.totalClients,
+      icon: UserCheck,
+      color: 'bg-green-500',
+      change: '+8%',
+      isPositive: true,
+      link: '/dashboard/admin/users?role=client'
+    },
+    {
+      title: tAdmin('suppliers'),
+      value: stats.totalFournisseurs,
+      icon: Store,
+      color: 'bg-purple-500',
+      change: '+5%',
+      isPositive: true,
+      link: '/dashboard/admin/users?role=fournisseur'
+    },
+    {
+      title: tAdmin('marketers'),
+      value: stats.totalMarketistes,
+      icon: Tag,
+      color: 'bg-yellow-500',
+      change: '+15%',
+      isPositive: true,
+      link: '/dashboard/admin/users?role=marketiste'
+    },
+    {
+      title: tAdmin('total_products'),
+      value: stats.totalProducts,
+      icon: Package,
+      color: 'bg-indigo-500',
+      change: `${stats.activeProducts} ${tAdmin('active_products')}`,
+      isPositive: true,
+      link: '/dashboard/admin/products'
+    },
+    {
+      title: tAdmin('total_orders'),
+      value: stats.totalOrders,
+      icon: ShoppingCart,
+      color: 'bg-orange-500',
+      change: `${stats.pendingOrders} ${tAdmin('pending')}`,
+      isPositive: stats.pendingOrders === 0,
+      link: '/dashboard/admin/orders'
+    },
+    {
+      title: tAdmin('total_revenue'),
+      value: `${stats.totalRevenue.toFixed(2)}`,
+      icon: DollarSign,
+      color: 'bg-green-600',
+      change: '+23%',
+      isPositive: true,
+      link: '/dashboard/admin/revenue'
+    },
+    {
+      title: tAdmin('monthly_revenue'),
+      value: `${stats.monthlyRevenue.toFixed(2)}`,
+      icon: TrendingUp,
+      color: 'bg-emerald-500',
+      change: '+18%',
+      isPositive: true,
+      link: '/dashboard/admin/revenue'
+    },
+  ];
       title: 'Clients',
       value: stats.totalClients,
       icon: UserCheck,
@@ -244,8 +310,8 @@ export default function AdminDashboardPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Dashboard Admin</h1>
-          <p className="text-gray-600">Vue d'ensemble complète de votre plateforme e-commerce</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">{tAdmin('dashboard_title')}</h1>
+          <p className="text-gray-600">{tAdmin('dashboard_subtitle')}</p>
         </div>
 
         {/* Stats Grid - Compact Single Row */}
@@ -292,13 +358,13 @@ export default function AdminDashboardPage() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <ShoppingCart className="text-orange-500" size={24} />
-                Commandes récentes
+                {tAdmin('recent_orders')}
               </h2>
               <Link 
                 href="/dashboard/admin/orders"
                 className="text-green-600 hover:text-green-700 text-sm font-medium"
               >
-                Voir tout
+                {tAdmin('view_all')}
               </Link>
             </div>
 
@@ -309,7 +375,7 @@ export default function AdminDashboardPage() {
                     <div className="flex-1">
                       <p className="font-semibold text-gray-900">{order.orderNumber}</p>
                       <p className="text-sm text-gray-600">
-                        {order.products.length} produit(s)
+                        {order.products.length} {tAdmin('products_count')}
                       </p>
                     </div>
                     <div className="text-right">
@@ -329,7 +395,7 @@ export default function AdminDashboardPage() {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-center py-8">Aucune commande récente</p>
+                <p className="text-gray-500 text-center py-8">{tAdmin('no_recent_orders')}</p>
               )}
             </div>
           </motion.div>
@@ -344,13 +410,13 @@ export default function AdminDashboardPage() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <BarChart3 className="text-purple-500" size={24} />
-                Top produits
+                {tAdmin('top_products')}
               </h2>
               <Link 
                 href="/dashboard/admin/products"
                 className="text-green-600 hover:text-green-700 text-sm font-medium"
               >
-                Voir tout
+                {tAdmin('view_all')}
               </Link>
             </div>
 
@@ -368,7 +434,7 @@ export default function AdminDashboardPage() {
                     />
                     <div className="flex-1">
                       <p className="font-semibold text-gray-900 line-clamp-1">{product.name}</p>
-                      <p className="text-sm text-gray-600">{product.sales} ventes</p>
+                      <p className="text-sm text-gray-600">{product.sales} {tAdmin('sales')}</p>
                     </div>
                     <PriceDisplay 
                       priceUSD={product.prices[0].price}
@@ -377,7 +443,7 @@ export default function AdminDashboardPage() {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-center py-8">Aucun produit trouvé</p>
+                <p className="text-gray-500 text-center py-8">{tAdmin('no_products_found')}</p>
               )}
             </div>
           </motion.div>
@@ -392,7 +458,7 @@ export default function AdminDashboardPage() {
         >
           <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
             <Activity className="text-green-500" size={24} />
-            Actions rapides
+            {tAdmin('quick_actions')}
           </h2>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -401,7 +467,7 @@ export default function AdminDashboardPage() {
               className="p-3 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all text-center group"
             >
               <Users className="mx-auto mb-1 text-gray-600 group-hover:text-green-600" size={24} />
-              <p className="font-semibold text-gray-900 text-sm">Utilisateurs</p>
+              <p className="font-semibold text-gray-900 text-sm">{tAdmin('users')}</p>
             </Link>
 
             <Link
@@ -409,7 +475,7 @@ export default function AdminDashboardPage() {
               className="p-3 border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-center group"
             >
               <Package className="mx-auto mb-1 text-gray-600 group-hover:text-purple-600" size={24} />
-              <p className="font-semibold text-gray-900 text-sm">Produits</p>
+              <p className="font-semibold text-gray-900 text-sm">{tCommon('products')}</p>
             </Link>
 
             <Link
@@ -417,7 +483,7 @@ export default function AdminDashboardPage() {
               className="p-3 border-2 border-gray-200 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all text-center group"
             >
               <ShoppingCart className="mx-auto mb-1 text-gray-600 group-hover:text-orange-600" size={24} />
-              <p className="font-semibold text-gray-900 text-sm">Commandes</p>
+              <p className="font-semibold text-gray-900 text-sm">{tCommon('orders')}</p>
             </Link>
 
             <Link
@@ -425,7 +491,7 @@ export default function AdminDashboardPage() {
               className="p-3 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-center group"
             >
               <Shield className="mx-auto mb-1 text-gray-600 group-hover:text-blue-600" size={24} />
-              <p className="font-semibold text-gray-900 text-sm">Licences</p>
+              <p className="font-semibold text-gray-900 text-sm">{tAdmin('licenses')}</p>
             </Link>
             
             <Link
@@ -433,7 +499,7 @@ export default function AdminDashboardPage() {
               className="p-3 border-2 border-gray-200 rounded-lg hover:border-pink-500 hover:bg-pink-50 transition-all text-center group"
             >
               <Heart className="mx-auto mb-1 text-gray-600 group-hover:text-pink-600" size={24} />
-              <p className="font-semibold text-gray-900 text-sm">Profils</p>
+              <p className="font-semibold text-gray-900 text-sm">{tAdmin('profiles')}</p>
             </Link>
             
             <Link
@@ -441,7 +507,7 @@ export default function AdminDashboardPage() {
               className="p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all text-center group"
             >
               <MessageSquare className="mx-auto mb-1 text-gray-600 group-hover:text-indigo-600" size={24} />
-              <p className="font-semibold text-gray-900 text-sm">Messages</p>
+              <p className="font-semibold text-gray-900 text-sm">{tAdmin('contact_messages')}</p>
             </Link>
             
             <Link
@@ -449,7 +515,7 @@ export default function AdminDashboardPage() {
               className="p-3 border-2 border-gray-200 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-all text-center group"
             >
               <DollarSign className="mx-auto mb-1 text-gray-600 group-hover:text-yellow-600" size={24} />
-              <p className="font-semibold text-gray-900 text-sm">Taux change</p>
+              <p className="font-semibold text-gray-900 text-sm">{tAdmin('exchange_rates')}</p>
             </Link>
             
             <Link
@@ -457,7 +523,7 @@ export default function AdminDashboardPage() {
               className="p-3 border-2 border-gray-200 rounded-lg hover:border-emerald-500 hover:bg-emerald-50 transition-all text-center group"
             >
               <DollarSign className="mx-auto mb-1 text-gray-600 group-hover:text-emerald-600" size={24} />
-              <p className="font-semibold text-gray-900 text-sm">Méthodes paiement</p>
+              <p className="font-semibold text-gray-900 text-sm">{tAdmin('payment_methods')}</p>
             </Link>
             
             <Link
@@ -465,7 +531,7 @@ export default function AdminDashboardPage() {
               className="p-3 border-2 border-gray-200 rounded-lg hover:border-teal-500 hover:bg-teal-50 transition-all text-center group"
             >
               <ShoppingCart className="mx-auto mb-1 text-gray-600 group-hover:text-teal-600" size={24} />
-              <p className="font-semibold text-gray-900 text-sm">Transactions wallet</p>
+              <p className="font-semibold text-gray-900 text-sm">{tAdmin('wallet_transactions')}</p>
             </Link>
           </div>
         </motion.div>

@@ -20,6 +20,7 @@ import { db } from '@/lib/firebase/config';
 import { User as UserType } from '@/types';
 import toast from 'react-hot-toast';
 import { BackButton } from '@/components/ui/BackButton';
+import { useTranslations } from 'next-intl';
 
 type Step = 'search' | 'confirm' | 'pin' | 'success';
 
@@ -27,6 +28,7 @@ export default function TransferPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { wallet, processPayment, verifyPIN, fetchWallet } = useWalletStore();
+  const t = useTranslations('wallet');
 
   // États
   const [step, setStep] = useState<Step>('search');
@@ -51,7 +53,7 @@ export default function TransferPage() {
   // Recherche d'utilisateurs
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
-      toast.error('Entrez un email ou numéro de téléphone');
+      toast.error(t('enter_email_or_phone'));
       return;
     }
 
@@ -87,11 +89,11 @@ export default function TransferPage() {
       setSearchResults(users);
 
       if (users.length === 0) {
-        toast.error('Aucun utilisateur trouvé');
+        toast.error(t('no_user_found'));
       }
     } catch (error) {
       console.error('Error searching users:', error);
-      toast.error('Erreur lors de la recherche');
+      toast.error(t('search_error'));
     } finally {
       setSearching(false);
     }
@@ -107,18 +109,18 @@ export default function TransferPage() {
   // Passer à l'étape de confirmation
   const handleContinueToConfirm = () => {
     if (!selectedUser) {
-      toast.error('Sélectionnez un destinataire');
+      toast.error(t('select_recipient_error'));
       return;
     }
 
     const amountNum = parseFloat(amount);
     if (!amountNum || amountNum <= 0) {
-      toast.error('Montant invalide');
+      toast.error(t('invalid_amount'));
       return;
     }
 
     if (!wallet || amountNum > wallet.balance) {
-      toast.error('Solde insuffisant');
+      toast.error(t('insufficient_balance'));
       return;
     }
 
@@ -150,7 +152,7 @@ export default function TransferPage() {
       });
 
       setStep('success');
-      toast.success('Transfert effectué avec succès!');
+      toast.success(t('transfer_success_text'));
     } catch (error: any) {
       console.error('Error transferring:', error);
       toast.error(error.message || 'Erreur lors du transfert');
@@ -178,16 +180,18 @@ export default function TransferPage() {
           <BackButton href="/wallet" className="mb-4" />
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <ArrowRight className="w-8 h-8 text-green-600" />
-            Transférer des fonds
+            {t('transfer_title')}
           </h1>
           <p className="text-gray-600 mt-2">
-            Envoyez de l'argent à un autre utilisateur
+            {t('transfer_subtitle')}
           </p>
         </div>
 
         {/* Solde disponible */}
         <div className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 rounded-2xl p-6 text-gray-900 mb-8 shadow-xl">
-          <p className="text-sm mb-1 opacity-90">Solde disponible</p>
+          <p className="text-sm mb-1 opacity-90">
+            {t('available_balance')}
+          </p>
           <p className="text-3xl font-bold">
             {wallet?.balance.toLocaleString('fr-FR')} FCFA
           </p>
@@ -206,7 +210,7 @@ export default function TransferPage() {
             >
               <div>
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
-                  1. Rechercher le destinataire
+                  {t('search_recipient_title')}
                 </h2>
 
                 {/* Barre de recherche */}
@@ -216,7 +220,7 @@ export default function TransferPage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                    placeholder="Email ou numéro de téléphone"
+                    placeholder={t('search_placeholder')}
                     className="w-full px-4 py-3 pr-12 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                   <button
@@ -287,7 +291,7 @@ export default function TransferPage() {
                     {/* Montant */}
                     <div className="mb-4">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Montant (FCFA)
+                        {t('amount_label')}
                       </label>
                       <input
                         type="number"
@@ -299,20 +303,20 @@ export default function TransferPage() {
                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-2xl font-bold"
                       />
                       <p className="text-sm text-gray-600 mt-1">
-                        Maximum: {wallet?.balance.toLocaleString('fr-FR')} FCFA
+                        {t('max_amount', { amount: wallet?.balance?.toLocaleString('fr-FR') || '0' })}
                       </p>
                     </div>
 
                     {/* Description (optionnel) */}
                     <div className="mb-4">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Description (optionnel)
+                        {t('description_label')}
                       </label>
                       <input
                         type="text"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Ex: Remboursement, Cadeau..."
+                        placeholder={t('description_placeholder')}
                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       />
                     </div>
@@ -321,7 +325,7 @@ export default function TransferPage() {
                       onClick={handleContinueToConfirm}
                       className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition-colors"
                     >
-                      Continuer
+                      {t('continue')}
                     </button>
                   </div>
                 )}
@@ -340,7 +344,7 @@ export default function TransferPage() {
             >
               <div>
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
-                  2. Confirmer le transfert
+                  {t('confirm_step_title')}
                 </h2>
 
                 <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 mb-6">
@@ -348,10 +352,10 @@ export default function TransferPage() {
                     <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="font-semibold text-yellow-900 mb-1">
-                        Vérifiez les informations
+                        {t('check_info_title')}
                       </p>
                       <p className="text-sm text-yellow-800">
-                        Assurez-vous que toutes les informations sont correctes avant de continuer.
+                        {t('check_info_text')}
                       </p>
                     </div>
                   </div>
@@ -360,21 +364,21 @@ export default function TransferPage() {
                 {/* Récapitulatif */}
                 <div className="space-y-4 mb-6">
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600">Destinataire</span>
+                    <span className="text-gray-600">{t('recipient')}</span>
                     <span className="font-semibold text-gray-900">
                       {selectedUser.displayName}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600">Email</span>
+                    <span className="text-gray-600">{t('email')}</span>
                     <span className="font-semibold text-gray-900">
                       {selectedUser.email}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                    <span className="text-gray-600">Montant</span>
+                    <span className="text-gray-600">{t('amount')}</span>
                     <span className="font-bold text-green-600 text-xl">
                       {parseFloat(amount).toLocaleString('fr-FR')} FCFA
                     </span>
@@ -390,7 +394,7 @@ export default function TransferPage() {
                   )}
 
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600">Nouveau solde</span>
+                    <span className="text-gray-600">{t('new_balance')}</span>
                     <span className="font-semibold text-gray-900">
                       {((wallet?.balance || 0) - parseFloat(amount)).toLocaleString('fr-FR')} FCFA
                     </span>
@@ -402,13 +406,13 @@ export default function TransferPage() {
                     onClick={() => setStep('search')}
                     className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-lg font-semibold transition-colors"
                   >
-                    Retour
+                    {t('back')}
                   </button>
                   <button
                     onClick={handleContinueToPin}
                     className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition-colors"
                   >
-                    Confirmer
+                    {t('confirm')}
                   </button>
                 </div>
               </div>
@@ -426,7 +430,7 @@ export default function TransferPage() {
             >
               <div>
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
-                  3. Sécurité
+                  {t('security_step_title')}
                 </h2>
 
                 <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
@@ -434,10 +438,10 @@ export default function TransferPage() {
                     <Shield className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="font-semibold text-blue-900 mb-1">
-                        Code PIN requis
+                        {t('pin_required_title')}
                       </p>
                       <p className="text-sm text-blue-800">
-                        Pour votre sécurité, veuillez entrer votre code PIN pour confirmer ce transfert.
+                        {t('pin_required_text')}
                       </p>
                     </div>
                   </div>
@@ -445,13 +449,13 @@ export default function TransferPage() {
 
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Code PIN
+                    {t('pin')}
                   </label>
                   <input
                     type="password"
                     value={pin}
                     onChange={(e) => setPin(e.target.value)}
-                    placeholder="••••"
+                    placeholder={t('pin_placeholder')}
                     maxLength={6}
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center text-2xl font-bold tracking-widest"
                   />
@@ -463,7 +467,7 @@ export default function TransferPage() {
                     disabled={loading}
                     className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50"
                   >
-                    Retour
+                    {t('back')}
                   </button>
                   <button
                     onClick={handleTransfer}
@@ -473,10 +477,10 @@ export default function TransferPage() {
                     {loading ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        Transfert...
+                        {t('transfer_processing')}
                       </>
                     ) : (
-                      'Transférer'
+                      t('transfer')
                     )}
                   </button>
                 </div>
@@ -497,27 +501,29 @@ export default function TransferPage() {
               </div>
 
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Transfert réussi!
+                {t('transfer_success_title')}
               </h2>
               <p className="text-gray-600 mb-6">
-                Votre transfert a été effectué avec succès
+                {t('transfer_success_text')}
               </p>
 
               <div className="bg-gray-50 rounded-lg p-6 mb-6 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Montant transféré</span>
+                  <span className="text-gray-600">
+                    {t('amount_transferred')}
+                  </span>
                   <span className="font-bold text-green-600 text-xl">
                     {parseFloat(amount).toLocaleString('fr-FR')} FCFA
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Destinataire</span>
+                  <span className="text-gray-600">{t('recipient')}</span>
                   <span className="font-semibold text-gray-900">
                     {selectedUser.displayName}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Nouveau solde</span>
+                  <span className="text-gray-600">{t('new_balance')}</span>
                   <span className="font-semibold text-gray-900">
                     {((wallet?.balance || 0)).toLocaleString('fr-FR')} FCFA
                   </span>
@@ -529,13 +535,13 @@ export default function TransferPage() {
                   onClick={handleNewTransfer}
                   className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-lg font-semibold transition-colors"
                 >
-                  Nouveau transfert
+                  {t('transfer_new_transfer')}
                 </button>
                 <button
                   onClick={() => router.push('/wallet')}
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition-colors"
                 >
-                  Retour au portefeuille
+                  {t('back_to_wallet')}
                 </button>
               </div>
             </motion.div>
