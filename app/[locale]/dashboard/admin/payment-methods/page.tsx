@@ -4,9 +4,15 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { usePaymentMethodsStore } from '@/store/paymentMethodsStore';
 import type { CreatePaymentMethodData, PaymentMethodType } from '@/types';
+import { useTranslations } from 'next-intl';
+import Link from 'next/link';
+import { ChevronLeft } from 'lucide-react';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 export default function AdminPaymentMethodsPage() {
   const { user } = useAuthStore();
+  const tAdmin = useTranslations('admin');
+  const tCommon = useTranslations('common');
   const { 
     paymentMethods, 
     loading, 
@@ -43,7 +49,7 @@ export default function AdminPaymentMethodsPage() {
     e.preventDefault();
     
     if (!user) {
-      alert('Vous devez être connecté');
+      alert(tCommon('error'));
       return;
     }
     
@@ -51,16 +57,16 @@ export default function AdminPaymentMethodsPage() {
       await createMethod(formData, user.id);
       setShowForm(false);
       resetForm();
-      alert('Méthode créée avec succès !');
+      alert(tCommon('success'));
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Erreur lors de la création');
+      alert(tCommon('error'));
     }
   };
 
   const handleToggleStatus = async (id: string) => {
     if (!user) {
-      alert('Vous devez être connecté');
+      alert(tCommon('error'));
       return;
     }
     
@@ -68,7 +74,7 @@ export default function AdminPaymentMethodsPage() {
       await toggleMethodStatus(id, user.id);
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Erreur lors du changement de statut');
+      alert(tCommon('error'));
     }
   };
 
@@ -131,8 +137,35 @@ export default function AdminPaymentMethodsPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      <div className="p-6">
+        <div className="mb-6 flex justify-between items-center">
+          <div>
+            <Skeleton className="h-8 w-64 mb-2" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <Skeleton className="h-10 w-48" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="bg-white rounded-lg shadow-lg p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-12 w-12 rounded-full" />
+                  <div>
+                    <Skeleton className="h-5 w-32 mb-2" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                </div>
+                <Skeleton className="h-6 w-16 rounded-full" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -141,17 +174,26 @@ export default function AdminPaymentMethodsPage() {
     <div className="p-6">
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Méthodes de Paiement</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{tAdmin('payment_methods')}</h1>
           <p className="text-gray-600 mt-1">
-            Gérez les canaux de dépôt et retrait disponibles pour les clients
+            {tAdmin('manage_all_users')}
           </p>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-        >
-          {showForm ? 'Annuler' : '+ Ajouter une méthode'}
-        </button>
+        <div className="flex gap-2">
+          <Link
+            href="/dashboard/admin"
+            className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
+          >
+            <ChevronLeft size={20} />
+            {tCommon('back')}
+          </Link>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+          >
+            {showForm ? tCommon('cancel') : `+ ${tCommon('add')}`}
+          </button>
+        </div>
       </div>
 
       {/* Formulaire d'ajout */}
@@ -411,14 +453,14 @@ export default function AdminPaymentMethodsPage() {
                 }}
                 className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {tCommon('cancel')}
               </button>
               <button
                 type="submit"
                 disabled={loading}
                 className="flex-1 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50"
               >
-                {loading ? 'Création...' : 'Créer la méthode'}
+                {loading ? tCommon('loading') : tCommon('save')}
               </button>
             </div>
           </form>
@@ -450,7 +492,7 @@ export default function AdminPaymentMethodsPage() {
                     : 'bg-gray-100 text-gray-700'
                 }`}
               >
-                {method.isActive ? 'Actif' : 'Inactif'}
+                {method.isActive ? tAdmin('active') : tAdmin('inactive')}
               </button>
             </div>
 
@@ -489,12 +531,12 @@ export default function AdminPaymentMethodsPage() {
 
       {paymentMethods.length === 0 && !showForm && (
         <div className="text-center py-12 bg-white rounded-lg shadow">
-          <p className="text-gray-500 mb-4">Aucune méthode de paiement configurée</p>
+          <p className="text-gray-500 mb-4">{tCommon('no_results')}</p>
           <button
             onClick={() => setShowForm(true)}
             className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
           >
-            Ajouter la première méthode
+            {tCommon('add')}
           </button>
         </div>
       )}

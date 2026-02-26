@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Filter, TrendingUp, Clock, CheckCircle, XCircle, Share2 } from 'lucide-react';
+import { Heart, Filter, Clock, CheckCircle, XCircle, Share2, ChevronLeft } from 'lucide-react';
 import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { ContactRequest } from '@/types';
+import { useTranslations } from 'next-intl';
+import { Skeleton } from '@/components/ui/Skeleton';
+import Link from 'next/link';
 
 interface ContactRequestWithDetails extends ContactRequest {
   profileName?: string;

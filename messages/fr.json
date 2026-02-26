@@ -28,7 +28,20 @@
     "client": "Client",
     "users": "Utilisateurs",
     "settings": "Paramètres",
-    "view_all": "Voir tout"
+    "view_all": "Voir tout",
+    "all": "Tous",
+    "date": "Date",
+    "reason": "Raison",
+    "payment_method": "Méthode de paiement",
+    "quantity": "Quantité",
+    "products": "Produits",
+    "orders": "Commandes",
+    "shipping_address": "Adresse de livraison",
+    "subtotal": "Sous-total",
+    "shipping": "Livraison",
+    "discount": "Réduction",
+    "add": "Ajouter",
+    "no_results": "Aucun résultat"
   },
   "nav": {
     "home": "Accueil",
@@ -692,6 +705,7 @@
   },
   "dating": {
     "title": "Rencontres",
+    "subtitle": "Trouvez la personne qui vous correspond",
     "search": "Rechercher un profil...",
     "age": "Âge",
     "years": "ans",
@@ -705,6 +719,17 @@
     "its_a_match": "C'est un match!",
     "verified": "Vérifié",
     "online": "En ligne",
-    "no_profiles": "Aucun profil trouvé"
+    "no_profiles": "Aucun profil trouvé",
+    "privacy_title": "Protection de la vie privée",
+    "privacy_notice": "Les coordonnées des profils ne sont pas affichées publiquement. Pour obtenir un contact, vous devez passer par l'intermédiaire qui a ajouté le profil.",
+    "filters": "Filtres",
+    "gender": "Genre",
+    "male": "Homme",
+    "female": "Femme",
+    "other": "Autre",
+    "min_age": "Âge min",
+    "max_age": "Âge max",
+    "city": "Ville",
+    "enter_city": "Entrez une ville"
   }
 }
