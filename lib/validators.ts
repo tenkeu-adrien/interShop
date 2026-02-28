@@ -40,7 +40,7 @@ export const ProductCreateSchema = z.object({
 });
 
 export const ProductQuerySchema = z.object({
-    limit: z.string().transform(Number).pipe(z.number().int().positive().max(100)).optional().default('20'),
+    limit: z.string().default('20').transform(Number).pipe(z.number().int().positive().max(100)),
     category: z.string().optional(),
     search: z.string().max(100).optional(),
     lastDocId: z.string().optional(),

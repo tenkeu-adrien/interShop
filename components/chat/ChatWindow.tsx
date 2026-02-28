@@ -35,7 +35,7 @@ interface ChatWindowProps {
   productContext?: {
     productId: string;
     productName: string;
-    productImage: string;
+    productImage?: string;
   };
 }
 

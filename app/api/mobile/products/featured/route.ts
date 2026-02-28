@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     console.log('📦 [API Featured] Snapshot empty?', snapshot.empty);
 
     const products = snapshot.docs.map(doc => {
-      const data = doc.data();
+      const data = doc.data() as any;
       return {
         id: doc.id,
         ...data,
@@ -36,16 +36,17 @@ export async function GET(request: NextRequest) {
 
     console.log('📦 [API Featured] Total products:', products.length);
     if (products.length > 0) {
+      const firstProduct = products[0] as any;
       console.log('📦 [API Featured] First product sample:', {
-        id: products[0].id,
-        name: products[0].name,
-        status: products[0].status,
-        rating: products[0].rating,
+        id: firstProduct.id,
+        name: firstProduct.name || 'N/A',
+        status: firstProduct.status || 'N/A',
+        rating: firstProduct.rating || 0,
       });
-      console.log('📦 [API Featured] All products:', products.map(p => ({
+      console.log('📦 [API Featured] All products:', products.map((p: any) => ({
         id: p.id,
-        name: p.name,
-        status: p.status,
+        name: p.name || 'N/A',
+        status: p.status || 'N/A',
       })));
     } else {
       console.warn('⚠️ [API Featured] No products found in Firestore!');

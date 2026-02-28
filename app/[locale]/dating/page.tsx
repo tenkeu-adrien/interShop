@@ -174,6 +174,7 @@ export default function DatingPage() {
                     <Skeleton className="h-6 w-16" />
                     <Skeleton className="h-6 w-16" />
                   </div>
+                  <Skeleton className="h-10 w-full" />
                 </div>
               </div>
             ))}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { collection, query, where, orderBy, limit as firestoreLimit, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { Product } from '@/types';
 
 export async function GET(
   request: NextRequest,
@@ -42,7 +43,7 @@ export async function GET(
       .filter(doc => doc.id !== productId) // Exclure le produit actuel
       .slice(0, limitCount) // Limiter au nombre demandé
       .map(doc => {
-        const data = doc.data();
+        const data = doc.data() as any;
         return {
           id: doc.id,
           ...data,
@@ -52,11 +53,13 @@ export async function GET(
       });
 
     console.log('📦 [API Similar Products] Similar products found:', products.length);
+    
     if (products.length > 0) {
+      const firstProduct = products[0];
       console.log('📦 [API Similar Products] First product:', {
-        id: products[0].id,
-        name: products[0].name,
-        rating: products[0].rating,
+        id: firstProduct.id,
+        name: (firstProduct as any).name || 'N/A',
+        rating: (firstProduct as any).rating || 0,
       });
     }
 
@@ -69,6 +72,7 @@ export async function GET(
   } catch (error: any) {
     console.error('❌ [API Similar Products] Error:', error);
     console.error('❌ [API Similar Products] Error message:', error.message);
+    console.error('❌ [API Similar Products] Error stack:', error.stack);
     return NextResponse.json(
       { error: error.message || 'Erreur serveur' },
       { status: 500 }

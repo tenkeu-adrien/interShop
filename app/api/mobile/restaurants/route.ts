@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const lat = searchParams.get('lat');
     const lng = searchParams.get('lng');
     const userLocation = lat && lng 
-      ? { lat: Number(lat), lng: Number(lng) }
+      ? { latitude: Number(lat), longitude: Number(lng) }
       : undefined;
 
     const restaurants = await getProductsByCategory('restaurant', {

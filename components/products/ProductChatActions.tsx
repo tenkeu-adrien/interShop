@@ -46,6 +46,17 @@ export function ProductChatActions({
     productCurrency: product.prices?.[0]?.currency,
   };
 
+  const conversationContext = {
+    type: 'product_inquiry' as const,
+    productId: product.id,
+    metadata: {
+      productName: product.name,
+      productImage: product.images[0],
+      productPrice: product.prices?.[0]?.price,
+      productCurrency: product.prices?.[0]?.currency,
+    }
+  };
+
   const handleStartChat = async () => {
     if (!user) {
       toast.error(tChat('login_required'));
@@ -73,7 +84,7 @@ export function ProductChatActions({
           photo: fournisseur.photo,
           role: 'fournisseur',
         },
-        productReference
+        conversationContext
       );
 
       await sendTextMessage(
@@ -127,7 +138,7 @@ export function ProductChatActions({
           photo: fournisseur.photo,
           role: 'fournisseur',
         },
-        productReference
+        conversationContext
       );
 
       await sendTextMessage(

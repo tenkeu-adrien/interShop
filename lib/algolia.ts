@@ -23,13 +23,14 @@ export const ALGOLIA_INDICES = {
     RESTAURANTS: 'restaurants',
 } as const;
 
-// Index de recherche (côté client)
-export const productsIndex = searchClient?.initIndex(ALGOLIA_INDICES.PRODUCTS) || null;
-export const hotelsIndex = searchClient?.initIndex(ALGOLIA_INDICES.HOTELS) || null;
-export const restaurantsIndex = searchClient?.initIndex(ALGOLIA_INDICES.RESTAURANTS) || null;
+// Dans Algolia v5, on n'utilise plus initIndex
+// Les index sont accessibles directement via searchClient
+export const productsIndex = searchClient || null;
+export const hotelsIndex = searchClient || null;
+export const restaurantsIndex = searchClient || null;
 
 // Index admin (côté serveur, pour sync)
-export const productsAdminIndex = adminClient?.initIndex(ALGOLIA_INDICES.PRODUCTS) || null;
+export const productsAdminIndex = adminClient || null;
 
 /**
  * Recherche de produits via Algolia

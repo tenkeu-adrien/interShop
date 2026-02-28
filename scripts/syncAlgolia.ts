@@ -34,13 +34,22 @@ if (!algoliaAppId || !algoliaAdminKey) {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const client = algoliasearch(algoliaAppId, algoliaAdminKey);
-const index = client.initIndex('products');
+// Dans Algolia v5, on n'utilise plus initIndex
+// const index = client.initIndex('products');
 
 async function syncProducts() {
     console.log('🔄 Démarrage de la synchronisation Firestore → Algolia...');
+    console.log('⚠️  Note: Algolia v5 nécessite une mise à jour de ce script');
+    console.log('⚠️  Pour l\'instant, la synchronisation est désactivée');
+    
+    // TODO: Mettre à jour pour Algolia v5
+    // La nouvelle API utilise une syntaxe différente
+    // Voir: https://www.algolia.com/doc/api-client/getting-started/upgrade-guides/javascript/
+    
+    return;
 
     // Configurer l'index Algolia (attributs searchables, tri, facettes)
-    await index.setSettings({
+    /* await index.setSettings({
         searchableAttributes: [
             'name',
             'description',
@@ -70,9 +79,10 @@ async function syncProducts() {
         customRanking: ['desc(sales)', 'desc(rating)'],
     });
     console.log('⚙️  Index configuré');
+    */
 
     // Récupérer tous les produits actifs de Firestore
-    const productsQuery = query(
+    /* const productsQuery = query(
         collection(db, 'products'),
         where('isActive', '==', true)
     );
@@ -120,6 +130,7 @@ async function syncProducts() {
     console.log(`\n🎉 Synchronisation terminée ! ${records.length} produits indexés dans Algolia.`);
     console.log('   Index: products');
     console.log(`   App ID: ${algoliaAppId}`);
+    */
 }
 
 syncProducts().catch((error) => {

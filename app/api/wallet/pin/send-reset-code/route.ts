@@ -42,10 +42,7 @@ export async function POST(request: Request) {
 
     // Envoyer l'email
     try {
-      await sendEmail({
-        to: email,
-        subject: 'Code de réinitialisation de votre PIN',
-        html: `
+      const htmlContent = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #10B981;">Réinitialisation de votre code PIN</h2>
             <p>Bonjour ${displayName || 'Utilisateur'},</p>
@@ -61,8 +58,13 @@ export async function POST(request: Request) {
               Cet email a été envoyé automatiquement, merci de ne pas y répondre.
             </p>
           </div>
-        `
-      });
+        `;
+      await sendEmail(
+        email,
+        'Code de réinitialisation de votre PIN',
+        'pin-reset',
+        { code, displayName, html: htmlContent }
+      );
     } catch (emailError) {
       console.error('❌ [API] Error sending email:', emailError);
       // Continue même si l'email échoue (pour le dev)

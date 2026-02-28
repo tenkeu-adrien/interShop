@@ -386,7 +386,7 @@ export default function TransferPage() {
 
                   {description && (
                     <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <span className="text-gray-600">Description</span>
+                      <span className="text-gray-600">{t('description_label')}</span>
                       <span className="font-semibold text-gray-900">
                         {description}
                       </span>

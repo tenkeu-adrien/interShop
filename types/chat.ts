@@ -33,7 +33,7 @@ export interface ConversationContext {
 export interface ProductReference {
   productId: string;
   productName: string;
-  productImage: string;
+  productImage?: string; // Optionnel pour compatibilité
   productPrice?: number;
   productCurrency?: string;
 }
@@ -67,14 +67,14 @@ export interface Conversation {
       role: string;
     };
   };
-  context: ConversationContext; // Type et contexte de la conversation
+  context?: ConversationContext; // Type et contexte de la conversation (optionnel pour compatibilité)
   productContext?: ProductReference; // Produit lié à la conversation (legacy)
   tags?: string[]; // Tags pour filtrage
   priority?: 'low' | 'medium' | 'high';
   status?: 'active' | 'archived' | 'closed';
   lastMessage?: {
     content: string;
-    type: MessageType;
+    type: MessageType | string; // Accepter string pour compatibilité avec Firebase
     senderId: string;
     createdAt: Date;
   };

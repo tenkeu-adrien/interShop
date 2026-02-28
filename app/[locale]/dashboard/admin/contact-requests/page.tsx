@@ -17,6 +17,10 @@ interface ContactRequestWithDetails extends ContactRequest {
 }
 
 export default function AdminContactRequestsPage() {
+  const tAdmin = useTranslations('admin');
+  const tCommon = useTranslations('common');
+  const tDating = useTranslations('dating');
+  
   const [requests, setRequests] = useState<ContactRequestWithDetails[]>([]);
   const [filteredRequests, setFilteredRequests] = useState<ContactRequestWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
@@ -118,11 +122,11 @@ export default function AdminContactRequestsPage() {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'En attente';
+        return tAdmin('pending_approval');
       case 'approved':
-        return 'Approuvé';
+        return tAdmin('approved');
       case 'rejected':
-        return 'Rejeté';
+        return tAdmin('rejected');
       case 'shared':
         return 'Contact partagé';
       default:
@@ -147,16 +151,44 @@ export default function AdminContactRequestsPage() {
   
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="mb-8">
+          <Link 
+            href="/dashboard/admin"
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+          >
+            <ChevronLeft size={20} />
+            {tCommon('back')}
+          </Link>
+          <Skeleton className="h-10 w-64 mb-2" />
+          <Skeleton className="h-6 w-96" />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-32 rounded-lg" />
+          ))}
+        </div>
+        
+        <Skeleton className="h-20 rounded-lg mb-6" />
+        <Skeleton className="h-96 rounded-lg" />
       </div>
     );
   }
   
   return (
     <div className="max-w-7xl mx-auto p-6">
+      {/* Back Button */}
+      <Link 
+        href="/dashboard/admin"
+        className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+      >
+        <ChevronLeft size={20} />
+        {tCommon('back')}
+      </Link>
+
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Demandes de contact</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{tAdmin('contact_messages')}</h1>
         <p className="text-gray-600">Gérez toutes les demandes de contact pour les profils de rencontres</p>
       </div>
       
@@ -171,7 +203,7 @@ export default function AdminContactRequestsPage() {
             <div className="bg-purple-100 p-2 rounded-full">
               <Heart className="text-purple-600" size={20} />
             </div>
-            <h3 className="font-semibold text-gray-700">Total</h3>
+            <h3 className="font-semibold text-gray-700">{tAdmin('total')}</h3>
           </div>
           <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
         </motion.div>
@@ -186,7 +218,7 @@ export default function AdminContactRequestsPage() {
             <div className="bg-yellow-100 p-2 rounded-full">
               <Clock className="text-yellow-600" size={20} />
             </div>
-            <h3 className="font-semibold text-gray-700">En attente</h3>
+            <h3 className="font-semibold text-gray-700">{tAdmin('pending_approval')}</h3>
           </div>
           <p className="text-3xl font-bold text-gray-900">{stats.pending}</p>
         </motion.div>
@@ -201,7 +233,7 @@ export default function AdminContactRequestsPage() {
             <div className="bg-green-100 p-2 rounded-full">
               <CheckCircle className="text-green-600" size={20} />
             </div>
-            <h3 className="font-semibold text-gray-700">Approuvés</h3>
+            <h3 className="font-semibold text-gray-700">{tAdmin('approved')}</h3>
           </div>
           <p className="text-3xl font-bold text-gray-900">{stats.approved}</p>
         </motion.div>
@@ -231,7 +263,7 @@ export default function AdminContactRequestsPage() {
             <div className="bg-red-100 p-2 rounded-full">
               <XCircle className="text-red-600" size={20} />
             </div>
-            <h3 className="font-semibold text-gray-700">Rejetés</h3>
+            <h3 className="font-semibold text-gray-700">{tAdmin('rejected')}</h3>
           </div>
           <p className="text-3xl font-bold text-gray-900">{stats.rejected}</p>
         </motion.div>
@@ -250,10 +282,10 @@ export default function AdminContactRequestsPage() {
             onChange={(e) => setFilterStatus(e.target.value)}
             className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
           >
-            <option value="all">Tous les statuts</option>
-            <option value="pending">En attente</option>
-            <option value="approved">Approuvés</option>
-            <option value="rejected">Rejetés</option>
+            <option value="all">{tAdmin('all_statuses')}</option>
+            <option value="pending">{tAdmin('pending_approval')}</option>
+            <option value="approved">{tAdmin('approved')}</option>
+            <option value="rejected">{tAdmin('rejected')}</option>
             <option value="shared">Contact partagé</option>
           </select>
         </div>
@@ -265,11 +297,11 @@ export default function AdminContactRequestsPage() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Profil</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">{tDating('profile')}</th>
                 <th className="text-left py-3 px-4 font-semibold text-gray-700">Client</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Intermédiaire</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Statut</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Date demande</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">{tDating('intermediary')}</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">{tAdmin('status')}</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">{tCommon('date')}</th>
                 <th className="text-left py-3 px-4 font-semibold text-gray-700">Message</th>
               </tr>
             </thead>

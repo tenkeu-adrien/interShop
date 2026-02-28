@@ -12,8 +12,9 @@ export async function POST(request: Request) {
     // Validation Zod
     const validation = zodValidate(WithdrawSchema, body);
     if (!validation.success) {
+      const errors = validation.errors;
       return NextResponse.json(
-        { success: false, error: 'Données invalides', details: validation.errors.flatten() },
+        { success: false, error: 'Données invalides', details: errors.flatten() },
         { status: 400 }
       );
     }
@@ -90,8 +91,6 @@ export async function POST(request: Request) {
       paymentMethodId,
       paymentMethodName: paymentMethod.name,
       paymentMethodType: paymentMethod.type,
-      accountName,
-      accountNumber,
       description: `Retrait via ${paymentMethod.name}`,
       reference: `WTH-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
       createdAt: serverTimestamp(),

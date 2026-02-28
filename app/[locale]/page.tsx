@@ -98,14 +98,14 @@ export default function HomePage() {
   };
 
   const categories = [
-    { name: tNav('electronics', 'Électronique'), icon: '💻', color: 'bg-blue-100', link: '/categories/electronique' },
-    { name: tNav('fashion', 'Mode'), icon: '👔', color: 'bg-pink-100', link: '/categories/mode' },
-    { name: tNav('home_garden', 'Maison & Jardin'), icon: '🏡', color: 'bg-green-100', link: '/categories/maison-jardin' },
-    { name: tNav('sport', 'Sport & Loisirs'), icon: '⚽', color: 'bg-orange-100', link: '/categories/sport-loisirs' },
-    { name: tNav('beauty', 'Beauté & Santé'), icon: '💄', color: 'bg-purple-100', link: '/categories/beaute-sante' },
-    { name: tNav('toys', 'Jouets & Bébé'), icon: '🧸', color: 'bg-yellow-100', link: '/categories/jouets-bebe' },
-    { name: tNav('automotive', 'Automobile'), icon: '🚗', color: 'bg-red-100', link: '/categories/automobile' },
-    { name: tNav('food', 'Alimentation'), icon: '🍔', color: 'bg-green-100', link: '/categories/alimentation' },
+    { name: tNav('electronics'), icon: '💻', color: 'bg-blue-100', link: '/categories/electronique' },
+    { name: tNav('fashion'), icon: '👔', color: 'bg-pink-100', link: '/categories/mode' },
+    { name: tNav('home_garden'), icon: '🏡', color: 'bg-green-100', link: '/categories/maison-jardin' },
+    { name: tNav('sport'), icon: '⚽', color: 'bg-orange-100', link: '/categories/sport-loisirs' },
+    { name: tNav('beauty'), icon: '💄', color: 'bg-purple-100', link: '/categories/beaute-sante' },
+    { name: tNav('toys'), icon: '🧸', color: 'bg-yellow-100', link: '/categories/jouets-bebe' },
+    { name: tNav('automotive'), icon: '🚗', color: 'bg-red-100', link: '/categories/automobile' },
+    { name: tNav('food'), icon: '🍔', color: 'bg-green-100', link: '/categories/alimentation' },
   ];
 
   return (
@@ -121,7 +121,7 @@ export default function HomePage() {
             >
               <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
                 {tHome('hero_title')}
-                <span className="block text-green-700">{tHome('hero_highlight', 'leader mondial')}</span>
+                <span className="block text-green-700">{tHome('hero_highlight')}</span>
               </h1>
               <p className="text-xl md:text-2xl mb-8 text-gray-800">
                 {tHome('hero_subtitle')}
@@ -132,14 +132,14 @@ export default function HomePage() {
                   variant="primary"
                   size="lg"
                 >
-                  {tHome('hero_cta_buy', 'Commencer à acheter')}
+                  {tHome('hero_cta_buy')}
                 </Button>
                 <Button
                   onClick={() => window.location.href = '/sell'}
                   variant="outline"
                   size="lg"
                 >
-                  {tHome('hero_cta_sell', 'Commencer à vendre')}
+                  {tHome('hero_cta_sell')}
                 </Button>
               </div>
             </motion.div>
@@ -159,12 +159,12 @@ export default function HomePage() {
                 <div className="bg-white p-6 rounded-lg shadow-lg">
                   <Users className="text-yellow-500 mb-2" size={32} />
                   <h3 className="font-bold text-2xl mb-1">5M+</h3>
-                  <p className="text-gray-600">{tAuth('users', 'Utilisateurs')}</p>
+                  <p className="text-gray-600">{tCommon('users')}</p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-lg">
                   <Package className="text-green-600 mb-2" size={32} />
                   <h3 className="font-bold text-2xl mb-1">200K+</h3>
-                  <p className="text-gray-600">{tNav('suppliers', 'Fournisseurs')}</p>
+                  <p className="text-gray-600">{tNav('suppliers')}</p>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-lg">
                   <Zap className="text-yellow-500 mb-2" size={32} />
@@ -181,14 +181,14 @@ export default function HomePage() {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-gray-900">
-            {tHome('why_choose_us', 'Pourquoi nous choisir')}
+            {tHome('why_choose_us')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
-              { icon: Shield, title: tNav('buyer_protection', 'Protection acheteur'), desc: tHome('protection_desc', 'Vos achats sont protégés à 100%'), color: 'text-green-600' },
-              { icon: Truck, title: tNav('shipping', 'Livraison rapide'), desc: tHome('shipping_desc', 'Expédition mondiale fiable'), color: 'text-yellow-500' },
-              { icon: DollarSign, title: tHome('competitive_prices', 'Prix compétitifs'), desc: tHome('prices_desc', 'Meilleurs prix du marché'), color: 'text-green-600' },
-              { icon: Users, title: tHome('millions_users', "Millions d'utilisateurs"), desc: tHome('community_desc', 'Rejoignez notre communauté'), color: 'text-yellow-500' },
+              { icon: Shield, title: tNav('buyer_protection'), desc: tHome('protection_desc'), color: 'text-green-600' },
+              { icon: Truck, title: tNav('shipping'), desc: tHome('shipping_desc'), color: 'text-yellow-500' },
+              { icon: DollarSign, title: tHome('competitive_prices'), desc: tHome('prices_desc'), color: 'text-green-600' },
+              { icon: Users, title: tHome('millions_users'), desc: tHome('community_desc'), color: 'text-yellow-500' },
             ].map((feature, index) => (
               <motion.div
                 key={index}
@@ -213,7 +213,7 @@ export default function HomePage() {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 text-gray-900">
-            {tHome('explore_services', 'Explorez nos services')}
+            {tHome('explore_services')}
           </h2>
 
           {/* Layout avec sidebar et CategorySelector */}
@@ -238,13 +238,13 @@ export default function HomePage() {
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{tNav('restaurants')}</h2>
-                <p className="text-gray-600">{tHome('restaurants_desc', 'Découvrez les meilleurs restaurants près de vous')}</p>
+                <p className="text-gray-600">{tHome('restaurants_desc')}</p>
               </div>
               <Link
                 href="/restaurants"
                 className="text-orange-600 hover:text-orange-700 flex items-center gap-2 font-medium group"
               >
-                {tCommon('view_all', 'Voir tout')}
+                {tCommon('view_all')}
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
@@ -269,12 +269,12 @@ export default function HomePage() {
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{tHome('ecommerce_categories', 'Catégories e-commerce')}</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{tHome('categories_title')}</h2>
             <Link
               href="/categories"
               className="text-green-600 hover:text-green-700 flex items-center gap-2 font-medium group"
             >
-              {tCommon('view_all', 'Voir tout')}
+              {tCommon('view_all')}
               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -310,14 +310,14 @@ export default function HomePage() {
               </div>
               <div>
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{tHome('best_deals')}</h2>
-                <p className="text-gray-600">{tHome('best_deals_desc', 'Les produits les plus vendus du moment')}</p>
+                <p className="text-gray-600">{tHome('best_deals_desc')}</p>
               </div>
             </div>
             <Link
               href="/products?sort=sales"
               className="text-red-600 hover:text-red-700 flex items-center gap-2 font-medium group"
             >
-              {tCommon('view_all', 'Voir tout')}
+              {tCommon('view_all')}
               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -400,14 +400,14 @@ export default function HomePage() {
               </div>
               <div>
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{tHome('top_products')}</h2>
-                <p className="text-gray-600">{tHome('top_products_desc', 'Les mieux notés par nos clients')}</p>
+                <p className="text-gray-600">{tHome('top_products_desc')}</p>
               </div>
             </div>
             <Link
               href="/products?sort=rating"
               className="text-yellow-600 hover:text-yellow-700 flex items-center gap-2 font-medium group"
             >
-              {tCommon('view_all', 'Voir tout')}
+              {tCommon('view_all')}
               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -495,14 +495,14 @@ export default function HomePage() {
               </div>
               <div>
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{tHome('new_products')}</h2>
-                <p className="text-gray-600">{tHome('new_products_desc', 'Découvrez les derniers produits ajoutés')}</p>
+                <p className="text-gray-600">{tHome('new_products_desc')}</p>
               </div>
             </div>
             <Link
               href="/products?sort=newest"
               className="text-green-600 hover:text-green-700 flex items-center gap-2 font-medium group"
             >
-              {tCommon('view_all', 'Voir tout')}
+              {tCommon('view_all')}
               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -535,7 +535,7 @@ export default function HomePage() {
                       {/* Badge New */}
                       <div className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
                         <Tag size={12} />
-                        {tHome('badge_new', 'NOUVEAU')}
+                        {tHome('badge_new')}
                       </div>
                       {product.stock === 0 && (
                         <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
@@ -580,17 +580,17 @@ export default function HomePage() {
             viewport={{ once: true }}
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              {tHome('cta_title', 'Prêt à développer votre business ?')}
+              {tHome('cta_title')}
             </h2>
             <p className="text-xl mb-8">
-              {tHome('cta_subtitle', 'Rejoignez des milliers de vendeurs qui réussissent')}
+              {tHome('cta_subtitle')}
             </p>
             <Link
               href="/register"
               className="inline-block"
             >
               <Button variant="secondary" size="lg">
-                {tHome('cta_button', 'Créer un compte gratuitement')}
+                {tHome('cta_button')}
               </Button>
             </Link>
           </motion.div>

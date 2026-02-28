@@ -65,9 +65,12 @@ export async function createProductInquiryConversation(
     clientData,
     fournisseurData,
     productImage ? {
+      type: 'product_inquiry' as const,
       productId,
-      productName,
-      productImage,
+      metadata: {
+        productName,
+        productImage,
+      }
     } : undefined
   );
 

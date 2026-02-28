@@ -103,13 +103,13 @@ export default function Header() {
 
     switch (user.role) {
       case 'admin':
-        return tCommon('admin', 'Administrateur');
+        return tCommon('admin');
       case 'fournisseur':
-        return tCommon('fournisseur', 'Fournisseur');
+        return tCommon('fournisseur');
       case 'marketiste':
-        return tCommon('marketiste', 'Marketiste');
+        return tCommon('marketiste');
       case 'client':
-        return tCommon('client', 'Client');
+        return tCommon('client');
       default:
         return user.role;
     }
@@ -316,7 +316,7 @@ export default function Header() {
                             className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-gray-700"
                           >
                             <Package size={20} className="text-green-600" />
-                            <span className="font-medium">{tDashboard('my_products', 'Mes Produits')}</span>
+                            <span className="font-medium">{tDashboard('my_products')}</span>
                           </Link>
                         )}
 
@@ -338,7 +338,7 @@ export default function Header() {
                             className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-gray-700"
                           >
                             <Users size={20} className="text-green-600" />
-                            <span className="font-medium">{tCommon('users', 'Utilisateurs')}</span>
+                            <span className="font-medium">{tCommon('users')}</span>
                           </Link>
                         )}
 
@@ -357,7 +357,7 @@ export default function Header() {
                           className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-gray-700"
                         >
                           <Settings size={20} className="text-green-600" />
-                          <span className="font-medium">{tCommon('settings', 'Paramètres')}</span>
+                          <span className="font-medium">{tCommon('settings')}</span>
                         </Link>
 
                         <div className="border-t border-gray-200 my-2"></div>
@@ -417,13 +417,13 @@ export default function Header() {
               {tNav('categories')}
             </Link>
             <Link href="/suppliers" className="text-white hover:text-yellow-300 font-medium transition-colors whitespace-nowrap hidden md:inline">
-              {tNav('suppliers', 'Fournisseurs')}
+              {tNav('suppliers')}
             </Link>
             <Link href="/deals" className="text-white hover:text-yellow-300 font-medium transition-colors whitespace-nowrap">
               {tNav('deals')}
             </Link>
             <Link href="/help" className="text-white hover:text-yellow-300 font-medium transition-colors whitespace-nowrap hidden lg:inline">
-              {tNav('help', 'Aide')}
+              {tNav('help')}
             </Link>
           </nav>
         </div>

@@ -12,8 +12,9 @@ export async function POST(request: Request) {
     // Validation Zod
     const validation = zodValidate(TransferSchema, body);
     if (!validation.success) {
+      const errors = validation.errors;
       return NextResponse.json(
-        { success: false, error: 'Données invalides', details: validation.errors.flatten() },
+        { success: false, error: 'Données invalides', details: errors.flatten() },
         { status: 400 }
       );
     }

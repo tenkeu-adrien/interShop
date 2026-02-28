@@ -20,8 +20,9 @@ export async function GET(request: NextRequest) {
     // Validation Zod des paramètres
     const validation = zodValidate(ProductQuerySchema, rawParams);
     if (!validation.success) {
+      const errors = validation.errors;
       return NextResponse.json(
-        { error: 'Paramètres invalides', details: validation.errors.flatten() },
+        { error: 'Paramètres invalides', details: errors.flatten() },
         { status: 400 }
       );
     }
@@ -104,7 +105,7 @@ export async function GET(request: NextRequest) {
     const snapshot = await getDocs(q);
 
     let allProducts = snapshot.docs.map(doc => {
-      const data = doc.data();
+      const data: any = doc.data();
       return {
         id: doc.id,
         ...data,
