@@ -1,4 +1,4 @@
-export type UserRole = 'client' | 'fournisseur' | 'marketiste' | 'admin';
+export type UserRole = 'client' | 'fournisseur' | 'marketiste' | 'admin' | 'any';
 
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 

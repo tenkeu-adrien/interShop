@@ -17,7 +17,7 @@ export default function ProtectedRoute({
   children,
   allowedRoles,
   redirectTo = '/login',
-  requireVerification = true,
+  requireVerification = false,
 }: ProtectedRouteProps) {
   const { user, loading } = useAuthStore();
   const router = useRouter();
