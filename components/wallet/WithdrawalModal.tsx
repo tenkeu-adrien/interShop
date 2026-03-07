@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { X, Loader2, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { useWalletStore } from '@/store/walletStore';
-import { MobileMoneyProvider } from '@/types';
+import { getActivePaymentMethods } from '@/lib/firebase/paymentMethods';
+import type { PaymentMethod } from '@/types';
 
 interface WithdrawalModalProps {
   isOpen: boolean;
@@ -11,26 +12,55 @@ interface WithdrawalModalProps {
   userId: string;
 }
 
-const MOBILE_MONEY_PROVIDERS = [
-  { id: 'mtn' as MobileMoneyProvider, name: 'MTN Mobile Money', flag: '🇨🇲', color: 'bg-yellow-500' },
-  { id: 'orange' as MobileMoneyProvider, name: 'Orange Money', flag: '🇨🇮', color: 'bg-orange-500' },
-  { id: 'moov' as MobileMoneyProvider, name: 'Moov Money', flag: '🇧🇫', color: 'bg-blue-500' },
-  { id: 'wave' as MobileMoneyProvider, name: 'Wave', flag: '🇸🇳', color: 'bg-pink-500' },
-];
-
 export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalModalProps) {
-  const { wallet, initiateWithdrawal, calculateWithdrawalFees, loading } = useWalletStore();
+  const { wallet, initiateFlexibleWithdrawal, calculateWithdrawalFees, loading } = useWalletStore();
   
   const [step, setStep] = useState<'amount' | 'provider' | 'confirm'>('amount');
   const [amount, setAmount] = useState('');
-  const [provider, setProvider] = useState<MobileMoneyProvider | null>(null);
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
+  const [accountName, setAccountName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
   const [pin, setPin] = useState('');
   const [showPin, setShowPin] = useState(false);
   const [fees, setFees] = useState(0);
   const [reference, setReference] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [loadingMethods, setLoadingMethods] = useState(false);
+
+
+  useEffect(() => {
+  if (isOpen) {
+    setPin('');
+  }
+}, [isOpen]);
+  // Charger les méthodes de paiement depuis Firebase
+  useEffect(() => {
+    if (isOpen) {
+      loadPaymentMethods();
+    }
+  }, [isOpen]);
+
+  // Charger les méthodes de paiement depuis Firebase
+  useEffect(() => {
+    if (isOpen) {
+      loadPaymentMethods();
+    }
+  }, [isOpen]);
+
+  const loadPaymentMethods = async () => {
+    setLoadingMethods(true);
+    try {
+      const methods = await getActivePaymentMethods();
+      setPaymentMethods(methods);
+    } catch (error) {
+      console.error('Error loading payment methods:', error);
+      setError('Erreur lors du chargement des méthodes de paiement');
+    } finally {
+      setLoadingMethods(false);
+    }
+  };
 
   useEffect(() => {
     if (amount) {
@@ -54,7 +84,7 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
       return;
     }
 
-    if (!wallet || numAmount + fees > wallet.balance) {
+    if (!wallet || numAmount > wallet.balance) {
       setError('Solde insuffisant');
       return;
     }
@@ -63,13 +93,13 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
     setStep('provider');
   };
 
-  const handleProviderSelect = (selectedProvider: MobileMoneyProvider) => {
-    setProvider(selectedProvider);
+  const handleProviderSelect = (method: PaymentMethod) => {
+    setSelectedMethod(method);
     setStep('confirm');
   };
 
   const handleSubmit = async () => {
-    if (!provider || !phoneNumber || !pin) {
+    if (!selectedMethod || !accountName.trim() || !accountNumber.trim() || !pin) {
       setError('Veuillez remplir tous les champs');
       return;
     }
@@ -81,14 +111,14 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
 
     setError('');
     try {
-      const transaction = await initiateWithdrawal(userId, {
+      const transaction = await initiateFlexibleWithdrawal(userId, {
+        paymentMethodId: selectedMethod.id,
         amount: parseFloat(amount),
-        provider,
-        phoneNumber,
-        pin
+        accountName: accountName.trim(),
+        accountNumber: accountNumber.trim()
       });
       
-      setReference(transaction.reference);
+      setReference(transaction.reference || transaction.id);
       setSuccess(true);
     } catch (err: any) {
       setError(err.message);
@@ -98,8 +128,9 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
   const handleClose = () => {
     setStep('amount');
     setAmount('');
-    setProvider(null);
-    setPhoneNumber('');
+    setSelectedMethod(null);
+    setAccountName('');
+    setAccountNumber('');
     setPin('');
     setFees(0);
     setReference('');
@@ -231,25 +262,39 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
             /* Step 2: Provider Selection */
             <>
               <p className="text-gray-600 mb-6">
-                Sélectionnez votre service Mobile Money
+                Sélectionnez votre méthode de retrait
               </p>
-              <div className="space-y-3 mb-6">
-                {MOBILE_MONEY_PROVIDERS.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => handleProviderSelect(p.id)}
-                    className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition flex items-center gap-4"
-                  >
-                    <div className={`w-12 h-12 ${p.color} rounded-lg flex items-center justify-center text-2xl`}>
-                      {p.flag}
-                    </div>
-                    <div className="text-left">
-                      <p className="font-semibold text-gray-900">{p.name}</p>
-                      <p className="text-sm text-gray-600">Disponible</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
+              
+              {loadingMethods ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+                </div>
+              ) : paymentMethods.length === 0 ? (
+                <div className="text-center py-8">
+                  <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600">Aucune méthode de retrait disponible</p>
+                </div>
+              ) : (
+                <div className="space-y-3 mb-6">
+                  {paymentMethods.map((method) => (
+                    <button
+                      key={method.id}
+                      onClick={() => handleProviderSelect(method)}
+                      className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition flex items-center gap-4"
+                    >
+                      {method.icon && (
+                        <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center text-2xl">
+                          {method.icon}
+                        </div>
+                      )}
+                      <div className="text-left flex-1">
+                        <p className="font-semibold text-gray-900">{method.name}</p>
+                        <p className="text-sm text-gray-600">{method.type}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
               <button
                 onClick={() => setStep('amount')}
                 className="w-full text-gray-600 hover:text-gray-800"
@@ -264,14 +309,14 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
                 <p className="font-semibold text-orange-900 mb-2">⚠️ Important</p>
                 <p className="text-sm text-orange-800">
                   Le montant sera débité immédiatement de votre portefeuille. 
-                  Vous recevrez l'argent sur votre Mobile Money dans les 24 heures.
+                  Vous recevrez l'argent sur votre compte dans les 24 heures.
                 </p>
               </div>
 
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <div className="flex justify-between mb-3">
                   <span className="text-gray-600">Service</span>
-                  <span className="font-semibold">{provider?.toUpperCase()} Mobile Money</span>
+                  <span className="font-semibold">{selectedMethod?.name}</span>
                 </div>
                 <div className="flex justify-between mb-3">
                   <span className="text-gray-600">Montant</span>
@@ -293,12 +338,25 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
 
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Votre numéro Mobile Money
+                  Nom du compte
                 </label>
                 <input
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  type="text"
+                  value={accountName}
+                  onChange={(e) => setAccountName(e.target.value)}
+                  placeholder="Ex: Jean Dupont"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Numéro de compte / Téléphone
+                </label>
+                <input
+                  type="text"
+                  value={accountNumber}
+                  onChange={(e) => setAccountNumber(e.target.value)}
                   placeholder="+237 6XX XX XX XX"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 />
@@ -306,7 +364,7 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
 
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Code PIN
+                  Code PIN (sécurité)
                 </label>
                 <div className="relative">
                   <input
@@ -314,6 +372,7 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
                     value={pin}
                     onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     placeholder="••••"
+                    autoComplete="new-password"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     maxLength={6}
                   />
@@ -326,7 +385,7 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
                   </button>
                 </div>
                 <p className="text-xs text-gray-600 mt-1">
-                  4 à 6 chiffres
+                  Entrez votre code PIN pour confirmer le retrait (4-6 chiffres)
                 </p>
               </div>
 
@@ -339,8 +398,8 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
 
               <button
                 onClick={handleSubmit}
-                disabled={loading || !phoneNumber || !pin}
-                className="w-full bg-orange-600 text-white py-3 rounded-lg font-medium hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                disabled={loading || !accountName.trim() || !accountNumber.trim() || !pin}
+                className="w-full bg-orange-600 text-white py-3 rounded-lg font-medium hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-4"
               >
                 {loading ? (
                   <>
@@ -354,7 +413,7 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
 
               <button
                 onClick={() => setStep('provider')}
-                className="w-full text-gray-600 hover:text-gray-800 mt-4"
+                className="w-full text-gray-600 hover:text-gray-800"
               >
                 ← Retour
               </button>

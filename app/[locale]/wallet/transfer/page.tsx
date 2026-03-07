@@ -50,7 +50,7 @@ export default function TransferPage() {
     fetchWallet(user.id);
   }, [user, router]);
 
-  // Recherche d'utilisateurs
+  // Recherche d'utilisateurs intelligente (partielle)
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       toast.error(t('enter_email_or_phone'));
@@ -59,34 +59,35 @@ export default function TransferPage() {
 
     setSearching(true);
     try {
-      // Recherche par email
-      const emailQuery = query(
-        collection(db, 'users'),
-        where('email', '==', searchQuery.trim().toLowerCase()),
-        limit(5)
-      );
-      const emailResults = await getDocs(emailQuery);
-
-      // Recherche par téléphone
-      const phoneQuery = query(
-        collection(db, 'users'),
-        where('phoneNumber', '==', searchQuery.trim()),
-        limit(5)
-      );
-      const phoneResults = await getDocs(phoneQuery);
-
-      // Combiner les résultats
+      const searchTerm = searchQuery.trim().toLowerCase();
       const users: UserType[] = [];
       const seenIds = new Set();
 
-      [...emailResults.docs, ...phoneResults.docs].forEach(doc => {
-        if (!seenIds.has(doc.id) && doc.id !== user?.id) {
+      // Recherche dans tous les utilisateurs
+      const usersRef = collection(db, 'users');
+      const allUsersSnapshot = await getDocs(usersRef);
+
+      allUsersSnapshot.forEach(doc => {
+        if (doc.id === user?.id) return; // Exclure l'utilisateur actuel
+
+        const userData = doc.data() as UserType;
+        const email = userData.email?.toLowerCase() || '';
+        const phone = userData.phoneNumber || '';
+        const displayName = userData.displayName?.toLowerCase() || '';
+
+        // Recherche intelligente: email, téléphone ou nom contient le terme
+        const matchesEmail = email.includes(searchTerm);
+        const matchesPhone = phone.includes(searchTerm);
+        const matchesName = displayName.includes(searchTerm);
+
+        if ((matchesEmail || matchesPhone || matchesName) && !seenIds.has(doc.id)) {
           seenIds.add(doc.id);
-          users.push({ id: doc.id, ...doc.data() } as UserType);
+          users.push({ id: doc.id, ...userData } as UserType);
         }
       });
 
-      setSearchResults(users);
+      // Limiter à 10 résultats
+      setSearchResults(users.slice(0, 10));
 
       if (users.length === 0) {
         toast.error(t('no_user_found'));

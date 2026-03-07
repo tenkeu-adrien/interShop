@@ -570,7 +570,7 @@ export interface Transaction {
 export interface MobileMoneyAccount {
   id: string;
   provider: MobileMoneyProvider;
-  accountName: string;           // Ex: "InterShop MTN"
+  accountName: string;           // Ex: "InterAppshop MTN"
   accountNumber: string;         // Numéro Mobile Money
   country: string;               // Code pays (CM, CI, BF, etc.)
   isActive: boolean;

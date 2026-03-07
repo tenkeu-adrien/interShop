@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { X, Loader2, Copy, CheckCircle, AlertCircle } from 'lucide-react';
 import { useWalletStore } from '@/store/walletStore';
-import { MobileMoneyProvider } from '@/types';
+import { getActivePaymentMethods } from '@/lib/firebase/paymentMethods';
+import type { PaymentMethod } from '@/types';
 
 interface DepositModalProps {
   isOpen: boolean;
@@ -11,36 +12,40 @@ interface DepositModalProps {
   userId: string;
 }
 
-const MOBILE_MONEY_PROVIDERS = [
-  { id: 'mtn' as MobileMoneyProvider, name: 'MTN Mobile Money', flag: '🇨🇲', color: 'bg-yellow-500' },
-  { id: 'orange' as MobileMoneyProvider, name: 'Orange Money', flag: '🇨🇮', color: 'bg-orange-500' },
-  { id: 'moov' as MobileMoneyProvider, name: 'Moov Money', flag: '🇧🇫', color: 'bg-blue-500' },
-  { id: 'wave' as MobileMoneyProvider, name: 'Wave', flag: '🇸🇳', color: 'bg-pink-500' },
-];
-
-// Comptes Mobile Money de la plateforme (à configurer par admin)
-const PLATFORM_ACCOUNTS: Record<MobileMoneyProvider, string> = {
-  mtn: '+237 670 00 00 00',
-  orange: '+225 07 00 00 00',
-  moov: '+226 70 00 00 00',
-  wave: '+221 77 000 00 00',
-  vodafone: '+233 50 000 0000',
-  airtel: '+234 802 000 0000'
-};
-
 export default function DepositModal({ isOpen, onClose, userId }: DepositModalProps) {
-  const { initiateDeposit, calculateDepositFees, loading } = useWalletStore();
+  const { initiateFlexibleDeposit, calculateDepositFees, loading } = useWalletStore();
   
   const [step, setStep] = useState<'amount' | 'provider' | 'instructions'>('amount');
   const [amount, setAmount] = useState('');
-  const [provider, setProvider] = useState<MobileMoneyProvider | null>(null);
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
+  const [clientName, setClientName] = useState('');
   const [fees, setFees] = useState(0);
   const [reference, setReference] = useState('');
-  const [mobileMoneyTransactionId, setMobileMoneyTransactionId] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [loadingMethods, setLoadingMethods] = useState(false);
+
+  // Charger les méthodes de paiement depuis Firebase
+  useEffect(() => {
+    if (isOpen) {
+      loadPaymentMethods();
+    }
+  }, [isOpen]);
+
+  const loadPaymentMethods = async () => {
+    setLoadingMethods(true);
+    try {
+      const methods = await getActivePaymentMethods();
+      setPaymentMethods(methods);
+    } catch (error) {
+      console.error('Error loading payment methods:', error);
+      setError('Erreur lors du chargement des méthodes de paiement');
+    } finally {
+      setLoadingMethods(false);
+    }
+  };
 
   useEffect(() => {
     if (amount) {
@@ -61,26 +66,26 @@ export default function DepositModal({ isOpen, onClose, userId }: DepositModalPr
     setStep('provider');
   };
 
-  const handleProviderSelect = (selectedProvider: MobileMoneyProvider) => {
-    setProvider(selectedProvider);
+  const handleProviderSelect = (method: PaymentMethod) => {
+    setSelectedMethod(method);
     setStep('instructions');
   };
 
   const handleSubmit = async () => {
-    if (!provider || !phoneNumber || !mobileMoneyTransactionId) {
+    if (!selectedMethod || !clientName.trim()) {
       setError('Veuillez remplir tous les champs');
       return;
     }
 
     setError('');
     try {
-      const transaction = await initiateDeposit(userId, {
-        amount: parseFloat(amount),
-        provider,
-        phoneNumber
+      const transaction = await initiateFlexibleDeposit(userId, {
+        paymentMethodId: selectedMethod.id,
+        clientName: clientName.trim(),
+        amount: parseFloat(amount)
       });
       
-      setReference(transaction.reference);
+      setReference(transaction.reference || transaction.id);
       setSuccess(true);
     } catch (err: any) {
       setError(err.message);
@@ -96,11 +101,10 @@ export default function DepositModal({ isOpen, onClose, userId }: DepositModalPr
   const handleClose = () => {
     setStep('amount');
     setAmount('');
-    setProvider(null);
-    setPhoneNumber('');
+    setSelectedMethod(null);
+    setClientName('');
     setFees(0);
     setReference('');
-    setMobileMoneyTransactionId('');
     setError('');
     setSuccess(false);
     onClose();
@@ -211,25 +215,39 @@ export default function DepositModal({ isOpen, onClose, userId }: DepositModalPr
             /* Step 2: Provider Selection */
             <>
               <p className="text-gray-600 mb-6">
-                Sélectionnez votre service Mobile Money
+                Sélectionnez votre méthode de paiement
               </p>
-              <div className="space-y-3 mb-6">
-                {MOBILE_MONEY_PROVIDERS.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => handleProviderSelect(p.id)}
-                    className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition flex items-center gap-4"
-                  >
-                    <div className={`w-12 h-12 ${p.color} rounded-lg flex items-center justify-center text-2xl`}>
-                      {p.flag}
-                    </div>
-                    <div className="text-left">
-                      <p className="font-semibold text-gray-900">{p.name}</p>
-                      <p className="text-sm text-gray-600">Disponible</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
+              
+              {loadingMethods ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
+                </div>
+              ) : paymentMethods.length === 0 ? (
+                <div className="text-center py-8">
+                  <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600">Aucune méthode de paiement disponible</p>
+                </div>
+              ) : (
+                <div className="space-y-3 mb-6">
+                  {paymentMethods.map((method) => (
+                    <button
+                      key={method.id}
+                      onClick={() => handleProviderSelect(method)}
+                      className="w-full p-4 border-2 border-gray-200 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition flex items-center gap-4"
+                    >
+                      {method.icon && (
+                        <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center text-2xl">
+                          {method.icon}
+                        </div>
+                      )}
+                      <div className="text-left flex-1">
+                        <p className="font-semibold text-gray-900">{method.name}</p>
+                        <p className="text-sm text-gray-600">{method.type}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
               <button
                 onClick={() => setStep('amount')}
                 className="w-full text-gray-600 hover:text-gray-800"
@@ -241,29 +259,63 @@ export default function DepositModal({ isOpen, onClose, userId }: DepositModalPr
             /* Step 3: Instructions */
             <>
               <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-                <p className="font-semibold text-orange-900 mb-2">📱 Instructions</p>
-                <ol className="text-sm text-orange-800 space-y-2">
-                  <li>1. Ouvrez votre application {provider?.toUpperCase()} Mobile Money</li>
-                  <li>2. Sélectionnez "Transfert d'argent"</li>
-                  <li>3. Transférez vers le numéro ci-dessous</li>
-                  <li>4. Entrez le code de transaction reçu</li>
-                </ol>
+                <p className="font-semibold text-orange-900 mb-2">📋 Instructions</p>
+                <div 
+                  className="text-sm text-orange-800 prose prose-sm"
+                  dangerouslySetInnerHTML={{ __html: selectedMethod?.instructions || '' }}
+                />
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                <p className="text-sm text-gray-600 mb-2">Numéro InterShop {provider?.toUpperCase()}</p>
-                <div className="flex items-center justify-between">
-                  <p className="text-xl font-bold text-gray-900">
-                    {provider && PLATFORM_ACCOUNTS[provider]}
-                  </p>
-                  <button
-                    onClick={() => provider && copyToClipboard(PLATFORM_ACCOUNTS[provider])}
-                    className="text-orange-600 hover:text-orange-700"
-                  >
-                    {copied ? <CheckCircle className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                  </button>
+              {/* Détails du compte */}
+              {selectedMethod?.accountDetails && (
+                <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-gray-600 mb-2 font-semibold">Détails du compte</p>
+                  <div className="space-y-2 text-sm">
+                    {selectedMethod.accountDetails.accountNumber && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Numéro:</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono bg-white px-2 py-1 rounded font-semibold">
+                            {selectedMethod.accountDetails.accountNumber}
+                          </span>
+                          <button
+                            onClick={() => copyToClipboard(selectedMethod.accountDetails.accountNumber!)}
+                            className="text-orange-600 hover:text-orange-700"
+                          >
+                            {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {selectedMethod.accountDetails.accountName && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Nom:</span>
+                        <span className="font-semibold">{selectedMethod.accountDetails.accountName}</span>
+                      </div>
+                    )}
+                    {selectedMethod.accountDetails.bankName && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Banque:</span>
+                        <span className="font-semibold">{selectedMethod.accountDetails.bankName}</span>
+                      </div>
+                    )}
+                    {selectedMethod.accountDetails.walletAddress && (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-gray-600">Adresse:</span>
+                        <span className="font-mono text-xs bg-white px-2 py-1 rounded break-all">
+                          {selectedMethod.accountDetails.walletAddress}
+                        </span>
+                      </div>
+                    )}
+                    {selectedMethod.accountDetails.network && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Réseau:</span>
+                        <span className="font-semibold">{selectedMethod.accountDetails.network}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <p className="text-sm text-gray-600 mb-2">Montant à transférer</p>
@@ -272,32 +324,19 @@ export default function DepositModal({ isOpen, onClose, userId }: DepositModalPr
                 </p>
               </div>
 
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Votre numéro Mobile Money
-                </label>
-                <input
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="+237 6XX XX XX XX"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                />
-              </div>
-
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Code de transaction Mobile Money
+                  Votre nom complet
                 </label>
                 <input
                   type="text"
-                  value={mobileMoneyTransactionId}
-                  onChange={(e) => setMobileMoneyTransactionId(e.target.value)}
-                  placeholder="Ex: MP240214.1234.A12345"
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  placeholder="Ex: Jean Dupont"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 />
                 <p className="text-xs text-gray-600 mt-1">
-                  Code reçu par SMS après le transfert
+                  Ce nom sera utilisé pour identifier votre paiement
                 </p>
               </div>
 
@@ -308,10 +347,19 @@ export default function DepositModal({ isOpen, onClose, userId }: DepositModalPr
                 </div>
               )}
 
+              {/* Avertissement */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                <p className="text-sm text-yellow-800">
+                  ⚠️ <strong>Important:</strong> Effectuez d'abord le paiement selon les instructions ci-dessus, 
+                  puis revenez ici pour confirmer votre dépôt. L'administrateur vérifiera manuellement 
+                  la réception du paiement avant de créditer votre portefeuille.
+                </p>
+              </div>
+
               <button
                 onClick={handleSubmit}
-                disabled={loading || !phoneNumber || !mobileMoneyTransactionId}
-                className="w-full bg-orange-600 text-white py-3 rounded-lg font-medium hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                disabled={loading || !clientName.trim()}
+                className="w-full bg-orange-600 text-white py-3 rounded-lg font-medium hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-4"
               >
                 {loading ? (
                   <>
@@ -325,7 +373,7 @@ export default function DepositModal({ isOpen, onClose, userId }: DepositModalPr
 
               <button
                 onClick={() => setStep('provider')}
-                className="w-full text-gray-600 hover:text-gray-800 mt-4"
+                className="w-full text-gray-600 hover:text-gray-800"
               >
                 ← Retour
               </button>

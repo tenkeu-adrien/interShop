@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useWalletStore } from '@/store/walletStore';
@@ -17,12 +17,17 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useTranslations } from 'next-intl';
+import DepositModal from '@/components/wallet/DepositModal';
+import WithdrawalModal from '@/components/wallet/WithdrawalModal';
 
 export default function WalletPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { wallet, transactions, loading, error, fetchWallet, fetchTransactions } = useWalletStore();
   const t = useTranslations('wallet');
+  
+  const [showDepositModal, setShowDepositModal] = useState(false);
+  const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -93,7 +98,7 @@ export default function WalletPage() {
           {/* Actions */}
           <div className="grid grid-cols-3 gap-4">
             <button
-              onClick={() => router.push('/wallet/deposit')}
+              onClick={() => setShowDepositModal(true)}
               className="bg-white text-green-600 py-3 rounded-lg font-medium hover:bg-green-50 transition flex items-center justify-center gap-2 shadow-md"
             >
               <ArrowDownCircle className="w-5 h-5" />
@@ -107,8 +112,8 @@ export default function WalletPage() {
               {t('transfer')}
             </button>
             <button
-              onClick={() => router.push('/wallet/withdraw')}
-              className="bg-white/10 text-gray-900 py-3 rounded-lg font-medium hover:bg-white/20 transition flex items-center justify-center gap-2 border border-white/20"
+              onClick={() => setShowWithdrawalModal(true)}
+              className="bg-white text-yellow-600 py-3 rounded-lg font-medium hover:bg-yellow-50 transition flex items-center justify-center gap-2 shadow-md"
             >
               <ArrowUpCircle className="w-5 h-5" />
               {t('withdraw')}
@@ -235,6 +240,22 @@ export default function WalletPage() {
           )}
         </div>
       </div>
+      
+      {/* Modals */}
+      {user && (
+        <>
+          <DepositModal 
+            isOpen={showDepositModal} 
+            onClose={() => setShowDepositModal(false)} 
+            userId={user.id} 
+          />
+          <WithdrawalModal 
+            isOpen={showWithdrawalModal} 
+            onClose={() => setShowWithdrawalModal(false)} 
+            userId={user.id} 
+          />
+        </>
+      )}
     </div>
   );
 }

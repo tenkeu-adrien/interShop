@@ -299,7 +299,7 @@ export default function AdminPaymentMethodsPage() {
                           ...formData,
                           accountDetails: {...formData.accountDetails, accountName: e.target.value}
                         })}
-                        placeholder="Ex: InterShop"
+                        placeholder="Ex: InterAppshop"
                         className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500"
                       />
                     </div>
@@ -414,7 +414,7 @@ export default function AdminPaymentMethodsPage() {
                         ...formData,
                         accountDetails: {...formData.accountDetails, accountName: e.target.value}
                       })}
-                      placeholder="Ex: InterShop SARL"
+                      placeholder="Ex: InterAppshop SARL"
                       className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500"
                       required
                     />

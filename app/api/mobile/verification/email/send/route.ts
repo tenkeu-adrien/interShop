@@ -107,9 +107,9 @@ export async function POST(request: NextRequest) {
       console.log("📤 Envoi de l'email...");
       
       await transporter.sendMail({
-        from: `"Intershop Support" <${process.env.EMAIL_USER}>`,
+        from: `"InterAppshop Support" <${process.env.EMAIL_USER}>`,
         to: email,
-        subject: '🔐 Code de vérification Intershop',
+        subject: '🔐 Code de vérification InterAppshop',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 30px; text-align: center;">
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
                 <div style="font-size: 32px; font-weight: bold; color: #10B981; letter-spacing: 8px;">${code}</div>
               </div>
               <p><strong>⏰ Ce code expire dans 4 minutes.</strong></p>
-              <p>Cordialement,<br>L'équipe Intershop</p>
+              <p>Cordialement,<br>L'équipe InterAppshop</p>
             </div>
           </div>
         `,
