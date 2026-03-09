@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
 import { Mail, ArrowLeft, Loader2, Lock, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { loginUser } from '@/lib/firebase/auth';
 import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
@@ -40,6 +41,20 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
       <div className="max-w-md w-full">
         <div className="bg-white rounded-lg shadow-lg p-8">
+          {/* Logo InterAppShop */}
+          <div className="text-center mb-8">
+            <Link href="/" className="inline-block">
+              <Image
+                src="/logo.png"
+                alt="InterAppshop"
+                className="object-contain mx-auto"
+                width={200}
+                height={60}
+                priority={true}
+              />
+            </Link>
+          </div>
+
           <h2 className="text-3xl font-bold text-center mb-8">{tAuth('sign_in')}</h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
