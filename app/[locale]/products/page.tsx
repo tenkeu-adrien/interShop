@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import ProductCard from '@/components/products/ProductCard';
 import { usePublicProductsStore } from '@/store/publicProductsStore';
 import { SearchFilters, Product } from '@/types';
-import { Filter, X, Loader, Camera, Sparkles, AlertCircle } from 'lucide-react';
+import { Filter, X, Loader, Camera, Sparkles, AlertCircle, Menu } from 'lucide-react';
 import { searchProductsByImage } from '@/lib/services/imageSearchService';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
@@ -15,6 +15,9 @@ export default function ProductsPage() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get('search');
   const sortParam = searchParams.get('sort');
+  
+  // État pour la sidebar mobile
+  const [showFilters, setShowFilters] = useState(false);
   
   // Paramètres de recherche par image
   const isImageSearch = searchParams.get('imageSearch') === 'true';
@@ -120,6 +123,91 @@ export default function ProductsPage() {
   const products = isImageSearch ? imageSearchProducts : storeProducts;
   const loading = isImageSearch ? imageSearchLoading : storeLoading;
 
+  // Composant Filters
+  const FiltersComponent = () => (
+    <div className="bg-white rounded-lg shadow p-6">
+      <div className="flex items-center gap-2 mb-6">
+        <Filter size={20} />
+        <h2 className="font-bold text-lg">{t('products.filters_title')}</h2>
+      </div>
+
+      <div className="space-y-6">
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            {t('products.min_price')}
+          </label>
+          <input
+            type="number"
+            placeholder="0"
+            className="w-full px-3 py-2 border rounded-lg"
+            onChange={(e) =>
+              setFilters({ ...filters, minPrice: Number(e.target.value) })
+            }
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            {t('products.max_price')}
+          </label>
+          <input
+            type="number"
+            placeholder="1000"
+            className="w-full px-3 py-2 border rounded-lg"
+            onChange={(e) =>
+              setFilters({ ...filters, maxPrice: Number(e.target.value) })
+            }
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            {t('products.min_rating')}
+          </label>
+          <select
+            className="w-full px-3 py-2 border rounded-lg"
+            onChange={(e) =>
+              setFilters({ ...filters, minRating: Number(e.target.value) })
+            }
+          >
+            <option value="">{t('products.all_ratings')}</option>
+            <option value="4">{t('products.rating_4_plus')}</option>
+            <option value="3">{t('products.rating_3_plus')}</option>
+            <option value="2">{t('products.rating_2_plus')}</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              onChange={(e) =>
+                setFilters({ ...filters, verifiedOnly: e.target.checked })
+              }
+            />
+            <span className="text-sm">
+              {t('products.verified_only')}
+            </span>
+          </label>
+        </div>
+
+        <div>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              onChange={(e) =>
+                setFilters({ ...filters, fastDelivery: e.target.checked })
+              }
+            />
+            <span className="text-sm">
+              {t('products.fast_delivery')}
+            </span>
+          </label>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Bannière de recherche par image */}
@@ -217,96 +305,20 @@ export default function ProductsPage() {
         </div>
       )}
 
-      <div className="flex gap-8">
-        {/* Filters Sidebar */}
-        <aside className="w-64 flex-shrink-0">
-          <div className="bg-white rounded-lg shadow p-6 sticky top-20">
-            <div className="flex items-center gap-2 mb-6">
-              <Filter size={20} />
-              <h2 className="font-bold text-lg">{t('products.filters_title')}</h2>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  {t('products.min_price')}
-                </label>
-                <input
-                  type="number"
-                  placeholder="0"
-                  className="w-full px-3 py-2 border rounded-lg"
-                  onChange={(e) =>
-                    setFilters({ ...filters, minPrice: Number(e.target.value) })
-                  }
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  {t('products.max_price')}
-                </label>
-                <input
-                  type="number"
-                  placeholder="1000"
-                  className="w-full px-3 py-2 border rounded-lg"
-                  onChange={(e) =>
-                    setFilters({ ...filters, maxPrice: Number(e.target.value) })
-                  }
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  {t('products.min_rating')}
-                </label>
-                <select
-                  className="w-full px-3 py-2 border rounded-lg"
-                  onChange={(e) =>
-                    setFilters({ ...filters, minRating: Number(e.target.value) })
-                  }
-                >
-                  <option value="">{t('products.all_ratings')}</option>
-                  <option value="4">{t('products.rating_4_plus')}</option>
-                  <option value="3">{t('products.rating_3_plus')}</option>
-                  <option value="2">{t('products.rating_2_plus')}</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    onChange={(e) =>
-                      setFilters({ ...filters, verifiedOnly: e.target.checked })
-                    }
-                  />
-                  <span className="text-sm">
-                    {t('products.verified_only')}
-                  </span>
-                </label>
-              </div>
-
-              <div>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    onChange={(e) =>
-                      setFilters({ ...filters, fastDelivery: e.target.checked })
-                    }
-                  />
-                  <span className="text-sm">
-                    {t('products.fast_delivery')}
-                  </span>
-                </label>
-              </div>
-            </div>
+      {/* Layout responsive */}
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Filters Sidebar - Desktop */}
+        <aside className="hidden lg:block w-64 flex-shrink-0">
+          <div className="sticky top-20">
+            <FiltersComponent />
           </div>
         </aside>
 
         {/* Products Grid */}
         <main className="flex-1">
+          {/* Header avec bouton filtres mobile */}
           <div className="flex items-center justify-between mb-6">
-            <div>
+            <div className="flex-1">
               <h1 className="text-2xl font-bold">
                 {searchQuery
                   ? t('products.results_for', { search: searchQuery })
@@ -322,39 +334,53 @@ export default function ProductsPage() {
                 </button>
               )}
             </div>
-            <select
-              className="px-4 py-2 border rounded-lg"
-              value={filters.sortBy || 'newest'}
-              onChange={(e) => handleSortChange(e.target.value as SearchFilters['sortBy'])}
-            >
-              <option value="newest">Plus récents</option>
-              <option value="popular">Plus populaires</option>
-              <option value="price_asc">Prix croissant</option>
-              <option value="price_desc">Prix décroissant</option>
-              <option value="relevance">Pertinence</option>
-            </select>
+
+            <div className="flex items-center gap-3">
+              {/* Bouton filtres mobile */}
+              <button
+                onClick={() => setShowFilters(true)}
+                className="lg:hidden flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                <Filter size={18} />
+                <span className="text-sm font-medium">{t('products.filter')}</span>
+              </button>
+
+              {/* Tri */}
+              <select
+                className="px-4 py-2 border rounded-lg text-sm"
+                value={filters.sortBy || 'newest'}
+                onChange={(e) => handleSortChange(e.target.value as SearchFilters['sortBy'])}
+              >
+                <option value="newest">Plus récents</option>
+                <option value="popular">Plus populaires</option>
+                <option value="price_asc">Prix croissant</option>
+                <option value="price_desc">Prix décroissant</option>
+                <option value="relevance">Pertinence</option>
+              </select>
+            </div>
           </div>
 
-            {loading && products.length === 0 ? (
+          {/* Contenu principal */}
+          {loading && products.length === 0 ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-                <p className="mt-4 text-gray-600">
-                  {t('products.loading_products')}
-                </p>
+              <p className="mt-4 text-gray-600">
+                {t('products.loading_products')}
+              </p>
             </div>
           ) : products.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg mb-4">
-                  {searchQuery
-                    ? t('products.no_results_for', { search: searchQuery })
-                    : t('products.no_results')}
+                {searchQuery
+                  ? t('products.no_results_for', { search: searchQuery })
+                  : t('products.no_results')}
               </p>
               {searchQuery && (
                 <button
                   onClick={clearSearch}
                   className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
                 >
-                    {t('products.view_all_products')}
+                  {t('products.view_all_products')}
                 </button>
               )}
             </div>
@@ -365,7 +391,7 @@ export default function ProductsPage() {
                 {hasMore && ` ${t('products.scroll_to_load_more')}`}
               </p>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
@@ -389,6 +415,34 @@ export default function ProductsPage() {
           )}
         </main>
       </div>
+
+      {/* Modal filtres mobile */}
+      {showFilters && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden">
+          <div className="fixed inset-y-0 left-0 w-80 bg-white shadow-xl">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-bold">{t('products.filters_title')}</h2>
+              <button
+                onClick={() => setShowFilters(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto h-full pb-20">
+              <FiltersComponent />
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t">
+              <button
+                onClick={() => setShowFilters(false)}
+                className="w-full bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors"
+              >
+                Appliquer les filtres
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

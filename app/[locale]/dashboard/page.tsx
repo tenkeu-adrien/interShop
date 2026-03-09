@@ -11,7 +11,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const tDashboard = useTranslations('dashboard');
   const tCommon = useTranslations('common');
-
+// fournisseur
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login');

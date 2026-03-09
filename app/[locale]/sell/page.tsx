@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { 
   TrendingUp, 
   Users, 
@@ -12,64 +13,6 @@ import {
   CheckCircle,
   ArrowRight
 } from 'lucide-react';
-
-const benefits = [
-  {
-    icon: Globe,
-    title: 'Portée mondiale',
-    description: 'Accédez à des millions d\'acheteurs dans plus de 190 pays'
-  },
-  {
-    icon: DollarSign,
-    title: 'Commissions faibles',
-    description: 'Gardez plus de profits avec nos frais de plateforme compétitifs'
-  },
-  {
-    icon: Shield,
-    title: 'Paiements sécurisés',
-    description: 'Transactions protégées et paiements garantis'
-  },
-  {
-    icon: Headphones,
-    title: 'Support dédié',
-    description: 'Équipe d\'assistance disponible 24/7 pour vous aider'
-  },
-  {
-    icon: TrendingUp,
-    title: 'Outils de croissance',
-    description: 'Analytics et outils marketing pour développer votre business'
-  },
-  {
-    icon: Users,
-    title: 'Communauté active',
-    description: 'Rejoignez des milliers de vendeurs qui réussissent'
-  }
-];
-
-const steps = [
-  {
-    number: '01',
-    title: 'Créez votre compte',
-    description: 'Inscrivez-vous gratuitement en quelques minutes'
-  },
-  {
-    number: '02',
-    title: 'Configurez votre boutique',
-    description: 'Ajoutez vos produits et personnalisez votre vitrine'
-  },
-  {
-    number: '03',
-    title: 'Commencez à vendre',
-    description: 'Recevez des commandes et développez votre business'
-  }
-];
-
-const stats = [
-  { value: '10M+', label: 'Acheteurs actifs' },
-  { value: '50K+', label: 'Vendeurs' },
-  { value: '190+', label: 'Pays' },
-  { value: '$2B+', label: 'Volume de ventes' }
-];
 
 const container = {
   hidden: { opacity: 0 },
@@ -87,6 +30,77 @@ const item = {
 };
 
 export default function SellPage() {
+  const t = useTranslations('sell');
+
+  const benefits = [
+    {
+      icon: Globe,
+      title: t('benefit_global_reach'),
+      description: t('benefit_global_desc')
+    },
+    {
+      icon: DollarSign,
+      title: t('benefit_low_fees'),
+      description: t('benefit_low_fees_desc')
+    },
+    {
+      icon: Shield,
+      title: t('benefit_secure_payments'),
+      description: t('benefit_secure_desc')
+    },
+    {
+      icon: Headphones,
+      title: t('benefit_support'),
+      description: t('benefit_support_desc')
+    },
+    {
+      icon: TrendingUp,
+      title: t('benefit_growth_tools'),
+      description: t('benefit_growth_desc')
+    },
+    {
+      icon: Users,
+      title: t('benefit_community'),
+      description: t('benefit_community_desc')
+    }
+  ];
+
+  const steps = [
+    {
+      number: '01',
+      title: t('step1_title'),
+      description: t('step1_desc')
+    },
+    {
+      number: '02',
+      title: t('step2_title'),
+      description: t('step2_desc')
+    },
+    {
+      number: '03',
+      title: t('step3_title'),
+      description: t('step3_desc')
+    }
+  ];
+
+  const stats = [
+    { value: '10M+', label: t('stats_active_buyers') },
+    { value: '50K+', label: t('stats_sellers') },
+    { value: '190+', label: t('stats_countries') },
+    { value: '$2B+', label: t('stats_sales_volume') }
+  ];
+
+  const features = [
+    t('feature_inventory'),
+    t('feature_marketing'),
+    t('feature_analytics'),
+    t('feature_multicurrency'),
+    t('feature_orders'),
+    t('feature_fraud'),
+    t('feature_api'),
+    t('feature_training')
+  ];
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -104,7 +118,7 @@ export default function SellPage() {
               transition={{ delay: 0.2 }}
               className="text-5xl md:text-6xl font-bold mb-6"
             >
-              Développez votre business à l'échelle mondiale
+              {t('hero_title')}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -112,7 +126,7 @@ export default function SellPage() {
               transition={{ delay: 0.3 }}
               className="text-xl md:text-2xl mb-8 text-white/90"
             >
-              Rejoignez la plus grande plateforme B2B/B2C et vendez à des millions d'acheteurs
+              {t('hero_subtitle')}
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -126,7 +140,7 @@ export default function SellPage() {
                   whileTap={{ scale: 0.95 }}
                   className="bg-white text-orange-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
                 >
-                  Commencer gratuitement
+                  {t('start_free')}
                   <ArrowRight size={20} />
                 </motion.button>
               </Link>
@@ -135,7 +149,7 @@ export default function SellPage() {
                 whileTap={{ scale: 0.95 }}
                 className="border-2 border-white text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white/10 transition-colors"
               >
-                En savoir plus
+                {t('learn_more')}
               </motion.button>
             </motion.div>
           </motion.div>
@@ -178,10 +192,10 @@ export default function SellPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Pourquoi vendre avec nous ?
+              {t('why_sell_title')}
             </h2>
             <p className="text-xl text-gray-600">
-              Tout ce dont vous avez besoin pour réussir en ligne
+              {t('why_sell_subtitle')}
             </p>
           </motion.div>
 
@@ -225,10 +239,10 @@ export default function SellPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Comment ça marche ?
+              {t('how_it_works')}
             </h2>
             <p className="text-xl text-gray-600">
-              Commencez à vendre en 3 étapes simples
+              {t('how_it_works_subtitle')}
             </p>
           </motion.div>
 
@@ -273,7 +287,7 @@ export default function SellPage() {
               className="text-center mb-12"
             >
               <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                Tout ce dont vous avez besoin
+                {t('features_title')}
               </h2>
             </motion.div>
 
@@ -284,16 +298,7 @@ export default function SellPage() {
               viewport={{ once: true }}
               className="grid grid-cols-1 md:grid-cols-2 gap-6"
             >
-              {[
-                'Gestion des stocks en temps réel',
-                'Outils de marketing intégrés',
-                'Analytics et rapports détaillés',
-                'Support multi-devises',
-                'Gestion des commandes simplifiée',
-                'Protection contre la fraude',
-                'API pour intégrations',
-                'Formation et ressources gratuites'
-              ].map((feature, index) => (
+              {features.map((feature, index) => (
                 <motion.div
                   key={index}
                   variants={item}
@@ -317,10 +322,10 @@ export default function SellPage() {
             viewport={{ once: true }}
           >
             <h2 className="text-4xl font-bold mb-6">
-              Prêt à commencer votre aventure ?
+              {t('cta_title')}
             </h2>
             <p className="text-xl mb-8 text-white/90">
-              Rejoignez des milliers de vendeurs qui font confiance à notre plateforme
+              {t('cta_subtitle')}
             </p>
             <Link href="/register">
               <motion.button
@@ -328,12 +333,12 @@ export default function SellPage() {
                 whileTap={{ scale: 0.95 }}
                 className="bg-white text-orange-600 px-10 py-4 rounded-lg font-bold text-lg hover:bg-gray-100 transition-colors inline-flex items-center gap-2"
               >
-                Créer mon compte gratuitement
+                {t('create_account')}
                 <ArrowRight size={20} />
               </motion.button>
             </Link>
             <p className="mt-4 text-white/80">
-              Aucune carte de crédit requise • Configuration en 5 minutes
+              {t('no_credit_card')}
             </p>
           </motion.div>
         </div>

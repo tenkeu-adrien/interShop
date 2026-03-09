@@ -214,11 +214,11 @@ export default function Header() {
               <CurrencySelector />
             </div>
 
-            {/* Chat */}
+            {/* Chat - Hidden on mobile */}
             {user && (
               <Link
                 href="/chat"
-                className="hover:scale-110 transition-transform relative p-2 hover:bg-white/20 rounded-full"
+                className="hidden md:flex hover:scale-110 transition-transform relative p-2 hover:bg-white/20 rounded-full"
                 aria-label={tNav('messages')}
               >
                 <MessageCircle size={22} className="text-gray-900" />
@@ -306,7 +306,13 @@ export default function Header() {
                           className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-gray-700"
                         >
                           <LayoutDashboard size={20} className="text-green-600" />
-                          <span className="font-medium">{tNav('dashboard')}</span>
+                          <span className="font-medium">
+                            {user.role === 'fournisseur' && 'Dashboard Fournisseur'}
+                            {user.role === 'marketiste' && 'Dashboard Marketiste'}
+                            {user.role === 'admin' && 'Dashboard Admin'}
+                            {user.role === 'client' && tNav('dashboard')}
+                            {!['fournisseur', 'marketiste', 'admin', 'client'].includes(user.role) && tNav('dashboard')}
+                          </span>
                         </Link>
 
                         {user.role === 'fournisseur' && (

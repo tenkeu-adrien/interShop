@@ -7,6 +7,7 @@ import MobileNav from '@/components/layout/MobileNav';
 import AuthProvider from '@/components/providers/AuthProvider';
 import { CurrencyProvider } from '@/components/providers/CurrencyProvider';
 import AccountStatusBanner from '@/components/auth/AccountStatusBanner';
+import NotificationPermissionBanner from '@/components/notifications/NotificationPermissionBanner';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { Toaster } from 'react-hot-toast';
 import { NextIntlClientProvider } from 'next-intl';
@@ -46,6 +47,7 @@ export default async function RootLayout(props: {
                 <div className="flex flex-col min-h-screen">
                   <Header />
                   <AccountStatusBanner />
+                  <NotificationPermissionBanner />
                   <main className="flex-1 pb-20 md:pb-0">{children}</main>
                   <Footer />
                   <MobileNav />

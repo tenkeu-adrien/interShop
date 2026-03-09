@@ -19,18 +19,38 @@ let transporter: any = null;
 let isEmailConfigured = false;
 
 try {
+  console.log('📧 Configuration Email:');
+  console.log('  - EMAIL_HOST:', process.env.EMAIL_HOST);
+  console.log('  - EMAIL_PORT:', process.env.EMAIL_PORT);
+  console.log('  - EMAIL_USER:', process.env.EMAIL_USER);
+  console.log('  - EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? '***' : 'non défini');
+
   if (process.env.EMAIL_HOST && process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+    const emailPort = Number(process.env.EMAIL_PORT) || 465;
+    
     transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
-      port: Number(process.env.EMAIL_PORT) || 465,
-      secure: true,
+      port: emailPort,
+      secure: emailPort === 465, // true pour 465, false pour les autres ports
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD,
       },
+      debug: true, // Active les logs de debug
+      logger: true // Active le logger
     });
+    
     isEmailConfigured = true;
-    console.log('✅ Nodemailer configuré');
+    console.log('✅ Nodemailer configuré avec succès');
+    console.log(`   Host: ${process.env.EMAIL_HOST}:${emailPort}`);
+    console.log(`   Secure: ${emailPort === 465}`);
+  } else {
+    console.log('❌ Configuration email incomplète');
+    console.log('   Manque:', [
+      !process.env.EMAIL_HOST && 'EMAIL_HOST',
+      !process.env.EMAIL_USER && 'EMAIL_USER',
+      !process.env.EMAIL_PASSWORD && 'EMAIL_PASSWORD'
+    ].filter(Boolean).join(', '));
   }
 } catch (error) {
   console.error('❌ Erreur Nodemailer:', error);
@@ -123,9 +143,17 @@ export async function POST(request: Request) {
 
     // Envoyer l'email
     try {
-      console.log("📤 Envoi de l'email...");
+      console.log("📤 Tentative d'envoi de l'email...");
+      console.log("   De:", process.env.EMAIL_USER);
+      console.log("   À:", email);
+      console.log("   Sujet: 🔐 Code de vérification");
       
-      await transporter.sendMail({
+      // Vérifier la connexion avant d'envoyer
+      console.log("🔌 Vérification de la connexion SMTP...");
+      await transporter.verify();
+      console.log("✅ Connexion SMTP vérifiée");
+      
+      const mailOptions = {
         from: `"Shopmark Support" <${process.env.EMAIL_USER}>`,
         to: email,
         subject: '🔐 Code de vérification',
@@ -141,24 +169,46 @@ export async function POST(request: Request) {
                 <div style="font-size: 32px; font-weight: bold; color: #f97316; letter-spacing: 8px;">${code}</div>
               </div>
               <p><strong>⏰ Ce code expire dans 4 minutes.</strong></p>
+              <p>Si vous n'avez pas demandé ce code, ignorez cet email.</p>
               <p>Cordialement,<br>L'équipe de support</p>
             </div>
           </div>
         `,
-      });
+      };
 
-      console.log("✅ Email envoyé avec succès");
+      console.log("📨 Envoi de l'email en cours...");
+      const info = await transporter.sendMail(mailOptions);
+      
+      console.log("✅ Email envoyé avec succès!");
+      console.log("   Message ID:", info.messageId);
+      console.log("   Response:", info.response);
+      console.log("   Accepted:", info.accepted);
+      console.log("   Rejected:", info.rejected);
 
     } catch (emailError: any) {
-      console.error("❌ Erreur email:", emailError);
+      console.error("❌ Erreur lors de l'envoi de l'email:");
+      console.error("   Message:", emailError.message);
+      console.error("   Code:", emailError.code);
+      console.error("   Command:", emailError.command);
+      console.error("   Response:", emailError.response);
+      console.error("   Stack:", emailError.stack);
+      
       // Ne pas échouer si l'email ne part pas, le code est déjà sauvegardé
+      console.log("⚠️ Le code a été sauvegardé mais l'email n'a pas pu être envoyé");
     }
 
     return NextResponse.json({
       success: true,
       message: 'Code envoyé',
+      userId: userId, // Retourner le userId pour le frontend
       // En dev, retourner le code pour faciliter les tests
-      ...(process.env.NODE_ENV === 'development' && { code })
+      ...(process.env.NODE_ENV === 'development' && { 
+        code,
+        debug: {
+          emailConfigured: isEmailConfigured,
+          emailSent: true // Sera false si l'envoi échoue
+        }
+      })
     });
 
   } catch (error: any) {

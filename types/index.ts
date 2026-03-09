@@ -127,6 +127,17 @@ export interface Product {
   // NEW: Service category
   serviceCategory: ProductCategory;
   
+  // NEW: Marketing settings (defined by fournisseur)
+  marketingSettings?: {
+    allowsMarketingCodes: boolean;           // Le fournisseur accepte-t-il les codes promo ?
+    discountPercentage: number;              // % de réduction accordée (ex: 10 = 10%)
+    minQuantityForDiscount: number;          // Quantité minimum pour bénéficier de la réduction
+    marketisteCommissionRate: number;        // % de commission pour le marketiste (ex: 5 = 5%)
+  };
+  
+  // NEW: Payment methods accepted by fournisseur
+  acceptedPaymentMethods?: string[];         // IDs des méthodes de paiement acceptées
+  
   // NEW: Geolocation (for restaurants & hotels)
   location?: {
     latitude: number;
@@ -190,14 +201,16 @@ export interface MarketingCode {
   id: string;
   code: string;
   marketisteId: string;
-  commissionRate: number;
   validFrom: Date;
   validUntil?: Date;
   isActive: boolean;
-  linkedProducts?: string[];
-  linkedFournisseurs?: string[];
+  linkedProducts?: string[];           // Produits spécifiques (optionnel)
+  linkedFournisseurs?: string[];       // Fournisseurs spécifiques (optionnel)
   usageCount: number;
   totalEarnings: number;
+  
+  // NOTE: Le taux de commission et la réduction sont définis par le FOURNISSEUR
+  // dans les paramètres du produit, pas par le marketiste
 }
 
 export interface Order {
@@ -209,7 +222,8 @@ export interface Order {
   marketingCode?: string;
   products: OrderProduct[];
   subtotal: number;
-  marketingCommission: number;
+  discountAmount: number;              // Montant de la réduction appliquée
+  marketingCommission: number;         // Commission du marketiste
   platformFee: number;
   shippingFee: number;
   total: number;
@@ -217,6 +231,7 @@ export interface Order {
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   paymentMethod: string;
+  paymentMethodId?: string;            // ID de la méthode de paiement utilisée
   shippingAddress: Address;
   trackingNumber?: string;
   createdAt: Date;
@@ -231,6 +246,7 @@ export interface Order {
   displayTotal: number; // Total in display currency
   displaySubtotal: number;
   displayShippingFee: number;
+  displayDiscountAmount: number;       // Réduction en devise d'affichage
 }
 
 export interface OrderProduct {
@@ -238,7 +254,10 @@ export interface OrderProduct {
   name: string;
   image: string;
   quantity: number;
-  price: number;
+  price: number;                       // Prix unitaire en USD
+  discountApplied: boolean;            // Réduction appliquée ?
+  discountPercentage: number;          // % de réduction appliquée
+  finalPrice: number;                  // Prix final après réduction
 }
 
 export type OrderStatus = 

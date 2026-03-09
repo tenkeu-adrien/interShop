@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
@@ -27,10 +27,15 @@ import {
   Loader,
   ChevronDown,
   ChevronUp,
-  Info
+  Info,
+  Tag,
+  CreditCard,
+  Percent
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase/config';
 
 interface ImageUpload {
   file: File;
@@ -83,11 +88,23 @@ function NewProductContent() {
   const [certifications, setCertifications] = useState<string[]>([]);
   const [certInput, setCertInput] = useState('');
 
+  // Marketing Settings (NEW)
+  const [allowsMarketingCodes, setAllowsMarketingCodes] = useState(true);
+  const [discountPercentage, setDiscountPercentage] = useState(10);
+  const [minQuantityForDiscount, setMinQuantityForDiscount] = useState(1);
+  const [marketisteCommissionRate, setMarketisteCommissionRate] = useState(5);
+
+  // Payment Methods (NEW)
+  const [acceptedPaymentMethods, setAcceptedPaymentMethods] = useState<string[]>([]);
+  const [availablePaymentMethods, setAvailablePaymentMethods] = useState<any[]>([]);
+
   // Sections collapse state
   const [expandedSections, setExpandedSections] = useState({
     general: true,
     media: true,
     pricing: true,
+    marketing: true,
+    payment: true,
     inventory: true,
     shipping: true
   });
@@ -108,6 +125,31 @@ function NewProductContent() {
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
+
+  // Load available payment methods
+  useEffect(() => {
+    const loadPaymentMethods = async () => {
+      try {
+        const methodsQuery = query(
+          collection(db, 'paymentMethods'),
+          where('isActive', '==', true)
+        );
+        const methodsSnapshot = await getDocs(methodsQuery);
+        const methods = methodsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setAvailablePaymentMethods(methods);
+        
+        // Select all by default
+        setAcceptedPaymentMethods(methods.map((m: any) => m.id));
+      } catch (error) {
+        console.error('Error loading payment methods:', error);
+      }
+    };
+
+    loadPaymentMethods();
+  }, []);
 
   // Handle Image Upload
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -357,6 +399,23 @@ function NewProductContent() {
         serviceCategory: 'ecommerce', // Par défaut pour les produits normaux
         createdAt: new Date(),
         updatedAt: new Date(),
+        
+        // Marketing settings
+        marketingSettings: allowsMarketingCodes ? {
+          allowsMarketingCodes: true,
+          discountPercentage,
+          minQuantityForDiscount,
+          marketisteCommissionRate
+        } : {
+          allowsMarketingCodes: false,
+          discountPercentage: 0,
+          minQuantityForDiscount: 1,
+          marketisteCommissionRate: 0
+        },
+        
+        // Payment methods
+        acceptedPaymentMethods,
+        
         // Only include optional fields if they have values
         ...(videoUrls.length > 0 && { videos: videoUrls }),
         ...(subcategory.trim() && { subcategory: subcategory.trim() }),
@@ -773,6 +832,256 @@ function NewProductContent() {
                     <Plus size={20} />
                     Ajouter un palier de prix
                   </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
+          {/* Marketing Settings Section (NEW) */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="bg-white rounded-lg shadow"
+          >
+            <button
+              type="button"
+              onClick={() => toggleSection('marketing')}
+              className="w-full flex items-center justify-between p-6 text-left"
+            >
+              <div className="flex items-center gap-2">
+                <Tag className="text-yellow-600" size={24} />
+                <h2 className="text-xl font-bold">Paramètres Marketing</h2>
+              </div>
+              {expandedSections.marketing ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
+
+            <AnimatePresence>
+              {expandedSections.marketing && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="px-6 pb-6 space-y-4"
+                >
+                  <div className="flex items-start gap-3 text-sm text-gray-600 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                    <Info size={20} className="flex-shrink-0 mt-0.5 text-yellow-600" />
+                    <div>
+                      <p className="font-medium text-yellow-900 mb-1">Comment ça fonctionne ?</p>
+                      <p>Les marketistes créent des codes promo pour promouvoir vos produits. Vous définissez ici la réduction accordée aux clients et la commission versée aux marketistes.</p>
+                    </div>
+                  </div>
+
+                  {/* Allow Marketing Codes */}
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">
+                        Accepter les codes promotionnels
+                      </label>
+                      <p className="text-sm text-gray-600">
+                        Permettre aux marketistes de promouvoir ce produit avec leurs codes
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={allowsMarketingCodes}
+                        onChange={(e) => setAllowsMarketingCodes(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-600"></div>
+                    </label>
+                  </div>
+
+                  {allowsMarketingCodes && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="space-y-4 pl-4 border-l-4 border-yellow-200"
+                    >
+                      {/* Discount Percentage */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Réduction accordée au client (%)
+                        </label>
+                        <div className="flex items-center gap-4">
+                          <input
+                            type="range"
+                            min="0"
+                            max="50"
+                            step="1"
+                            value={discountPercentage}
+                            onChange={(e) => setDiscountPercentage(parseInt(e.target.value))}
+                            className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-yellow-600"
+                          />
+                          <div className="flex items-center gap-2 min-w-[100px]">
+                            <input
+                              type="number"
+                              min="0"
+                              max="50"
+                              value={discountPercentage}
+                              onChange={(e) => setDiscountPercentage(Math.min(50, Math.max(0, parseInt(e.target.value) || 0)))}
+                              className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center font-semibold"
+                            />
+                            <Percent size={20} className="text-gray-400" />
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-500 mt-2">
+                          Le client bénéficiera de {discountPercentage}% de réduction avec un code promo
+                        </p>
+                      </div>
+
+                      {/* Min Quantity for Discount */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Quantité minimum pour la réduction
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={minQuantityForDiscount}
+                          onChange={(e) => setMinQuantityForDiscount(Math.max(1, parseInt(e.target.value) || 1))}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                        />
+                        <p className="text-sm text-gray-500 mt-2">
+                          Le code promo ne s'appliquera qu'à partir de {minQuantityForDiscount} unité{minQuantityForDiscount > 1 ? 's' : ''}
+                        </p>
+                      </div>
+
+                      {/* Marketiste Commission Rate */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Commission du marketiste (%)
+                        </label>
+                        <div className="flex items-center gap-4">
+                          <input
+                            type="range"
+                            min="0"
+                            max="30"
+                            step="0.5"
+                            value={marketisteCommissionRate}
+                            onChange={(e) => setMarketisteCommissionRate(parseFloat(e.target.value))}
+                            className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+                          />
+                          <div className="flex items-center gap-2 min-w-[100px]">
+                            <input
+                              type="number"
+                              min="0"
+                              max="30"
+                              step="0.5"
+                              value={marketisteCommissionRate}
+                              onChange={(e) => setMarketisteCommissionRate(Math.min(30, Math.max(0, parseFloat(e.target.value) || 0)))}
+                              className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center font-semibold"
+                            />
+                            <Percent size={20} className="text-gray-400" />
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-500 mt-2">
+                          Le marketiste gagnera {marketisteCommissionRate}% de commission sur chaque vente
+                        </p>
+                      </div>
+
+                      {/* Example Calculation */}
+                      <div className="bg-gradient-to-r from-yellow-50 to-green-50 p-4 rounded-lg border border-yellow-200">
+                        <p className="text-sm font-medium text-gray-900 mb-2">💡 Exemple de calcul :</p>
+                        <div className="text-sm text-gray-700 space-y-1">
+                          <p>• Prix du produit : {priceTiers[0]?.price || 100} USD</p>
+                          <p>• Réduction client : -{((priceTiers[0]?.price || 100) * discountPercentage / 100).toFixed(2)} USD ({discountPercentage}%)</p>
+                          <p>• Commission marketiste : +{((priceTiers[0]?.price || 100) * marketisteCommissionRate / 100).toFixed(2)} USD ({marketisteCommissionRate}%)</p>
+                          <p className="font-semibold text-green-700 pt-2 border-t border-yellow-200">
+                            → Client paie : {((priceTiers[0]?.price || 100) * (1 - discountPercentage / 100)).toFixed(2)} USD
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
+          {/* Payment Methods Section (NEW) */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.27 }}
+            className="bg-white rounded-lg shadow"
+          >
+            <button
+              type="button"
+              onClick={() => toggleSection('payment')}
+              className="w-full flex items-center justify-between p-6 text-left"
+            >
+              <div className="flex items-center gap-2">
+                <CreditCard className="text-blue-600" size={24} />
+                <h2 className="text-xl font-bold">Moyens de paiement acceptés</h2>
+              </div>
+              {expandedSections.payment ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
+
+            <AnimatePresence>
+              {expandedSections.payment && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="px-6 pb-6 space-y-4"
+                >
+                  <div className="flex items-start gap-3 text-sm text-gray-600 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <Info size={20} className="flex-shrink-0 mt-0.5 text-blue-600" />
+                    <p>Sélectionnez les moyens de paiement que vous acceptez pour ce produit. Les clients ne pourront payer qu'avec les méthodes sélectionnées.</p>
+                  </div>
+
+                  {availablePaymentMethods.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {availablePaymentMethods.map((method: any) => (
+                        <label
+                          key={method.id}
+                          className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                            acceptedPaymentMethods.includes(method.id)
+                              ? 'border-blue-500 bg-blue-50'
+                              : 'border-gray-200 hover:border-blue-300'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={acceptedPaymentMethods.includes(method.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setAcceptedPaymentMethods([...acceptedPaymentMethods, method.id]);
+                              } else {
+                                setAcceptedPaymentMethods(
+                                  acceptedPaymentMethods.filter(id => id !== method.id)
+                                );
+                              }
+                            }}
+                            className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <div className="flex-1">
+                            <p className="font-semibold text-gray-900">{method.name}</p>
+                            <p className="text-sm text-gray-600">{method.type}</p>
+                          </div>
+                          {acceptedPaymentMethods.includes(method.id) && (
+                            <Check size={20} className="text-blue-600" />
+                          )}
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <CreditCard className="mx-auto mb-3 text-gray-300" size={48} />
+                      <p>Aucune méthode de paiement disponible</p>
+                      <p className="text-sm mt-1">Contactez l'administrateur pour ajouter des méthodes de paiement</p>
+                    </div>
+                  )}
+
+                  {acceptedPaymentMethods.length === 0 && availablePaymentMethods.length > 0 && (
+                    <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                      <AlertCircle size={16} />
+                      <p>Veuillez sélectionner au moins une méthode de paiement</p>
+                    </div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>

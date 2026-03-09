@@ -293,7 +293,9 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
   
   subscribeTotalUnreadCount: (userId: string) => {
+    console.log('📊 Initialisation de la souscription au compteur pour userId:', userId);
     const unsubscribe = subscribeToTotalUnreadCount(userId, (count) => {
+      console.log('📬 Nouveau compteur de messages non lus:', count);
       set({ totalUnreadCount: count });
     });
     set({ unreadCountUnsubscribe: unsubscribe });

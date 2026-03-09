@@ -46,55 +46,87 @@ export default function MarketisteDashboardPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newCode, setNewCode] = useState({
     code: '',
-    commissionRate: 10,
     validFrom: new Date().toISOString().split('T')[0],
     validUntil: '',
   });
 
   useEffect(() => {
-    // if (!loading && (!user || user.role !== 'marketiste')) {
-    //   router.push('/dashboard');
-    //   return;
-    // }
+    console.log('🔍 Dashboard Marketiste - useEffect triggered');
+    console.log('   - loading:', loading);
+    console.log('   - user:', user);
+    console.log('   - user.role:', user?.role);
 
-    if (user && user.role !== 'marketiste') {
+    if (!loading && !user) {
+      console.log('❌ Pas d\'utilisateur, redirection vers /login');
+      router.push('/login');
+      return;
+    }
+
+    if (!loading && user && user.role !== 'marketiste' && user.role !== 'admin') {
+      console.log('❌ Rôle non autorisé:', user.role, '- Redirection vers /dashboard');
+      router.push('/dashboard');
+      return;
+    }
+
+    if (user && (user.role === 'marketiste' || user.role === 'admin')) {
+      console.log('✅ Utilisateur autorisé, chargement des données...');
       loadDashboardData();
     }
   }, [user, loading, router]);
 
   const loadDashboardData = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('❌ loadDashboardData: Pas d\'utilisateur');
+      return;
+    }
+    
+    console.log('📊 loadDashboardData: Début du chargement');
+    console.log('   - userId:', user.id);
+    console.log('   - userRole:', user.role);
     
     setLoadingData(true);
     try {
       // Charger les codes marketing
+      console.log('🔍 Chargement des codes marketing...');
       const codesQuery = query(
         collection(db, 'marketingCodes'),
         where('marketisteId', '==', user.id)
       );
       const codesSnapshot = await getDocs(codesQuery);
+      console.log('✅ Codes marketing chargés:', codesSnapshot.docs.length);
+      
       const codesData = codesSnapshot.docs.map(doc => ({ 
         id: doc.id, 
         ...doc.data() 
       })) as MarketingCode[];
       setCodes(codesData);
+      console.log('📝 Codes marketing:', codesData);
 
       // Charger les commandes avec mes codes
+      console.log('🔍 Chargement des commandes...');
       const ordersQuery = query(
         collection(db, 'orders'),
         where('marketisteId', '==', user.id)
       );
       const ordersSnapshot = await getDocs(ordersQuery);
+      console.log('✅ Commandes chargées:', ordersSnapshot.docs.length);
+      
       const ordersData = ordersSnapshot.docs.map(doc => ({ 
         id: doc.id, 
         ...doc.data() 
       })) as Order[];
       setOrders(ordersData);
+      console.log('📝 Commandes:', ordersData);
 
+      console.log('✅ loadDashboardData: Chargement terminé avec succès');
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
+      console.error('❌ Error loading dashboard data:', error);
+      console.error('   - Error name:', (error as Error).name);
+      console.error('   - Error message:', (error as Error).message);
+      console.error('   - Error stack:', (error as Error).stack);
       toast.error(tCommon('error'));
     } finally {
+      console.log('🏁 loadDashboardData: setLoadingData(false)');
       setLoadingData(false);
     }
   };
@@ -109,7 +141,6 @@ export default function MarketisteDashboardPage() {
       const codeData: Omit<MarketingCode, 'id'> = {
         code: newCode.code.toUpperCase(),
         marketisteId: user.id,
-        commissionRate: newCode.commissionRate / 100,
         validFrom: new Date(newCode.validFrom),
         validUntil: newCode.validUntil ? new Date(newCode.validUntil) : undefined,
         isActive: true,
@@ -122,7 +153,6 @@ export default function MarketisteDashboardPage() {
       setShowCreateModal(false);
       setNewCode({
         code: '',
-        commissionRate: 10,
         validFrom: new Date().toISOString().split('T')[0],
         validUntil: '',
       });
@@ -165,12 +195,19 @@ export default function MarketisteDashboardPage() {
   };
 
   if (loading || loadingData) {
+    console.log('⏳ Affichage du loader');
+    console.log('   - loading:', loading);
+    console.log('   - loadingData:', loadingData);
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
       </div>
     );
   }
+
+  console.log('✅ Rendu du dashboard');
+  console.log('   - codes:', codes.length);
+  console.log('   - orders:', orders.length);
 
   // if (!user || user.role !== 'marketiste') {
   //   return null;
@@ -582,21 +619,9 @@ export default function MarketisteDashboardPage() {
                       placeholder="PROMO2024"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent font-mono"
                     />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {tMarketiste('commission_rate')} (%) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      value={newCode.commissionRate}
-                      onChange={(e) => setNewCode({ ...newCode, commissionRate: parseFloat(e.target.value) })}
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      💡 Les réductions et commissions sont définies par chaque fournisseur
+                    </p>
                   </div>
 
                   <div>

@@ -39,21 +39,20 @@ export default function MobileNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center gap-1 flex-1 h-full relative ${
+              className={`flex flex-col items-center justify-center gap-1 flex-1 h-full ${
                 isActive ? 'text-green-600' : 'text-gray-600'
               }`}
             >
-              <motion.div
-                whileTap={{ scale: 0.9 }}
-                className="relative"
-              >
-                <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+              <div className="relative flex items-center justify-center">
+                <motion.div whileTap={{ scale: 0.9 }} className="flex items-center justify-center">
+                  <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                </motion.div>
                 {item.badge && item.badge > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">
+                  <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] px-1 flex items-center justify-center z-10">
                     {item.badge > 9 ? '9+' : item.badge}
                   </span>
                 )}
-              </motion.div>
+              </div>
               <span className={`text-xs font-medium ${isActive ? 'font-semibold' : ''}`}>
                 {item.label}
               </span>
