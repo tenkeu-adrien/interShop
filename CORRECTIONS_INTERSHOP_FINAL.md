@@ -1,4 +1,4 @@
-# Corrections Intershop - Traduction et Responsive Design
+# Corrections InterAppShop - Traduction et Responsive Design
 
 ## Problèmes identifiés et corrigés
 

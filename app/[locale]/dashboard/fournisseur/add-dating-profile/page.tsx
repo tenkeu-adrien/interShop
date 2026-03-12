@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import { ProductQuotaDisplay } from '@/components/ProductQuotaDisplay';
 import { LicenseUpgradeModal } from '@/components/LicenseUpgradeModal';
 import { InputWithSuggestions } from '@/components/ui/InputWithSuggestions';
+import { EditableSelect } from '@/components/ui/EditableSelect';
 import { useAuthStore } from '@/store/authStore';
 import { useLicenseStore } from '@/store/licenseStore';
 import { createDatingProfile } from '@/lib/firebase/datingProfiles';
 import { uploadMultipleImages } from '@/lib/firebase/storage';
+import { AFRICAN_CITIES } from '@/lib/data/productOptions';
 import { Loader2, Upload, Shield, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { DatingProfile } from '@/types/dating';
@@ -257,12 +259,13 @@ export default function AddDatingProfilePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Ville *
                 </label>
-                <input
-                  type="text"
-                  required
+                <EditableSelect
                   value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
+                  onChange={setCity}
+                  options={AFRICAN_CITIES}
+                  placeholder="Sélectionner une ville"
+                  required
+                  allowCustom
                 />
               </div>
             </div>

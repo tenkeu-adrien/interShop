@@ -102,9 +102,9 @@ export default function SellPage() {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 text-white py-20">
+      <section className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 text-gray-900 py-20">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -138,7 +138,7 @@ export default function SellPage() {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-white text-orange-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+                  className="bg-white text-green-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 shadow-lg"
                 >
                   {t('start_free')}
                   <ArrowRight size={20} />
@@ -147,7 +147,7 @@ export default function SellPage() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="border-2 border-white text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white/10 transition-colors"
+                className="border-2 border-gray-900 text-gray-900 px-8 py-4 rounded-lg font-bold text-lg hover:bg-gray-900 hover:text-white transition-colors"
               >
                 {t('learn_more')}
               </motion.button>
@@ -172,7 +172,7 @@ export default function SellPage() {
                 variants={item}
                 className="text-center"
               >
-                <div className="text-4xl md:text-5xl font-bold text-orange-600 mb-2">
+                <div className="text-4xl md:text-5xl font-bold text-green-600 mb-2">
                   {stat.value}
                 </div>
                 <div className="text-gray-600">{stat.label}</div>
@@ -215,8 +215,8 @@ export default function SellPage() {
                   whileHover={{ y: -5 }}
                   className="bg-white p-8 rounded-xl shadow-lg hover:shadow-2xl transition-shadow"
                 >
-                  <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
-                    <Icon className="text-orange-600" size={32} />
+                  <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                    <Icon className="text-green-600" size={32} />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-3">
                     {benefit.title}
@@ -260,7 +260,7 @@ export default function SellPage() {
                 className="flex gap-6 mb-12 last:mb-0"
               >
                 <div className="flex-shrink-0">
-                  <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                  <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-green-500 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                     {step.number}
                   </div>
                 </div>
@@ -314,7 +314,7 @@ export default function SellPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+      <section className="py-20 bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 text-gray-900">
         <div className="container mx-auto px-4 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -324,20 +324,20 @@ export default function SellPage() {
             <h2 className="text-4xl font-bold mb-6">
               {t('cta_title')}
             </h2>
-            <p className="text-xl mb-8 text-white/90">
+            <p className="text-xl mb-8 font-medium">
               {t('cta_subtitle')}
             </p>
             <Link href="/register">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="bg-white text-orange-600 px-10 py-4 rounded-lg font-bold text-lg hover:bg-gray-100 transition-colors inline-flex items-center gap-2"
+                className="bg-white text-green-600 px-10 py-4 rounded-lg font-bold text-lg hover:bg-gray-100 transition-colors inline-flex items-center gap-2 shadow-lg"
               >
                 {t('create_account')}
                 <ArrowRight size={20} />
               </motion.button>
             </Link>
-            <p className="mt-4 text-white/80">
+            <p className="mt-4 font-medium">
               {t('no_credit_card')}
             </p>
           </motion.div>

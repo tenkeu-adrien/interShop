@@ -220,7 +220,7 @@ export async function getWalletSettings(): Promise<WalletSettings> {
       depositFeePercent: 1,
       depositFeeMin: 50,
       depositFeeThreshold: 5000,
-      withdrawalFeePercent: 2,
+      withdrawalFeePercent: 0.5,
       withdrawalFeeMin: 100,
       withdrawalFeeMax: 1000,
       minDeposit: 500,

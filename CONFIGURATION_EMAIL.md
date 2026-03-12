@@ -29,7 +29,7 @@ EMAIL_PASSWORD=xxxx xxxx xxxx xxxx  # Mot de passe d'application (16 caractères
 2. **Créer un mot de passe d'application** :
    - Allez sur https://myaccount.google.com/apppasswords
    - Sélectionnez "Autre (nom personnalisé)"
-   - Entrez "Intershop" ou un nom de votre choix
+   - Entrez "InterAppShop" ou un nom de votre choix
    - Copiez le mot de passe généré (16 caractères)
    - Utilisez ce mot de passe dans `EMAIL_PASSWORD`
 

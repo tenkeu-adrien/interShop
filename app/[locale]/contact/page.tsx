@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Mail, Phone, MapPin, Send, Loader2 } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
+import { EditableSelect } from '@/components/ui/EditableSelect';
+import { CONTACT_SUBJECTS } from '@/lib/data/productOptions';
 import toast from 'react-hot-toast';
 
 export default function ContactPage() {
@@ -33,9 +35,15 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-green-50 to-yellow-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <BackButton href="/" className="mb-6" />
+        
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 rounded-2xl shadow-xl p-8 md:p-12 mb-8 text-gray-900">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">{t('title')}</h1>
+          <p className="text-xl md:text-2xl">{t('subtitle')}</p>
+        </div>
         
         <div className="grid md:grid-cols-2 gap-8">
           {/* Formulaire de contact */}
@@ -74,12 +82,13 @@ export default function ContactPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {t('subject_label')}
                 </label>
-                <input
-                  type="text"
+                <EditableSelect
                   value={formData.subject}
-                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  onChange={(value) => setFormData({ ...formData, subject: value })}
+                  options={CONTACT_SUBJECTS}
+                  placeholder="Sélectionner un sujet"
                   required
+                  allowCustom
                 />
               </div>
 
@@ -128,8 +137,8 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">{t('email_title')}</h3>
-                    <p className="text-gray-600">contact@intershop.com</p>
-                    <p className="text-gray-600">support@intershop.com</p>
+                    <p className="text-gray-600">contact@InterAppShop.com</p>
+                    <p className="text-gray-600">support@InterAppShop.com</p>
                   </div>
                 </div>
 
@@ -157,9 +166,9 @@ export default function ContactPage() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-green-500 to-yellow-500 rounded-2xl shadow-xl p-8 text-white">
+            <div className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 rounded-2xl shadow-xl p-8 text-gray-900">
               <h3 className="text-2xl font-bold mb-4">{t('hours_title')}</h3>
-              <div className="space-y-2">
+              <div className="space-y-2 font-medium">
                 <p>{t('weekdays')}: 8h00 - 18h00</p>
                 <p>{t('saturday')}: 9h00 - 14h00</p>
                 <p>{t('sunday')}: {t('closed')}</p>

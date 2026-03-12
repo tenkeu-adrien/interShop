@@ -135,8 +135,8 @@ export interface Product {
     marketisteCommissionRate: number;        // % de commission pour le marketiste (ex: 5 = 5%)
   };
   
-  // NEW: Payment methods accepted by fournisseur
-  acceptedPaymentMethods?: string[];         // IDs des méthodes de paiement acceptées
+  // NEW: Payment methods accepted by fournisseur with account details
+  acceptedPaymentMethods?: FournisseurPaymentMethod[];
   
   // NEW: Geolocation (for restaurants & hotels)
   location?: {
@@ -195,6 +195,33 @@ export interface PriceTier {
   maxQuantity?: number;
   price: number;
   currency: string;
+}
+
+export interface FournisseurPaymentMethod {
+  method: string;                      // Nom du moyen (ex: "Orange Money", "Mobile Money")
+  accountName: string;                 // Nom du compte (commun à tous)
+  
+  // Champs spécifiques selon le type
+  // Mobile Money / Orange Money / MTN Money / Moov Money / Wave
+  phoneNumber?: string;                // Numéro de téléphone
+  
+  // Crypto
+  walletAddress?: string;              // Adresse du wallet
+  network?: string;                    // Réseau (Bitcoin, Ethereum, USDT-TRC20, etc.)
+  
+  // Virement bancaire
+  iban?: string;                       // IBAN
+  bankName?: string;                   // Nom de la banque
+  swiftCode?: string;                  // Code SWIFT/BIC
+  
+  // Western Union / MoneyGram
+  recipientName?: string;              // Nom complet du bénéficiaire
+  country?: string;                    // Pays
+  city?: string;                       // Ville
+  
+  // Détails supplémentaires (optionnel pour tous)
+  accountDetails?: string;             // Instructions spéciales
+  isActive: boolean;                   // Le fournisseur accepte-t-il ce moyen actuellement
 }
 
 export interface MarketingCode {

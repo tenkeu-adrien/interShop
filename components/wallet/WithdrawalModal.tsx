@@ -219,7 +219,7 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
                     <span className="font-semibold">{parseFloat(amount).toLocaleString('fr-FR')} FCFA</span>
                   </div>
                   <div className="flex justify-between mb-2">
-                    <span className="text-gray-600">Frais (2%)</span>
+                    <span className="text-gray-600">Frais (0.5%)</span>
                     <span className="font-semibold text-red-600">
                       -{fees.toLocaleString('fr-FR')} FCFA
                     </span>

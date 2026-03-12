@@ -9,13 +9,17 @@ export default function AffiliatePage() {
   const t = useTranslations('affiliate');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-green-50 to-yellow-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <BackButton href="/" className="mb-6" />
         
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 rounded-2xl shadow-xl p-8 md:p-12 mb-8 text-gray-900">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">{t('title')}</h1>
+          <p className="text-xl md:text-2xl">{t('subtitle')}</p>
+        </div>
+
         <div className="bg-white rounded-2xl shadow-xl p-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('title')}</h1>
-          <p className="text-xl text-gray-600 mb-12">{t('subtitle')}</p>
 
           <div className="grid md:grid-cols-2 gap-8 mb-12">
             <div className="p-6 bg-green-50 rounded-xl">
@@ -65,12 +69,12 @@ export default function AffiliatePage() {
             </ol>
           </div>
 
-          <div className="bg-gradient-to-r from-green-500 to-yellow-500 rounded-xl p-8 text-white text-center">
+          <div className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 rounded-xl p-8 text-gray-900 text-center">
             <h2 className="text-3xl font-bold mb-4">{t('cta_title')}</h2>
-            <p className="text-lg mb-6">{t('cta_subtitle')}</p>
+            <p className="text-lg mb-6 font-medium">{t('cta_subtitle')}</p>
             <Link 
               href="/register"
-              className="inline-block bg-white text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+              className="inline-block bg-white text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg"
             >
               {t('cta_button')}
             </Link>

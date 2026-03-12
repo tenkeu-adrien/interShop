@@ -41,13 +41,17 @@ export default function HowToBuyPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-green-50 to-yellow-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <BackButton href="/" className="mb-6" />
         
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 rounded-2xl shadow-xl p-8 md:p-12 mb-8 text-gray-900">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">{t('title')}</h1>
+          <p className="text-xl md:text-2xl">{t('subtitle')}</p>
+        </div>
+
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('title')}</h1>
-          <p className="text-xl text-gray-600 mb-12">{t('subtitle')}</p>
 
           <div className="space-y-8">
             {steps.map((step, index) => (

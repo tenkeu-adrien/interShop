@@ -49,7 +49,7 @@ export default function Footer() {
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
           <p>&copy; {new Date().getFullYear()} InterAppshop. {t('rights_reserved')}</p>
-          <p>Notre devise <span className=""> {t('tagline')}</span></p>
+          <p><span className=""> {t('tagline')}</span></p>
         </div>
       </div>
     </footer>

@@ -1,4 +1,4 @@
-# Corrections Finales Intershop - Traductions et Responsive
+# Corrections Finales InterAppShop - Traductions et Responsive
 
 ## ✅ Problèmes corrigés
 
@@ -259,7 +259,7 @@ messages/
 
 ## 🎉 Résultat final
 
-Votre projet Intershop est maintenant :
+Votre projet InterAppShop est maintenant :
 - ✅ **Sans erreurs** : Compilation réussie
 - ✅ **Entièrement traduit** : FR/EN sur toutes les pages
 - ✅ **Responsive** : Optimisé mobile/tablet/desktop

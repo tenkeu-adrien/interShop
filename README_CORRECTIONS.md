@@ -1,4 +1,4 @@
-# ✅ Corrections Intershop - Résumé
+# ✅ Corrections InterAppShop - Résumé
 
 ## 🎉 Statut : TOUT FONCTIONNE !
 
@@ -93,6 +93,6 @@ npm start
 
 ## 🎯 Prêt pour la production !
 
-Votre projet Intershop est maintenant **100% fonctionnel** et peut être déployé.
+Votre projet InterAppShop est maintenant **100% fonctionnel** et peut être déployé.
 
 **Bon développement ! 🚀**

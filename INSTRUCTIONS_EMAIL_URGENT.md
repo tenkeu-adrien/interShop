@@ -22,7 +22,7 @@ Code: EDNS
 2. Activez "Validation en deux étapes" si ce n'est pas déjà fait
 3. Allez sur https://myaccount.google.com/apppasswords
 4. Sélectionnez "Autre (nom personnalisé)"
-5. Entrez "Intershop"
+5. Entrez "InterAppShop"
 6. Cliquez sur "Générer"
 7. **Copiez le mot de passe à 16 caractères** (ex: `abcd efgh ijkl mnop`)
 

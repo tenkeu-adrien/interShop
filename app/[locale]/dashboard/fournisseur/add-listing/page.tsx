@@ -6,10 +6,12 @@ import { ProductQuotaDisplay } from '@/components/ProductQuotaDisplay';
 import { GeolocationCapture } from '@/components/GeolocationCapture';
 import { LicenseUpgradeModal } from '@/components/LicenseUpgradeModal';
 import { InputWithSuggestions } from '@/components/ui/InputWithSuggestions';
+import { EditableSelect } from '@/components/ui/EditableSelect';
 import { useAuthStore } from '@/store/authStore';
 import { useLicenseStore } from '@/store/licenseStore';
 import { createMultiCategoryProduct } from '@/lib/firebase/products';
 import { uploadMultipleImages } from '@/lib/firebase/storage';
+import { AFRICAN_CITIES } from '@/lib/data/productOptions';
 import { Loader2, Upload, X, Plus, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -370,12 +372,13 @@ export default function AddListingPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Ville *
                 </label>
-                <input
-                  type="text"
-                  required
+                <EditableSelect
                   value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  onChange={setCity}
+                  options={AFRICAN_CITIES}
+                  placeholder="Sélectionner une ville"
+                  required
+                  allowCustom
                 />
               </div>
             </div>

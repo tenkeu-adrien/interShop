@@ -13,7 +13,7 @@ import {
   validateImageFile,
   validateVideoFile 
 } from '@/lib/firebase/storage';
-import { Product, PriceTier } from '@/types';
+import { Product, PriceTier, FournisseurPaymentMethod } from '@/types';
 import {
   Save,
   X,
@@ -24,6 +24,7 @@ import {
   Trash2,
   AlertCircle,
   Check,
+  CheckCircle,
   Loader,
   ChevronDown,
   ChevronUp,
@@ -34,8 +35,9 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '@/lib/firebase/config';
+import { EditableSelect } from '@/components/ui/EditableSelect';
+import { COUNTRIES, DELIVERY_TIMES, CERTIFICATIONS, PRODUCT_TAGS, PAYMENT_METHOD_TYPES } from '@/lib/data/productOptions';
+import { getPaymentMethodCategory, getPaymentMethodInstructions } from '@/lib/utils/paymentMethodFields';
 
 interface ImageUpload {
   file: File;
@@ -95,8 +97,8 @@ function NewProductContent() {
   const [marketisteCommissionRate, setMarketisteCommissionRate] = useState(5);
 
   // Payment Methods (NEW)
-  const [acceptedPaymentMethods, setAcceptedPaymentMethods] = useState<string[]>([]);
-  const [availablePaymentMethods, setAvailablePaymentMethods] = useState<any[]>([]);
+  const [acceptedPaymentMethods, setAcceptedPaymentMethods] = useState<FournisseurPaymentMethod[]>([]);
+  const [showPaymentConfig, setShowPaymentConfig] = useState<string | null>(null);
 
   // Sections collapse state
   const [expandedSections, setExpandedSections] = useState({
@@ -125,31 +127,6 @@ function NewProductContent() {
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
-
-  // Load available payment methods
-  useEffect(() => {
-    const loadPaymentMethods = async () => {
-      try {
-        const methodsQuery = query(
-          collection(db, 'paymentMethods'),
-          where('isActive', '==', true)
-        );
-        const methodsSnapshot = await getDocs(methodsQuery);
-        const methods = methodsSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setAvailablePaymentMethods(methods);
-        
-        // Select all by default
-        setAcceptedPaymentMethods(methods.map((m: any) => m.id));
-      } catch (error) {
-        console.error('Error loading payment methods:', error);
-      }
-    };
-
-    loadPaymentMethods();
-  }, []);
 
   // Handle Image Upload
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -301,6 +278,68 @@ function NewProductContent() {
     if (priceTiers.some(tier => tier.price <= 0)) {
       toast.error('Tous les prix doivent être supérieurs à 0');
       return;
+    }
+
+    // Validation des moyens de paiement
+    if (acceptedPaymentMethods.length === 0) {
+      toast.error('Veuillez sélectionner au moins un moyen de paiement');
+      return;
+    }
+
+    // Validation des champs spécifiques selon le type
+    for (const method of acceptedPaymentMethods) {
+      if (!method.accountName.trim()) {
+        toast.error(`Veuillez entrer le nom du compte pour ${method.method}`);
+        return;
+      }
+
+      const config = getPaymentMethodCategory(method.method);
+
+      // Mobile Money
+      if (config.fields.phoneNumber && !method.phoneNumber?.trim()) {
+        toast.error(`Veuillez entrer le numéro de téléphone pour ${method.method}`);
+        return;
+      }
+
+      // Crypto
+      if (config.fields.walletAddress) {
+        if (!method.walletAddress?.trim()) {
+          toast.error(`Veuillez entrer l'adresse du wallet pour ${method.method}`);
+          return;
+        }
+        if (!method.network?.trim()) {
+          toast.error(`Veuillez sélectionner le réseau pour ${method.method}`);
+          return;
+        }
+      }
+
+      // Virement bancaire
+      if (config.fields.iban) {
+        if (!method.iban?.trim()) {
+          toast.error(`Veuillez entrer l'IBAN pour ${method.method}`);
+          return;
+        }
+        if (!method.bankName?.trim()) {
+          toast.error(`Veuillez entrer le nom de la banque pour ${method.method}`);
+          return;
+        }
+      }
+
+      // Western Union / MoneyGram
+      if (config.fields.recipientName) {
+        if (!method.recipientName?.trim()) {
+          toast.error(`Veuillez entrer le nom du bénéficiaire pour ${method.method}`);
+          return;
+        }
+        if (!method.country?.trim()) {
+          toast.error(`Veuillez entrer le pays pour ${method.method}`);
+          return;
+        }
+        if (!method.city?.trim()) {
+          toast.error(`Veuillez entrer la ville pour ${method.method}`);
+          return;
+        }
+      }
     }
 
     setLoading(true);
@@ -551,14 +590,15 @@ function NewProductContent() {
                       Tags
                     </label>
                     <div className="flex gap-2 mb-2">
-                      <input
-                        type="text"
-                        value={tagInput}
-                        onChange={(e) => setTagInput(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        placeholder="Ajouter un tag"
-                      />
+                      <div className="flex-1">
+                        <EditableSelect
+                          value={tagInput}
+                          onChange={setTagInput}
+                          options={PRODUCT_TAGS}
+                          placeholder="Sélectionner ou créer un tag"
+                          allowCustom
+                        />
+                      </div>
                       <button
                         type="button"
                         onClick={addTag}
@@ -1030,56 +1070,403 @@ function NewProductContent() {
                 >
                   <div className="flex items-start gap-3 text-sm text-gray-600 bg-blue-50 p-4 rounded-lg border border-blue-200">
                     <Info size={20} className="flex-shrink-0 mt-0.5 text-blue-600" />
-                    <p>Sélectionnez les moyens de paiement que vous acceptez pour ce produit. Les clients ne pourront payer qu'avec les méthodes sélectionnées.</p>
+                    <p>Sélectionnez les moyens de paiement que vous acceptez et configurez vos informations de compte pour recevoir les paiements.</p>
                   </div>
 
-                  {availablePaymentMethods.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {availablePaymentMethods.map((method: any) => (
-                        <label
-                          key={method.id}
-                          className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                            acceptedPaymentMethods.includes(method.id)
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-200 hover:border-blue-300'
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={acceptedPaymentMethods.includes(method.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setAcceptedPaymentMethods([...acceptedPaymentMethods, method.id]);
-                              } else {
-                                setAcceptedPaymentMethods(
-                                  acceptedPaymentMethods.filter(id => id !== method.id)
-                                );
-                              }
-                            }}
-                            className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          <div className="flex-1">
-                            <p className="font-semibold text-gray-900">{method.name}</p>
-                            <p className="text-sm text-gray-600">{method.type}</p>
-                          </div>
-                          {acceptedPaymentMethods.includes(method.id) && (
-                            <Check size={20} className="text-blue-600" />
-                          )}
-                        </label>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <CreditCard className="mx-auto mb-3 text-gray-300" size={48} />
-                      <p>Aucune méthode de paiement disponible</p>
-                      <p className="text-sm mt-1">Contactez l'administrateur pour ajouter des méthodes de paiement</p>
-                    </div>
-                  )}
+                  <div className="space-y-3">
+                    {PAYMENT_METHOD_TYPES.map((method) => {
+                      const isSelected = acceptedPaymentMethods.some(m => m.method === method);
+                      const methodData = acceptedPaymentMethods.find(m => m.method === method);
+                      
+                      return (
+                        <div key={method} className="border-2 rounded-lg overflow-hidden">
+                          <label
+                            className={`flex items-center gap-3 p-4 cursor-pointer transition-all ${
+                              isSelected
+                                ? 'border-blue-500 bg-blue-50'
+                                : 'border-gray-200 hover:border-blue-300'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setAcceptedPaymentMethods([
+                                    ...acceptedPaymentMethods,
+                                    {
+                                      method,
+                                      accountName: '',
+                                      accountNumber: '',
+                                      accountDetails: '',
+                                      isActive: true
+                                    }
+                                  ]);
+                                  setShowPaymentConfig(method);
+                                } else {
+                                  setAcceptedPaymentMethods(
+                                    acceptedPaymentMethods.filter(m => m.method !== method)
+                                  );
+                                  if (showPaymentConfig === method) {
+                                    setShowPaymentConfig(null);
+                                  }
+                                }
+                              }}
+                              className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <div className="flex-1">
+                              <p className="font-semibold text-gray-900 text-sm">{method}</p>
+                              {methodData && methodData.accountName && (
+                                <p className="text-xs text-gray-600 mt-1">
+                                  {methodData.accountName}
+                                  {methodData.phoneNumber && ` - ${methodData.phoneNumber}`}
+                                  {methodData.walletAddress && ` - ${methodData.walletAddress.substring(0, 10)}...`}
+                                  {methodData.iban && ` - ${methodData.iban}`}
+                                  {methodData.recipientName && ` - ${methodData.recipientName}`}
+                                </p>
+                              )}
+                            </div>
+                            {isSelected && (
+                              <>
+                                <Check size={20} className="text-blue-600" />
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    setShowPaymentConfig(showPaymentConfig === method ? null : method);
+                                  }}
+                                  className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                                >
+                                  {showPaymentConfig === method ? 'Masquer' : 'Configurer'}
+                                </button>
+                              </>
+                            )}
+                          </label>
 
-                  {acceptedPaymentMethods.length === 0 && availablePaymentMethods.length > 0 && (
+                          {/* Configuration du moyen de paiement */}
+                          {isSelected && showPaymentConfig === method && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="bg-gray-50 p-4 border-t border-gray-200 space-y-3"
+                            >
+                              {/* Instructions */}
+                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+                                <Info size={16} className="inline mr-2" />
+                                {getPaymentMethodInstructions(method)}
+                              </div>
+
+                              {/* Nom du compte (commun à tous) */}
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  Nom du compte *
+                                </label>
+                                <input
+                                  type="text"
+                                  value={methodData?.accountName || ''}
+                                  onChange={(e) => {
+                                    setAcceptedPaymentMethods(
+                                      acceptedPaymentMethods.map(m =>
+                                        m.method === method
+                                          ? { ...m, accountName: e.target.value }
+                                          : m
+                                      )
+                                    );
+                                  }}
+                                  placeholder="Ex: Jean Dupont"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  required={isSelected}
+                                />
+                              </div>
+
+                              {/* Champs spécifiques selon le type */}
+                              {(() => {
+                                const config = getPaymentMethodCategory(method);
+
+                                // Mobile Money
+                                if (config.fields.phoneNumber) {
+                                  return (
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Numéro de téléphone *
+                                      </label>
+                                      <input
+                                        type="tel"
+                                        value={methodData?.phoneNumber || ''}
+                                        onChange={(e) => {
+                                          setAcceptedPaymentMethods(
+                                            acceptedPaymentMethods.map(m =>
+                                              m.method === method
+                                                ? { ...m, phoneNumber: e.target.value }
+                                                : m
+                                            )
+                                          );
+                                        }}
+                                        placeholder="Ex: +243 812 345 678"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                        required={isSelected}
+                                      />
+                                    </div>
+                                  );
+                                }
+
+                                // Crypto
+                                if (config.fields.walletAddress) {
+                                  return (
+                                    <>
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                          Adresse du wallet *
+                                        </label>
+                                        <input
+                                          type="text"
+                                          value={methodData?.walletAddress || ''}
+                                          onChange={(e) => {
+                                            setAcceptedPaymentMethods(
+                                              acceptedPaymentMethods.map(m =>
+                                                m.method === method
+                                                  ? { ...m, walletAddress: e.target.value }
+                                                  : m
+                                              )
+                                            );
+                                          }}
+                                          placeholder="Ex: 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb"
+                                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                                          required={isSelected}
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                          Réseau *
+                                        </label>
+                                        <select
+                                          value={methodData?.network || ''}
+                                          onChange={(e) => {
+                                            setAcceptedPaymentMethods(
+                                              acceptedPaymentMethods.map(m =>
+                                                m.method === method
+                                                  ? { ...m, network: e.target.value }
+                                                  : m
+                                              )
+                                            );
+                                          }}
+                                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                          required={isSelected}
+                                        >
+                                          <option value="">Sélectionner un réseau</option>
+                                          {config.networkOptions?.map(network => (
+                                            <option key={network} value={network}>{network}</option>
+                                          ))}
+                                        </select>
+                                      </div>
+                                    </>
+                                  );
+                                }
+
+                                // Virement bancaire
+                                if (config.fields.iban) {
+                                  return (
+                                    <>
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                          IBAN *
+                                        </label>
+                                        <input
+                                          type="text"
+                                          value={methodData?.iban || ''}
+                                          onChange={(e) => {
+                                            setAcceptedPaymentMethods(
+                                              acceptedPaymentMethods.map(m =>
+                                                m.method === method
+                                                  ? { ...m, iban: e.target.value }
+                                                  : m
+                                              )
+                                            );
+                                          }}
+                                          placeholder="Ex: FR76 1234 5678 9012 3456 7890 123"
+                                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                                          required={isSelected}
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                          Nom de la banque *
+                                        </label>
+                                        <input
+                                          type="text"
+                                          value={methodData?.bankName || ''}
+                                          onChange={(e) => {
+                                            setAcceptedPaymentMethods(
+                                              acceptedPaymentMethods.map(m =>
+                                                m.method === method
+                                                  ? { ...m, bankName: e.target.value }
+                                                  : m
+                                              )
+                                            );
+                                          }}
+                                          placeholder="Ex: Banque Centrale"
+                                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                          required={isSelected}
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                          Code SWIFT/BIC (optionnel)
+                                        </label>
+                                        <input
+                                          type="text"
+                                          value={methodData?.swiftCode || ''}
+                                          onChange={(e) => {
+                                            setAcceptedPaymentMethods(
+                                              acceptedPaymentMethods.map(m =>
+                                                m.method === method
+                                                  ? { ...m, swiftCode: e.target.value }
+                                                  : m
+                                              )
+                                            );
+                                          }}
+                                          placeholder="Ex: BNPAFRPP"
+                                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                                        />
+                                      </div>
+                                    </>
+                                  );
+                                }
+
+                                // Western Union / MoneyGram
+                                if (config.fields.recipientName) {
+                                  return (
+                                    <>
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                          Nom complet du bénéficiaire *
+                                        </label>
+                                        <input
+                                          type="text"
+                                          value={methodData?.recipientName || ''}
+                                          onChange={(e) => {
+                                            setAcceptedPaymentMethods(
+                                              acceptedPaymentMethods.map(m =>
+                                                m.method === method
+                                                  ? { ...m, recipientName: e.target.value }
+                                                  : m
+                                              )
+                                            );
+                                          }}
+                                          placeholder="Ex: Jean Paul Dupont"
+                                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                          required={isSelected}
+                                        />
+                                      </div>
+                                      <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Pays *
+                                          </label>
+                                          <input
+                                            type="text"
+                                            value={methodData?.country || ''}
+                                            onChange={(e) => {
+                                              setAcceptedPaymentMethods(
+                                                acceptedPaymentMethods.map(m =>
+                                                  m.method === method
+                                                    ? { ...m, country: e.target.value }
+                                                    : m
+                                                )
+                                              );
+                                            }}
+                                            placeholder="Ex: Congo (RDC)"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                            required={isSelected}
+                                          />
+                                        </div>
+                                        <div>
+                                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Ville *
+                                          </label>
+                                          <input
+                                            type="text"
+                                            value={methodData?.city || ''}
+                                            onChange={(e) => {
+                                              setAcceptedPaymentMethods(
+                                                acceptedPaymentMethods.map(m =>
+                                                  m.method === method
+                                                    ? { ...m, city: e.target.value }
+                                                    : m
+                                                )
+                                              );
+                                            }}
+                                            placeholder="Ex: Kinshasa"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                            required={isSelected}
+                                          />
+                                        </div>
+                                      </div>
+                                    </>
+                                  );
+                                }
+
+                                // Carte / Stripe / PayPal (pas de config)
+                                if (config.category === 'card') {
+                                  return (
+                                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800">
+                                      <CheckCircle size={16} className="inline mr-2" />
+                                      Ce moyen de paiement est géré automatiquement. Aucune configuration supplémentaire nécessaire.
+                                    </div>
+                                  );
+                                }
+
+                                return null;
+                              })()}
+
+                              {/* Détails supplémentaires (optionnel pour tous) */}
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  Instructions supplémentaires (optionnel)
+                                </label>
+                                <textarea
+                                  value={methodData?.accountDetails || ''}
+                                  onChange={(e) => {
+                                    setAcceptedPaymentMethods(
+                                      acceptedPaymentMethods.map(m =>
+                                        m.method === method
+                                          ? { ...m, accountDetails: e.target.value }
+                                          : m
+                                      )
+                                    );
+                                  }}
+                                  rows={2}
+                                  placeholder="Ex: Disponible de 8h à 18h, envoyer une capture d'écran après paiement..."
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                />
+                              </div>
+                            </motion.div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {acceptedPaymentMethods.length === 0 && (
                     <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
                       <AlertCircle size={16} />
                       <p>Veuillez sélectionner au moins une méthode de paiement</p>
+                    </div>
+                  )}
+
+                  {acceptedPaymentMethods.length > 0 && acceptedPaymentMethods.some(m => {
+                    const config = getPaymentMethodCategory(m.method);
+                    if (!m.accountName) return true;
+                    if (config.fields.phoneNumber && !m.phoneNumber) return true;
+                    if (config.fields.walletAddress && (!m.walletAddress || !m.network)) return true;
+                    if (config.fields.iban && (!m.iban || !m.bankName)) return true;
+                    if (config.fields.recipientName && (!m.recipientName || !m.country || !m.city)) return true;
+                    return false;
+                  }) && (
+                    <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                      <AlertCircle size={16} />
+                      <p>Veuillez configurer toutes les informations requises pour les moyens de paiement sélectionnés</p>
                     </div>
                   )}
                 </motion.div>
@@ -1183,33 +1570,25 @@ function NewProductContent() {
                   className="px-6 pb-6 space-y-4"
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Pays d'origine *
-                      </label>
-                      <input
-                        type="text"
-                        value={country}
-                        onChange={(e) => setCountry(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        placeholder="Ex: Chine"
-                        required
-                      />
-                    </div>
+                    <EditableSelect
+                      label="Pays d'origine"
+                      value={country}
+                      onChange={setCountry}
+                      options={COUNTRIES}
+                      placeholder="Sélectionner un pays"
+                      required
+                      allowCustom
+                    />
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Délai de livraison *
-                      </label>
-                      <input
-                        type="text"
-                        value={deliveryTime}
-                        onChange={(e) => setDeliveryTime(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        placeholder="Ex: 7-15 jours"
-                        required
-                      />
-                    </div>
+                    <EditableSelect
+                      label="Délai de livraison"
+                      value={deliveryTime}
+                      onChange={setDeliveryTime}
+                      options={DELIVERY_TIMES}
+                      placeholder="Sélectionner un délai"
+                      required
+                      allowCustom
+                    />
                   </div>
 
                   {/* Certifications */}
@@ -1218,14 +1597,15 @@ function NewProductContent() {
                       Certifications
                     </label>
                     <div className="flex gap-2 mb-2">
-                      <input
-                        type="text"
-                        value={certInput}
-                        onChange={(e) => setCertInput(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCertification())}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        placeholder="Ex: CE, ISO 9001"
-                      />
+                      <div className="flex-1">
+                        <EditableSelect
+                          value={certInput}
+                          onChange={setCertInput}
+                          options={CERTIFICATIONS}
+                          placeholder="Sélectionner une certification"
+                          allowCustom
+                        />
+                      </div>
                       <button
                         type="button"
                         onClick={addCertification}

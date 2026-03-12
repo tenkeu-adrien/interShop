@@ -8,18 +8,20 @@ export default function CommissionsPage() {
   const t = useTranslations('marketiste');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-green-50 to-yellow-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <BackButton href="/" className="mb-6" />
         
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 rounded-2xl shadow-xl p-8 md:p-12 mb-8 text-center text-gray-900">
+          <Percent className="w-20 h-20 mx-auto mb-4" />
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Structure des commissions</h1>
+          <p className="text-xl md:text-2xl">
+            Découvrez comment vous pouvez gagner avec notre programme d'affiliation
+          </p>
+        </div>
+
         <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="text-center mb-12">
-            <Percent className="w-20 h-20 text-green-600 mx-auto mb-4" />
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Structure des commissions</h1>
-            <p className="text-xl text-gray-600">
-              Découvrez comment vous pouvez gagner avec notre programme d'affiliation
-            </p>
-          </div>
 
           <div className="grid md:grid-cols-3 gap-6 mb-12">
             <div className="text-center p-6 bg-green-50 rounded-xl border-2 border-green-200">
@@ -84,12 +86,12 @@ export default function CommissionsPage() {
             </ul>
           </div>
 
-          <div className="mt-8 bg-gradient-to-r from-green-500 to-yellow-500 rounded-xl p-8 text-white text-center">
+          <div className="mt-8 bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 rounded-xl p-8 text-gray-900 text-center">
             <h2 className="text-3xl font-bold mb-4">Prêt à commencer ?</h2>
-            <p className="text-lg mb-6">Rejoignez notre programme d'affiliation dès aujourd'hui</p>
+            <p className="text-lg mb-6 font-medium">Rejoignez notre programme d'affiliation dès aujourd'hui</p>
             <a 
               href="/register"
-              className="inline-block bg-white text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+              className="inline-block bg-white text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg"
             >
               Devenir marketiste
             </a>
