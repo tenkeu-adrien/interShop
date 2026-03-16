@@ -113,6 +113,9 @@ function NewProductContent() {
 
   const categories = [
     'Électronique',
+    'Téléphones & Accessoires',
+    'Électroménager',
+    'Matériaux de Construction',
     'Mode',
     'Maison & Jardin',
     'Sport & Loisirs',

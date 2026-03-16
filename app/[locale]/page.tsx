@@ -100,6 +100,9 @@ export default function HomePage() {
   const categories = [
     { name: tNav('electronics'), icon: '💻', color: 'bg-blue-100', link: '/categories/electronique' },
     { name: tNav('fashion'), icon: '👔', color: 'bg-pink-100', link: '/categories/mode' },
+    { name: tNav('phones_accessories'), icon: '📱', color: 'bg-indigo-100', link: '/categories/telephones-accessoires' },
+    { name: tNav('home_appliances'), icon: '🏠', color: 'bg-cyan-100', link: '/categories/electromenager' },
+    { name: tNav('construction_materials'), icon: '🏗️', color: 'bg-amber-100', link: '/categories/materiaux-construction' },
     { name: tNav('home_garden'), icon: '🏡', color: 'bg-green-100', link: '/categories/maison-jardin' },
     { name: tNav('sport'), icon: '⚽', color: 'bg-orange-100', link: '/categories/sport-loisirs' },
     { name: tNav('beauty'), icon: '💄', color: 'bg-purple-100', link: '/categories/beaute-sante' },

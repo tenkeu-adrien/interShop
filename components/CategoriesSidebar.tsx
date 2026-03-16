@@ -15,7 +15,10 @@ import {
   UtensilsCrossed,
   Hotel,
   Heart,
-  ShoppingBag
+  ShoppingBag,
+  Smartphone,
+  Tv,
+  HardHat
 } from 'lucide-react';
 
 interface Category {
@@ -33,6 +36,27 @@ const categories: Category[] = [
     link: '/categories/electronique',
     color: 'text-blue-600',
     subcategories: ['Smartphones', 'Ordinateurs', 'Tablettes', 'Accessoires', 'Audio', 'Photo & Vidéo']
+  },
+  {
+    name: 'Téléphones & Accessoires',
+    icon: Smartphone,
+    link: '/categories/telephones-accessoires',
+    color: 'text-indigo-600',
+    subcategories: ['Smartphones', 'Téléphones basiques', 'Coques & Protections', 'Chargeurs', 'Écouteurs', 'Câbles & Adaptateurs']
+  },
+  {
+    name: 'Électroménager',
+    icon: Tv,
+    link: '/categories/electromenager',
+    color: 'text-cyan-600',
+    subcategories: ['Réfrigérateurs', 'Machines à laver', 'Climatiseurs', 'Cuisinières', 'Téléviseurs', 'Petits appareils']
+  },
+  {
+    name: 'Matériaux de Construction',
+    icon: HardHat,
+    link: '/categories/materiaux-construction',
+    color: 'text-amber-700',
+    subcategories: ['Ciment & Béton', 'Fer & Acier', 'Bois & Charpente', 'Carrelage & Revêtement', 'Peinture', 'Plomberie & Électricité']
   },
   {
     name: 'Mode & Vêtements',

@@ -14,7 +14,9 @@ import {
   Utensils,
   Briefcase,
   Laptop,
-  Watch
+  Watch,
+  Tv,
+  HardHat
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
@@ -32,6 +34,9 @@ const getCategoryIcon = (name: string) => {
     'office_supplies': Briefcase,
     'computers': Laptop,
     'watches_jewelry': Watch,
+    'phones_accessories': Smartphone,
+    'home_appliances': Tv,
+    'construction_materials': HardHat,
   };
   return icons[name] || Smartphone;
 };
@@ -39,15 +44,18 @@ const getCategoryIcon = (name: string) => {
 const categoryKeys = [
   { key: 'electronics', count: 15420, color: 'bg-blue-500' },
   { key: 'fashion', count: 23150, color: 'bg-pink-500' },
+  { key: 'phones_accessories', count: 18750, color: 'bg-indigo-500' },
+  { key: 'home_appliances', count: 9320, color: 'bg-cyan-500' },
+  { key: 'construction_materials', count: 7640, color: 'bg-amber-700' },
   { key: 'home_garden', count: 18900, color: 'bg-green-500' },
   { key: 'sport_leisure', count: 12340, color: 'bg-red-500' },
   { key: 'beauty_health', count: 9870, color: 'bg-purple-500' },
   { key: 'toys_baby', count: 11200, color: 'bg-yellow-500' },
   { key: 'automotive', count: 8650, color: 'bg-gray-700' },
-  { key: 'books_media', count: 7430, color: 'bg-indigo-500' },
+  { key: 'books_media', count: 7430, color: 'bg-indigo-400' },
   { key: 'food', count: 6890, color: 'bg-orange-500' },
   { key: 'office_supplies', count: 5670, color: 'bg-teal-500' },
-  { key: 'computers', count: 14230, color: 'bg-cyan-500' },
+  { key: 'computers', count: 14230, color: 'bg-sky-500' },
   { key: 'watches_jewelry', count: 4560, color: 'bg-amber-500' },
 ];
 

@@ -69,7 +69,10 @@
     "beauty": "Beauté & Santé",
     "toys": "Jouets & Bébé",
     "automotive": "Automobile",
-    "food": "Alimentation"
+    "food": "Alimentation",
+    "phones_accessories": "Téléphones & Accessoires",
+    "home_appliances": "Électroménager",
+    "construction_materials": "Matériaux de Construction"
   },
   "home": {
     "hero_title": "Bienvenue sur InterAppshop",
@@ -565,7 +568,10 @@
     "food": "Alimentation",
     "office_supplies": "Fournitures Bureau",
     "computers": "Informatique",
-    "watches_jewelry": "Montres & Bijoux"
+    "watches_jewelry": "Montres & Bijoux",
+    "phones_accessories": "Téléphones & Accessoires",
+    "home_appliances": "Électroménager",
+    "construction_materials": "Matériaux de Construction"
   },
   "errors": {
     "required": "Ce champ est requis",

@@ -69,7 +69,10 @@
         "beauty": "Beauty & Health",
         "toys": "Toys & Baby",
         "automotive": "Automotive",
-        "food": "Food"
+        "food": "Food",
+        "phones_accessories": "Phones & Accessories",
+        "home_appliances": "Home Appliances",
+        "construction_materials": "Construction Materials"
     },
     "home": {
         "hero_title": "Welcome to InterAppshop",
@@ -562,7 +565,10 @@
         "food": "Food",
         "office_supplies": "Office Supplies",
         "computers": "Computers",
-        "watches_jewelry": "Watches & Jewelry"
+        "watches_jewelry": "Watches & Jewelry",
+        "phones_accessories": "Phones & Accessories",
+        "home_appliances": "Home Appliances",
+        "construction_materials": "Construction Materials"
     },
     "restaurants": {
         "title": "Restaurants",
