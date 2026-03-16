@@ -78,7 +78,7 @@ export default function WalletPage() {
                 {t('available_balance')}
               </p>
               <p className="text-4xl font-bold">
-                {wallet?.balance.toLocaleString('fr-FR')} FCFA
+                {wallet?.balance.toLocaleString('fr-FR')} CDF
               </p>
             </div>
             <WalletIcon className="w-16 h-16 opacity-30" />
@@ -90,7 +90,7 @@ export default function WalletPage() {
                 {t('pending_balance')}
               </p>
               <p className="text-2xl font-semibold">
-                {wallet.pendingBalance.toLocaleString('fr-FR')} FCFA
+                {wallet.pendingBalance.toLocaleString('fr-FR')} CDF
               </p>
             </div>
           )}
@@ -206,7 +206,7 @@ export default function WalletPage() {
                         'text-gray-900'
                       }`}>
                         {transaction.type === 'deposit' ? '+' : '-'}
-                        {transaction.amount.toLocaleString('fr-FR')} FCFA
+                        {transaction.amount.toLocaleString('fr-FR')} CDF
                       </p>
                       <p className={`text-sm ${
                         transaction.status === 'completed' ? 'text-green-600' :

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
@@ -148,7 +148,7 @@ export default function FlexibleDepositForm({
         {/* Montant */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Montant (FCFA) <span className="text-red-500">*</span>
+            Montant (CDF) <span className="text-red-500">*</span>
           </label>
           <input
             type="number"

@@ -182,7 +182,7 @@ export default function AdminWalletPage() {
               <p className="text-2xl font-bold text-gray-900">
                 {stats.totalBalance.toLocaleString('fr-FR')}
               </p>
-              <p className="text-xs text-gray-500 mt-1">FCFA</p>
+              <p className="text-xs text-gray-500 mt-1">CDF</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
@@ -193,7 +193,7 @@ export default function AdminWalletPage() {
               <p className="text-2xl font-bold text-green-600">
                 +{stats.totalDeposits.toLocaleString('fr-FR')}
               </p>
-              <p className="text-xs text-gray-500 mt-1">FCFA</p>
+              <p className="text-xs text-gray-500 mt-1">CDF</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
@@ -204,7 +204,7 @@ export default function AdminWalletPage() {
               <p className="text-2xl font-bold text-red-600">
                 -{stats.totalWithdrawals.toLocaleString('fr-FR')}
               </p>
-              <p className="text-xs text-gray-500 mt-1">FCFA</p>
+              <p className="text-xs text-gray-500 mt-1">CDF</p>
             </div>
           </div>
         )}
@@ -230,7 +230,7 @@ export default function AdminWalletPage() {
               {stats?.todayTransactions || 0}
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              {stats?.todayVolume.toLocaleString('fr-FR')} FCFA
+              {stats?.todayVolume.toLocaleString('fr-FR')} CDF
             </p>
           </div>
         </div>
@@ -254,14 +254,14 @@ export default function AdminWalletPage() {
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div className="flex-1">
                       <p className="font-semibold text-lg text-gray-900 mb-1">
-                        {transaction.amount.toLocaleString('fr-FR')} FCFA
+                        {transaction.amount.toLocaleString('fr-FR')} CDF
                       </p>
                       <div className="space-y-1 text-sm text-gray-600">
                         <p>Service: <span className="uppercase font-medium">{transaction.mobileMoneyProvider}</span></p>
                         <p>Numéro: <span className="font-medium">{transaction.mobileMoneyNumber}</span></p>
                         <p>Référence: <span className="font-mono text-xs">{transaction.reference}</span></p>
                         {transaction.fees > 0 && (
-                          <p>Frais: <span className="font-medium">{transaction.fees.toLocaleString('fr-FR')} FCFA</span></p>
+                          <p>Frais: <span className="font-medium">{transaction.fees.toLocaleString('fr-FR')} CDF</span></p>
                         )}
                       </div>
                     </div>
@@ -313,14 +313,14 @@ export default function AdminWalletPage() {
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div className="flex-1">
                       <p className="font-semibold text-lg text-gray-900 mb-1">
-                        {transaction.amount.toLocaleString('fr-FR')} FCFA
+                        {transaction.amount.toLocaleString('fr-FR')} CDF
                       </p>
                       <div className="space-y-1 text-sm text-gray-600">
                         <p>Service: <span className="uppercase font-medium">{transaction.mobileMoneyProvider}</span></p>
                         <p>Numéro: <span className="font-medium">{transaction.mobileMoneyNumber}</span></p>
                         <p>Référence: <span className="font-mono text-xs">{transaction.reference}</span></p>
                         {transaction.fees > 0 && (
-                          <p>Frais: <span className="font-medium">{transaction.fees.toLocaleString('fr-FR')} FCFA</span></p>
+                          <p>Frais: <span className="font-medium">{transaction.fees.toLocaleString('fr-FR')} CDF</span></p>
                         )}
                         <p className="text-orange-600 font-medium">
                           ⚠️ Solde déjà débité du portefeuille

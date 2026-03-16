@@ -116,7 +116,7 @@ export default function AdminWalletTransactionsPage() {
   };
 
   const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR').format(amount) + ' FCFA';
+    return new Intl.NumberFormat('fr-FR').format(amount) + ' CDF';
   };
 
   // Déterminer quelles transactions afficher

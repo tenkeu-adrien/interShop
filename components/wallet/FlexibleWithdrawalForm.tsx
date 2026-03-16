@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
@@ -49,7 +49,7 @@ export default function FlexibleWithdrawalForm({
     }
 
     if (numAmount > wallet.balance) {
-      setError(`Solde insuffisant. Votre solde: ${wallet.balance.toLocaleString('fr-FR')} FCFA`);
+      setError(`Solde insuffisant. Votre solde: ${wallet.balance.toLocaleString('fr-FR')} CDF`);
       return;
     }
 
@@ -123,7 +123,7 @@ export default function FlexibleWithdrawalForm({
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-blue-700 mb-1">Solde disponible</p>
             <p className="text-3xl font-bold text-blue-900">
-              {wallet.balance.toLocaleString('fr-FR')} FCFA
+              {wallet.balance.toLocaleString('fr-FR')} CDF
             </p>
           </div>
         )}
@@ -180,12 +180,12 @@ export default function FlexibleWithdrawalForm({
                 step="1"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
-                FCFA
+                CDF
               </span>
             </div>
             {wallet && (
               <p className="text-sm text-gray-600 mt-1">
-                Maximum: {wallet.balance.toLocaleString('fr-FR')} FCFA
+                Maximum: {wallet.balance.toLocaleString('fr-FR')} CDF
               </p>
             )}
           </div>

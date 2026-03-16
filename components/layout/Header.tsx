@@ -23,7 +23,8 @@ import {
   Hotel,
   Heart,
   Wallet,
-  Globe
+  Globe,
+  Tag
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CurrencySelector } from '@/components/ui/CurrencySelector';
@@ -86,7 +87,7 @@ export default function Header() {
 
     switch (user.role) {
       case 'admin':
-        return '/dashboard';
+        return '/dashboard/admin';
       case 'fournisseur':
         return '/dashboard/fournisseur';
       case 'marketiste':
@@ -346,6 +347,40 @@ export default function Header() {
                             <Users size={20} className="text-green-600" />
                             <span className="font-medium">{tCommon('users')}</span>
                           </Link>
+                        )}
+
+                        {/* Accès admin à tous les dashboards */}
+                        {user.role === 'admin' && (
+                          <>
+                            <div className="mx-4 my-1 border-t border-dashed border-gray-200" />
+                            <p className="px-4 py-1 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                              Accès tous dashboards
+                            </p>
+                            <Link
+                              href="/dashboard/fournisseur"
+                              onClick={() => setShowUserMenu(false)}
+                              className="flex items-center gap-3 px-4 py-2.5 hover:bg-yellow-50 transition-colors text-gray-700"
+                            >
+                              <Package size={18} className="text-yellow-600" />
+                              <span className="text-sm font-medium">Dashboard Fournisseur</span>
+                            </Link>
+                            <Link
+                              href="/dashboard/marketiste"
+                              onClick={() => setShowUserMenu(false)}
+                              className="flex items-center gap-3 px-4 py-2.5 hover:bg-green-50 transition-colors text-gray-700"
+                            >
+                              <Tag size={18} className="text-green-600" />
+                              <span className="text-sm font-medium">Dashboard Marketiste</span>
+                            </Link>
+                            <Link
+                              href="/dashboard/client"
+                              onClick={() => setShowUserMenu(false)}
+                              className="flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-gray-700"
+                            >
+                              <ShoppingBag size={18} className="text-blue-600" />
+                              <span className="text-sm font-medium">Dashboard Client</span>
+                            </Link>
+                          </>
                         )}
 
                         <Link

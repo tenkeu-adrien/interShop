@@ -1,9 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { X, Loader2, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { useWalletStore } from '@/store/walletStore';
 import { getActivePaymentMethods } from '@/lib/firebase/paymentMethods';
+import CurrencyConverter from './CurrencyConverter';
 import type { PaymentMethod } from '@/types';
 
 interface WithdrawalModalProps {
@@ -75,12 +76,12 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
     const numAmount = parseFloat(amount);
     
     if (isNaN(numAmount) || numAmount < 1000) {
-      setError('Montant minimum: 1,000 FCFA');
+      setError('Montant minimum: 1,000 CDF');
       return;
     }
 
     if (numAmount > 500000) {
-      setError('Montant maximum: 500,000 FCFA par jour');
+      setError('Montant maximum: 500,000 CDF par jour');
       return;
     }
 
@@ -174,7 +175,7 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
               </div>
               <button
                 onClick={handleClose}
-                className="w-full bg-orange-600 text-white py-3 rounded-lg font-medium hover:bg-orange-700"
+                className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700"
               >
                 Fermer
               </button>
@@ -185,7 +186,7 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                 <p className="text-sm text-blue-900 font-medium mb-1">Solde disponible</p>
                 <p className="text-2xl font-bold text-blue-900">
-                  {wallet?.balance.toLocaleString('fr-FR')} FCFA
+                  {wallet?.balance.toLocaleString('fr-FR')} CDF
                 </p>
               </div>
 
@@ -204,11 +205,11 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
                     max="500000"
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
-                    FCFA
+                    CDF
                   </span>
                 </div>
                 <p className="text-sm text-gray-600 mt-2">
-                  Min: 1,000 FCFA • Max: 500,000 FCFA/jour
+                  Min: 1,000 CDF • Max: 500,000 CDF/jour
                 </p>
               </div>
 
@@ -216,19 +217,19 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
                 <div className="bg-gray-50 rounded-lg p-4 mb-6">
                   <div className="flex justify-between mb-2">
                     <span className="text-gray-600">Montant</span>
-                    <span className="font-semibold">{parseFloat(amount).toLocaleString('fr-FR')} FCFA</span>
+                    <span className="font-semibold">{parseFloat(amount).toLocaleString('fr-FR')} CDF</span>
                   </div>
                   <div className="flex justify-between mb-2">
                     <span className="text-gray-600">Frais (0.5%)</span>
                     <span className="font-semibold text-red-600">
-                      -{fees.toLocaleString('fr-FR')} FCFA
+                      -{fees.toLocaleString('fr-FR')} CDF
                     </span>
                   </div>
                   <div className="border-t border-gray-200 pt-2 mt-2">
                     <div className="flex justify-between">
                       <span className="font-semibold">Vous recevrez</span>
                       <span className="font-bold text-lg text-green-600">
-                        {(parseFloat(amount) - fees).toLocaleString('fr-FR')} FCFA
+                        {(parseFloat(amount) - fees).toLocaleString('fr-FR')} CDF
                       </span>
                     </div>
                   </div>
@@ -236,7 +237,7 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Total débité</span>
                       <span className="font-semibold">
-                        {parseFloat(amount).toLocaleString('fr-FR')} FCFA
+                        {parseFloat(amount).toLocaleString('fr-FR')} CDF
                       </span>
                     </div>
                   </div>
@@ -253,10 +254,13 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
               <button
                 onClick={handleAmountSubmit}
                 disabled={!amount || parseFloat(amount) < 1000}
-                className="w-full bg-orange-600 text-white py-3 rounded-lg font-medium hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Continuer
               </button>
+
+              {/* Convertisseur CDF */}
+              <CurrencyConverter amountCDF={amount ? parseFloat(amount) : undefined} />
             </>
           ) : step === 'provider' ? (
             /* Step 2: Provider Selection */
@@ -320,17 +324,17 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
                 </div>
                 <div className="flex justify-between mb-3">
                   <span className="text-gray-600">Montant</span>
-                  <span className="font-semibold">{parseFloat(amount).toLocaleString('fr-FR')} FCFA</span>
+                  <span className="font-semibold">{parseFloat(amount).toLocaleString('fr-FR')} CDF</span>
                 </div>
                 <div className="flex justify-between mb-3">
                   <span className="text-gray-600">Frais</span>
-                  <span className="font-semibold text-red-600">-{fees.toLocaleString('fr-FR')} FCFA</span>
+                  <span className="font-semibold text-red-600">-{fees.toLocaleString('fr-FR')} CDF</span>
                 </div>
                 <div className="border-t border-gray-200 pt-3">
                   <div className="flex justify-between">
                     <span className="font-semibold">Vous recevrez</span>
                     <span className="font-bold text-lg text-green-600">
-                      {(parseFloat(amount) - fees).toLocaleString('fr-FR')} FCFA
+                      {(parseFloat(amount) - fees).toLocaleString('fr-FR')} CDF
                     </span>
                   </div>
                 </div>
@@ -399,7 +403,7 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
               <button
                 onClick={handleSubmit}
                 disabled={loading || !accountName.trim() || !accountNumber.trim() || !pin}
-                className="w-full bg-orange-600 text-white py-3 rounded-lg font-medium hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-4"
+                className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-4"
               >
                 {loading ? (
                   <>
