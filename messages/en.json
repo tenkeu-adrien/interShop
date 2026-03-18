@@ -464,7 +464,8 @@
         "products_limit": "Products limit",
         "hotels": "Hotels",
         "restaurants": "Restaurants",
-        "dating_profiles": "Dating profiles"
+        "dating_profiles": "Dating profiles",
+        "this_month": "This month"
     },
     "marketiste": {
         "dashboard_title": "Marketer Dashboard",
