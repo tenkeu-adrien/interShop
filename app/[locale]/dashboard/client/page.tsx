@@ -1,14 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useTranslations } from 'next-intl';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import {
-  ShoppingBag, Heart, MessageSquare, MapPin, Bell,
+  ShoppingBag, MessageSquare, Bell,
   Package, Clock, CheckCircle, XCircle, ChevronRight,
-  User, Settings, Wallet, Star
+  User, Settings, Wallet
 } from 'lucide-react';
 import Link from 'next/link';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
@@ -80,19 +79,12 @@ function ClientDashboardContent() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
           <Link href="/orders" className="bg-white rounded-xl p-4 shadow hover:shadow-md transition-all flex flex-col items-center gap-2 text-center group">
             <div className="bg-orange-100 p-3 rounded-full group-hover:bg-orange-200 transition-colors">
               <ShoppingBag className="text-orange-600" size={24} />
             </div>
             <span className="text-sm font-semibold text-gray-700">{t('my_orders')}</span>
-          </Link>
-
-          <Link href="/wishlist" className="bg-white rounded-xl p-4 shadow hover:shadow-md transition-all flex flex-col items-center gap-2 text-center group">
-            <div className="bg-red-100 p-3 rounded-full group-hover:bg-red-200 transition-colors">
-              <Heart className="text-red-500" size={24} />
-            </div>
-            <span className="text-sm font-semibold text-gray-700">{t('wishlist')}</span>
           </Link>
 
           <Link href="/chat" className="bg-white rounded-xl p-4 shadow hover:shadow-md transition-all flex flex-col items-center gap-2 text-center group">
@@ -170,7 +162,6 @@ function ClientDashboardContent() {
               {[
                 { href: '/profile', icon: User, label: t('profile'), color: 'text-blue-500' },
                 { href: '/orders', icon: ShoppingBag, label: t('my_orders'), color: 'text-orange-500' },
-                { href: '/wishlist', icon: Heart, label: t('wishlist'), color: 'text-red-500' },
                 { href: '/wallet', icon: Wallet, label: t('wallet'), color: 'text-green-600' },
                 { href: '/chat', icon: MessageSquare, label: t('messages'), color: 'text-blue-500' },
                 { href: '/notifications', icon: Bell, label: t('notifications'), color: 'text-purple-500' },

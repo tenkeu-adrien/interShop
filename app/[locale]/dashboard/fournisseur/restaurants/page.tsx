@@ -184,7 +184,7 @@ function RestaurantsListContent() {
 
 export default function RestaurantsListPage() {
   return (
-    <ProtectedRoute allowedRoles={['fournisseur']}>
+    <ProtectedRoute allowedRoles={['fournisseur', 'admin']}>
       <RestaurantsListContent />
     </ProtectedRoute>
   );

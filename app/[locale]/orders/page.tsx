@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import { useTranslations } from 'next-intl';
-import { ShoppingCart, Search, Package, Truck, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { ShoppingCart, Search, Package, Truck, CheckCircle, XCircle, Clock, ArrowLeft } from 'lucide-react';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { Order, OrderStatus } from '@/types';
@@ -16,6 +17,7 @@ export default function OrdersPage() {
   const { user } = useAuthStore();
   const t = useTranslations('orders');
   const tCommon = useTranslations('common');
+  const router = useRouter();
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [filtered, setFiltered] = useState<Order[]>([]);
@@ -72,6 +74,13 @@ export default function OrdersPage() {
         {/* Header */}
         <div className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 py-10">
           <div className="container mx-auto px-4">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center gap-2 text-gray-800 hover:text-gray-900 mb-4 transition-colors"
+            >
+              <ArrowLeft size={20} />
+              Retour
+            </button>
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
               <ShoppingCart size={32} />
               {t('title')}

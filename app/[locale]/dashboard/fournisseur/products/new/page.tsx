@@ -1681,7 +1681,7 @@ function NewProductContent() {
 
 export default function NewProductPage() {
   return (
-    <ProtectedRoute allowedRoles={['fournisseur']}>
+    <ProtectedRoute allowedRoles={['fournisseur', 'admin']}>
       <NewProductContent />
     </ProtectedRoute>
   );

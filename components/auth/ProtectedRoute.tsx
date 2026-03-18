@@ -32,7 +32,14 @@ export default function ProtectedRoute({
     }
 
     if (allowedRoles && !allowedRoles.includes(user.role)) {
-      router.push('/unauthorized');
+      // Redirect to user's own dashboard instead of /unauthorized
+      const dashboardMap: Record<string, string> = {
+        admin: '/dashboard/admin',
+        fournisseur: '/dashboard/fournisseur',
+        marketiste: '/dashboard/marketiste',
+        client: '/dashboard/client',
+      };
+      router.push(dashboardMap[user.role] ?? '/dashboard');
       return;
     }
 

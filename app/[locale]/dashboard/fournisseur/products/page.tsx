@@ -22,6 +22,7 @@ import {
 import toast from 'react-hot-toast';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import Link from 'next/link';
+import { usePublicProductsStore } from '@/store/publicProductsStore';
 
 type ViewMode = 'grid' | 'list';
 
@@ -29,6 +30,7 @@ function ProductsListContent() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { products, loading, fetchProducts, toggleProductStatus, deleteProductFromStore } = useProductsStore();
+  const { products: allProducts, loading: allLoading, loadProducts: loadAllProducts } = usePublicProductsStore();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
@@ -37,31 +39,41 @@ function ProductsListContent() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [showFilters, setShowFilters] = useState(false);
 
+  const isAdmin = user?.role === 'admin';
+
   useEffect(() => {
-    if (user) {
+    if (!user) return;
+    if (isAdmin) {
+      // Admin sees all products via publicProductsStore
+      if (allProducts.length === 0) loadAllProducts(true);
+    } else {
       fetchProducts(user.id);
     }
-  }, [user, fetchProducts]);
+  }, [user]);
+
+  // Admin uses allProducts, fournisseur uses own products
+  const sourceProducts = isAdmin ? allProducts : products;
+  const isLoading = isAdmin ? allLoading : loading;
 
   // Extraire les catégories et sous-catégories uniques
   const categories = useMemo(() => {
-    const cats = new Set(products.map(p => p.category));
+    const cats = new Set(sourceProducts.map(p => p.category));
     return Array.from(cats).sort();
-  }, [products]);
+  }, [sourceProducts]);
 
   const subcategories = useMemo(() => {
     if (filterCategory === 'all') return [];
     const subcats = new Set(
-      products
+      sourceProducts
         .filter(p => p.category === filterCategory && p.subcategory)
         .map(p => p.subcategory!)
     );
     return Array.from(subcats).sort();
-  }, [products, filterCategory]);
+  }, [sourceProducts, filterCategory]);
 
   // Filtrer les produits (exclure dating, restaurant, hotel)
   const filteredProducts = useMemo(() => {
-    return products.filter(product => {
+    return sourceProducts.filter(product => {
       // Exclure les services (dating, restaurant, hotel) - afficher uniquement les produits e-commerce
       const isEcommerceProduct = !product.serviceCategory || 
                                  !['dating', 'restaurant', 'hotel'].includes(product.serviceCategory);
@@ -81,14 +93,14 @@ function ProductsListContent() {
       
       return isEcommerceProduct && matchesSearch && matchesStatus && matchesCategory && matchesSubcategory;
     });
-  }, [products, searchQuery, filterStatus, filterCategory, filterSubcategory]);
+  }, [sourceProducts, searchQuery, filterStatus, filterCategory, filterSubcategory]);
 
   const stats = useMemo(() => ({
-    total: products.length,
-    active: products.filter(p => p.isActive).length,
-    inactive: products.filter(p => !p.isActive).length,
-    totalViews: products.reduce((sum, p) => sum + (p.views || 0), 0),
-  }), [products]);
+    total: sourceProducts.length,
+    active: sourceProducts.filter(p => p.isActive).length,
+    inactive: sourceProducts.filter(p => !p.isActive).length,
+    totalViews: sourceProducts.reduce((sum, p) => sum + (p.views || 0), 0),
+  }), [sourceProducts]);
 
   const handleToggleStatus = async (productId: string) => {
     try {
@@ -117,7 +129,7 @@ function ProductsListContent() {
     setFilterSubcategory('all');
   };
 
-  if (loading && products.length === 0) {
+  if (isLoading && sourceProducts.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader className="animate-spin text-orange-500" size={48} />
@@ -563,7 +575,7 @@ function ProductsListContent() {
 
 export default function ProductsListPage() {
   return (
-    <ProtectedRoute allowedRoles={['fournisseur']}>
+    <ProtectedRoute allowedRoles={['fournisseur', 'admin']}>
       <ProductsListContent />
     </ProtectedRoute>
   );
