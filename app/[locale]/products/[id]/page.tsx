@@ -462,7 +462,7 @@ export default function ProductDetailPage() {
                     fournisseur={fournisseur}
                     className="mb-4"
                   />
-                  <ContactButton
+                  {/* <ContactButton
                     type="product"
                     ownerId={product.fournisseurId}
                     ownerName={fournisseur.name}
@@ -472,7 +472,7 @@ export default function ProductDetailPage() {
                     itemName={product.name}
                     itemImage={product.images[0]}
                     className="mb-6"
-                  />
+                  /> */}
                 </>
               )}
 

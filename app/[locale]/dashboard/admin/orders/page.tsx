@@ -51,15 +51,10 @@ export default function AdminOrdersPage() {
   const ordersPerPage = 10;
 
   useEffect(() => {
-    // if (!loading && (!user || user.role !== 'admin')) {
-    //   router.push('/dashboard');
-    //   return;
-    // }
-
-    if (user && user.role !== 'admin') {
+    if (user) {
       loadOrders();
     }
-  }, [user, loading, router]);
+  }, [user, loading]);
 
   useEffect(() => {
     filterOrders();
@@ -73,7 +68,6 @@ export default function AdminOrdersPage() {
         id: doc.id, 
         ...doc.data() 
       })) as Order[];
-      // Sort by date desc
       ordersData.sort((a, b) => {
         const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
         const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
@@ -110,18 +104,18 @@ export default function AdminOrdersPage() {
 
   const handleUpdateStatus = async (orderId: string, newStatus: OrderStatus) => {
     try {
-      const updates: any = { 
-        status: newStatus, 
-        updatedAt: new Date() 
-      };
-
+      const updates: any = { status: newStatus, updatedAt: new Date() };
       if (newStatus === 'paid') updates.paidAt = new Date();
       if (newStatus === 'shipped') updates.shippedAt = new Date();
       if (newStatus === 'delivered') updates.deliveredAt = new Date();
 
       await updateDoc(doc(db, 'orders', orderId), updates);
+      // Mise à jour locale immédiate — pas de re-fetch
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...updates } : o));
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder(prev => prev ? { ...prev, ...updates } : null);
+      }
       toast.success(tCommon('success'));
-      loadOrders();
     } catch (error) {
       console.error('Error updating order status:', error);
       toast.error(tAdmin('error_updating'));

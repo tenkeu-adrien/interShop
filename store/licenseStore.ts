@@ -12,6 +12,8 @@ interface LicenseState {
   currentSubscription: FournisseurSubscription | null;
   productUsage: ProductUsage | null;
   loading: boolean;
+  loadingLicenses: boolean;
+  loadingSubscription: boolean;
   
   fetchLicenses: () => Promise<void>;
   fetchSubscription: (fournisseurId: string) => Promise<void>;
@@ -25,37 +27,37 @@ export const useLicenseStore = create<LicenseState>((set, get) => ({
   currentSubscription: null,
   productUsage: null,
   loading: false,
+  loadingLicenses: false,
+  loadingSubscription: false,
   
   fetchLicenses: async () => {
-    set({ loading: true });
+    set({ loadingLicenses: true, loading: true });
     try {
       const licenses = await getAllLicenses();
-      set({ licenses, loading: false });
+      set({ licenses, loadingLicenses: false, loading: false });
     } catch (error) {
       console.error('Error fetching licenses:', error);
-      set({ loading: false });
+      set({ loadingLicenses: false, loading: false });
     }
   },
   
   fetchSubscription: async (fournisseurId: string) => {
-    set({ loading: true });
+    set({ loadingSubscription: true });
     try {
       const subscription = await getFournisseurSubscription(fournisseurId);
-      set({ currentSubscription: subscription, loading: false });
+      set({ currentSubscription: subscription, loadingSubscription: false });
     } catch (error) {
       console.error('Error fetching subscription:', error);
-      set({ loading: false });
+      set({ loadingSubscription: false });
     }
   },
   
   fetchProductUsage: async (fournisseurId: string) => {
-    set({ loading: true });
     try {
       const usage = await getProductUsage(fournisseurId);
-      set({ productUsage: usage, loading: false });
+      set({ productUsage: usage });
     } catch (error) {
       console.error('Error fetching product usage:', error);
-      set({ loading: false });
     }
   },
   

@@ -14,8 +14,9 @@ import { uploadMultipleImages } from '@/lib/firebase/storage';
 import { AFRICAN_CITIES } from '@/lib/data/productOptions';
 import { Loader2, Upload, X, Plus, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
-export default function AddListingPage() {
+function AddListingContent() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { checkQuota } = useLicenseStore();
@@ -605,5 +606,13 @@ export default function AddListingPage() {
         onClose={() => setShowUpgradeModal(false)}
       />
     </div>
+  );
+}
+
+export default function AddListingPage() {
+  return (
+    <ProtectedRoute allowedRoles={['fournisseur', 'admin']}>
+      <AddListingContent />
+    </ProtectedRoute>
   );
 }

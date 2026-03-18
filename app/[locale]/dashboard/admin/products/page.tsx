@@ -30,6 +30,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { usePublicProductsStore } from '@/store/publicProductsStore';
 
 export default function AdminProductsPage() {
   const router = useRouter();
@@ -37,6 +38,9 @@ export default function AdminProductsPage() {
   const tAdmin = useTranslations('admin');
   const tCommon = useTranslations('common');
   const tProducts = useTranslations('products');
+
+  // Utilise le store public (cache + pagination) au lieu de getDocs direct
+  const { products: storeProducts, loading: storeLoading, loadProducts: loadStoreProducts } = usePublicProductsStore();
   
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -47,38 +51,42 @@ export default function AdminProductsPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showModal, setShowModal] = useState(false);
   
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 12;
 
   useEffect(() => {
-    // if (!loading && (!user || user.role !== 'admin')) {
-    //   router.push('/dashboard');
-    //   return;
-    // }
-
-    if (user && user.role !== 'admin') {
+    if (user) {
       loadProducts();
     }
-  }, [user, loading, router]);
+  }, [user, loading]);
+
+  // Sync depuis le store quand il se charge
+  useEffect(() => {
+    if (storeProducts.length > 0) {
+      setProducts(storeProducts);
+      setLoadingProducts(false);
+    }
+  }, [storeProducts]);
 
   useEffect(() => {
     filterProducts();
   }, [products, searchQuery, categoryFilter, statusFilter]);
 
   const loadProducts = async () => {
+    // Si le store a déjà des données, les utiliser directement
+    if (storeProducts.length > 0) {
+      setProducts(storeProducts);
+      setLoadingProducts(false);
+      return;
+    }
     setLoadingProducts(true);
     try {
-      const productsSnapshot = await getDocs(collection(db, 'products'));
-      const productsData = productsSnapshot.docs.map(doc => ({ 
-        id: doc.id, 
-        ...doc.data() 
-      })) as Product[];
-      setProducts(productsData);
+      // Charger via le store (avec cache)
+      await loadStoreProducts(true);
+      // Le useEffect sur storeProducts mettra à jour products
     } catch (error) {
       console.error('Error loading products:', error);
       toast.error(tCommon('error'));
-    } finally {
       setLoadingProducts(false);
     }
   };
@@ -116,8 +124,9 @@ export default function AdminProductsPage() {
         isActive: !isActive,
         updatedAt: new Date()
       });
-      toast.success(isActive ? tProducts('product_deleted') : tProducts('product_created'));
-      loadProducts();
+      // Mise à jour locale immédiate sans re-fetch
+      setProducts(prev => prev.map(p => p.id === productId ? { ...p, isActive: !isActive } : p));
+      toast.success(isActive ? 'Produit désactivé' : 'Produit activé');
     } catch (error) {
       console.error('Error toggling product status:', error);
       toast.error(tCommon('error'));
@@ -126,11 +135,10 @@ export default function AdminProductsPage() {
 
   const handleDelete = async (productId: string) => {
     if (!confirm(tProducts('delete_confirmation'))) return;
-    
     try {
       await deleteDoc(doc(db, 'products', productId));
+      setProducts(prev => prev.filter(p => p.id !== productId));
       toast.success(tProducts('product_deleted'));
-      loadProducts();
       setShowModal(false);
     } catch (error) {
       console.error('Error deleting product:', error);

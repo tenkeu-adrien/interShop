@@ -408,20 +408,14 @@ export default function AdminDashboardPage() {
               <p className="font-semibold text-gray-900 text-sm">{tAdmin('profiles')}</p>
             </Link>
             
-            <Link
-              href="/dashboard/admin/contact-requests"
-              className="p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all text-center group"
-            >
-              <MessageSquare className="mx-auto mb-1 text-gray-600 group-hover:text-indigo-600" size={24} />
-              <p className="font-semibold text-gray-900 text-sm">{tAdmin('contact_messages')}</p>
-            </Link>
+            
             
             <Link
               href="/dashboard/admin/messages"
               className="p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all text-center group"
             >
               <MessageSquare className="mx-auto mb-1 text-gray-600 group-hover:text-indigo-600" size={24} />
-              <p className="font-semibold text-gray-900 text-sm">{tAdmin('messages') || 'Messages'}</p>
+              <p className="font-semibold text-gray-900 text-sm">{tAdmin('messages') || 'Messagessss'}</p>
             </Link>
             
             <Link

@@ -115,6 +115,7 @@ export class ExchangeRateService {
   // Default rates for fallback (approximate values)
   private static setDefaultRates(): void {
     const defaultRates: Record<string, number> = {
+      CDF: 2800,
       XOF: 600,
       XAF: 600,
       GHS: 12,

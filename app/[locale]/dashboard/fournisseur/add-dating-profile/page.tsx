@@ -14,8 +14,9 @@ import { AFRICAN_CITIES } from '@/lib/data/productOptions';
 import { Loader2, Upload, Shield, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { DatingProfile } from '@/types/dating';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
-export default function AddDatingProfilePage() {
+function AddDatingProfileContent() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { checkQuota } = useLicenseStore();
@@ -427,5 +428,13 @@ export default function AddDatingProfilePage() {
         onClose={() => setShowUpgradeModal(false)}
       />
     </div>
+  );
+}
+
+export default function AddDatingProfilePage() {
+  return (
+    <ProtectedRoute allowedRoles={['fournisseur', 'admin']}>
+      <AddDatingProfileContent />
+    </ProtectedRoute>
   );
 }
