@@ -969,5 +969,21 @@
         "tip2": "Carefully read the product description and delivery conditions",
         "tip3": "Use our messaging system to ask questions to the seller",
         "tip4": "Take advantage of our buyer protection to shop with confidence"
+    },
+    "client": {
+        "welcome": "Welcome",
+        "my_orders": "My orders",
+        "recent_orders": "Recent orders",
+        "no_orders": "No orders yet",
+        "start_shopping": "Start shopping",
+        "wishlist": "Wishlist",
+        "messages": "Messages",
+        "wallet": "Wallet",
+        "my_account": "My account",
+        "profile": "My profile",
+        "notifications": "Notifications",
+        "items": "item(s)",
+        "addresses": "My addresses",
+        "security": "Security"
     }
 }

@@ -24,11 +24,12 @@ import {
   Heart,
   MessageSquare
 } from 'lucide-react';
-import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { Product, Order, User as UserType } from '@/types';
 import Link from 'next/link';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
+import { useProductsStore } from '@/store/productsStore';
 
 interface DashboardStats {
   totalUsers: number;
@@ -48,6 +49,8 @@ export default function AdminDashboardPage() {
   const { user, loading } = useAuthStore();
   const tAdmin = useTranslations('admin');
   const tCommon = useTranslations('common');
+  // Utilise le store produits (cache 5 min) au lieu de requêtes directes
+  const { products: storeProducts, fetchProducts } = useProductsStore();
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     totalClients: 0,
@@ -78,75 +81,47 @@ export default function AdminDashboardPage() {
   const loadDashboardData = async () => {
     setLoadingStats(true);
     try {
-      // Charger les utilisateurs
-      const usersSnapshot = await getDocs(collection(db, 'users'));
+      // Requêtes en parallèle pour réduire le temps de chargement
+      const [usersSnapshot, ordersSnapshot, recentOrdersSnapshot, topProductsSnapshot] = await Promise.all([
+        getDocs(collection(db, 'users')),
+        getDocs(collection(db, 'orders')),
+        getDocs(query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(5))),
+        getDocs(query(collection(db, 'products'), orderBy('sales', 'desc'), limit(5))),
+      ]);
+
       const users = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as UserType[];
-      
-      const clients = users.filter(u => u.role === 'client');
-      const fournisseurs = users.filter(u => u.role === 'fournisseur');
-      const marketistes = users.filter(u => u.role === 'marketiste');
-
-      // Charger les produits
-      const productsSnapshot = await getDocs(collection(db, 'products'));
-      const products = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[];
-      const activeProducts = products.filter(p => p.isActive);
-
-      // Charger les commandes
-      const ordersSnapshot = await getDocs(collection(db, 'orders'));
       const orders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Order[];
-      const pendingOrders = orders.filter(o => o.status === 'pending');
-      
-      // Calculer le revenu total
-      const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
-      
-      // Calculer le revenu du mois en cours
+
+      // Utilise le store produits (avec cache) pour les stats
+      if (storeProducts.length === 0) {
+        await fetchProducts();
+      }
+      const products = storeProducts.length > 0 ? storeProducts : [];
+
       const now = new Date();
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const monthlyOrders = orders.filter(o => {
-        const orderDate = o.createdAt instanceof Date ? o.createdAt : new Date(o.createdAt);
-        return orderDate >= firstDayOfMonth;
-      });
-      const monthlyRevenue = monthlyOrders.reduce((sum, order) => sum + order.total, 0);
-
-      // Charger les commandes récentes
-      const recentOrdersQuery = query(
-        collection(db, 'orders'),
-        orderBy('createdAt', 'desc'),
-        limit(5)
-      );
-      const recentOrdersSnapshot = await getDocs(recentOrdersQuery);
-      const recentOrdersData = recentOrdersSnapshot.docs.map(doc => ({ 
-        id: doc.id, 
-        ...doc.data() 
-      })) as Order[];
-
-      // Charger les produits les plus vendus
-      const topProductsQuery = query(
-        collection(db, 'products'),
-        orderBy('sales', 'desc'),
-        limit(5)
-      );
-      const topProductsSnapshot = await getDocs(topProductsQuery);
-      const topProductsData = topProductsSnapshot.docs.map(doc => ({ 
-        id: doc.id, 
-        ...doc.data() 
-      })) as Product[];
+      const monthlyRevenue = orders
+        .filter(o => {
+          const d = o.createdAt instanceof Date ? o.createdAt : new Date(o.createdAt);
+          return d >= firstDayOfMonth;
+        })
+        .reduce((sum, o) => sum + o.total, 0);
 
       setStats({
         totalUsers: users.length,
-        totalClients: clients.length,
-        totalFournisseurs: fournisseurs.length,
-        totalMarketistes: marketistes.length,
+        totalClients: users.filter(u => u.role === 'client').length,
+        totalFournisseurs: users.filter(u => u.role === 'fournisseur').length,
+        totalMarketistes: users.filter(u => u.role === 'marketiste').length,
         totalProducts: products.length,
-        activeProducts: activeProducts.length,
+        activeProducts: products.filter(p => p.isActive).length,
         totalOrders: orders.length,
-        pendingOrders: pendingOrders.length,
-        totalRevenue,
+        pendingOrders: orders.filter(o => o.status === 'pending').length,
+        totalRevenue: orders.reduce((sum, o) => sum + o.total, 0),
         monthlyRevenue,
       });
 
-      setRecentOrders(recentOrdersData);
-      setTopProducts(topProductsData);
+      setRecentOrders(recentOrdersSnapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Order[]);
+      setTopProducts(topProductsSnapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Product[]);
 
     } catch (error) {
       console.error('Error loading dashboard data:', error);
