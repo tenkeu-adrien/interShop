@@ -186,7 +186,7 @@ function HotelsListContent() {
 
 export default function HotelsListPage() {
   return (
-    <ProtectedRoute allowedRoles={['fournisseur']}>
+    <ProtectedRoute allowedRoles={['fournisseur', 'admin']}>
       <HotelsListContent />
     </ProtectedRoute>
   );

@@ -70,7 +70,7 @@ export default function AdminDashboardPage() {
     //   return;
     // }
 
-    if (user && user.role !== 'admin') {
+    if (user && user.role === 'admin') {
       loadDashboardData();
     }
   }, [user, loading, router]);

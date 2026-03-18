@@ -35,12 +35,12 @@ export default function MarketisteEarningsPage() {
   const [periodFilter, setPeriodFilter] = useState<'all' | 'month' | 'week'>('all');
 
   useEffect(() => {
-    if (!loading && (!user || user.role !== 'marketiste')) {
+    if (!loading && (!user || (user.role !== 'marketiste' && user.role !== 'admin'))) {
       router.push('/dashboard');
       return;
     }
 
-    if (user && user.role === 'marketiste') {
+    if (user && (user.role === 'marketiste' || user.role === 'admin')) {
       loadEarnings();
     }
   }, [user, loading, router]);
@@ -76,7 +76,7 @@ export default function MarketisteEarningsPage() {
     );
   }
 
-  if (!user || user.role !== 'marketiste') {
+  if (!user || (user.role !== 'marketiste' && user.role !== 'admin')) {
     return null;
   }
 

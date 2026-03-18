@@ -422,6 +422,7 @@ export interface TopProduct {
 // Currency types
 export type SupportedCurrency = 
   | 'USD'  // US Dollar (base)
+  | 'CDF'  // Franc Congolais
   | 'XOF'  // West African CFA Franc
   | 'XAF'  // Central African CFA Franc
   | 'GHS'  // Ghanaian Cedi

@@ -161,7 +161,7 @@ function FournisseurDashboardContent() {
 
 export default function FournisseurDashboardPage() {
   return (
-    <ProtectedRoute allowedRoles={['fournisseur']}>
+    <ProtectedRoute allowedRoles={['fournisseur', 'admin']}>
       <FournisseurDashboardContent />
     </ProtectedRoute>
   );

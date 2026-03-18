@@ -8,6 +8,13 @@ export const SUPPORTED_CURRENCIES: Record<SupportedCurrency, CurrencyInfo> = {
     flag: 'US', 
     decimals: 2 
   },
+  CDF: {
+    code: 'CDF',
+    name: 'Franc Congolais',
+    symbol: 'FC',
+    flag: 'CD',
+    decimals: 0
+  },
   XOF: { 
     code: 'XOF', 
     name: 'Franc CFA (BCEAO)', 

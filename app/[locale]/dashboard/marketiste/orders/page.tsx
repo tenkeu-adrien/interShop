@@ -43,12 +43,12 @@ export default function MarketisteOrdersPage() {
   const ordersPerPage = 10;
 
   useEffect(() => {
-    if (!loading && (!user || user.role !== 'marketiste')) {
+    if (!loading && (!user || (user.role !== 'marketiste' && user.role !== 'admin'))) {
       router.push('/dashboard');
       return;
     }
 
-    if (user && user.role === 'marketiste') {
+    if (user && (user.role === 'marketiste' || user.role === 'admin')) {
       loadOrders();
     }
   }, [user, loading, router]);
@@ -118,7 +118,7 @@ export default function MarketisteOrdersPage() {
     );
   }
 
-  if (!user || user.role !== 'marketiste') {
+  if (!user || (user.role !== 'marketiste' && user.role !== 'admin')) {
     return null;
   }
 

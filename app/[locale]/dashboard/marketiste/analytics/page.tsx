@@ -35,12 +35,12 @@ export default function MarketisteAnalyticsPage() {
   const [loadingData, setLoadingData] = useState(true);
 
   useEffect(() => {
-    if (!loading && (!user || user.role !== 'marketiste')) {
+    if (!loading && (!user || (user.role !== 'marketiste' && user.role !== 'admin'))) {
       router.push('/dashboard');
       return;
     }
 
-    if (user && user.role === 'marketiste') {
+    if (user && (user.role === 'marketiste' || user.role === 'admin')) {
       loadAnalytics();
     }
   }, [user, loading, router]);
@@ -90,7 +90,7 @@ export default function MarketisteAnalyticsPage() {
     );
   }
 
-  if (!user || user.role !== 'marketiste') {
+  if (!user || (user.role !== 'marketiste' && user.role !== 'admin')) {
     return null;
   }
 

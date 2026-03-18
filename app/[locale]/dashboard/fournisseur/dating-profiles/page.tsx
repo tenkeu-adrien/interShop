@@ -205,7 +205,7 @@ function DatingProfilesListContent() {
 
 export default function DatingProfilesListPage() {
   return (
-    <ProtectedRoute allowedRoles={['fournisseur']}>
+    <ProtectedRoute allowedRoles={['fournisseur', 'admin']}>
       <DatingProfilesListContent />
     </ProtectedRoute>
   );
