@@ -56,21 +56,14 @@ export default function AdminUsersPage() {
   const usersPerPage = 10;
 
   useEffect(() => {
-    // if (!loading && (!user || user.role !== 'admin')) {
-    //   router.push('/dashboard');
-    //   return;
-    // }
-
-    if (user && user.role !== 'admin') {
+    if (user) {
       loadUsers();
     }
-
-    // Check URL params for role filter
     const roleParam = searchParams.get('role');
     if (roleParam && ['client', 'fournisseur', 'marketiste', 'admin'].includes(roleParam)) {
       setRoleFilter(roleParam as UserRole);
     }
-  }, [user, loading, router, searchParams]);
+  }, [user, loading, searchParams]);
 
   useEffect(() => {
     filterUsers();
@@ -120,14 +113,10 @@ export default function AdminUsersPage() {
 
   const handleApprove = async (userId: string) => {
     try {
-      await updateDoc(doc(db, 'users', userId), {
-        approvalStatus: 'approved',
-        approvedBy: user?.id,
-        approvedAt: new Date(),
-        isActive: true
-      });
+      const updates = { approvalStatus: 'approved' as const, approvedBy: user?.id, approvedAt: new Date(), isActive: true };
+      await updateDoc(doc(db, 'users', userId), updates);
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...updates } : u));
       toast.success(tAdmin('user_approved'));
-      loadUsers();
     } catch (error) {
       console.error('Error approving user:', error);
       toast.error(tAdmin('error_approving'));
@@ -136,13 +125,10 @@ export default function AdminUsersPage() {
 
   const handleReject = async (userId: string, reason: string) => {
     try {
-      await updateDoc(doc(db, 'users', userId), {
-        approvalStatus: 'rejected',
-        rejectionReason: reason,
-        isActive: false
-      });
+      const updates = { approvalStatus: 'rejected' as const, rejectionReason: reason, isActive: false };
+      await updateDoc(doc(db, 'users', userId), updates);
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...updates } : u));
       toast.success(tAdmin('user_rejected'));
-      loadUsers();
     } catch (error) {
       console.error('Error rejecting user:', error);
       toast.error(tAdmin('error_rejecting'));
@@ -151,11 +137,10 @@ export default function AdminUsersPage() {
 
   const handleDelete = async (userId: string) => {
     if (!confirm(tAdmin('delete_confirmation') + ' ?')) return;
-    
     try {
       await deleteDoc(doc(db, 'users', userId));
+      setUsers(prev => prev.filter(u => u.id !== userId));
       toast.success(tAdmin('user_deleted'));
-      loadUsers();
       setShowModal(false);
     } catch (error) {
       console.error('Error deleting user:', error);
@@ -165,11 +150,9 @@ export default function AdminUsersPage() {
 
   const handleToggleActive = async (userId: string, isActive: boolean) => {
     try {
-      await updateDoc(doc(db, 'users', userId), {
-        isActive: !isActive
-      });
+      await updateDoc(doc(db, 'users', userId), { isActive: !isActive });
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, isActive: !isActive } : u));
       toast.success(isActive ? tAdmin('user_deactivated') : tAdmin('user_activated'));
-      loadUsers();
     } catch (error) {
       console.error('Error toggling user status:', error);
       toast.error(tAdmin('error_updating'));

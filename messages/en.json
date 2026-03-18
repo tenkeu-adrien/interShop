@@ -347,6 +347,7 @@
         "licenses": "Licenses",
         "profiles": "Profiles",
         "contact_messages": "Messages",
+        "messages": "Conversations",
         "exchange_rates": "Exchange Rates",
         "payment_methods": "Payment Methods",
         "wallet_transactions": "Wallet Transactions",
@@ -976,7 +977,6 @@
         "recent_orders": "Recent orders",
         "no_orders": "No orders yet",
         "start_shopping": "Start shopping",
-        "wishlist": "Wishlist",
         "messages": "Messages",
         "wallet": "Wallet",
         "my_account": "My account",
@@ -985,5 +985,28 @@
         "items": "item(s)",
         "addresses": "My addresses",
         "security": "Security"
+    },
+    "orders": {
+        "title": "My orders",
+        "search_placeholder": "Search by order number...",
+        "pending": "Pending",
+        "shipped": "Shipped",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled",
+        "no_orders": "No orders found",
+        "start_shopping": "Start shopping",
+        "view_details": "View details"
+    },
+    "profile": {
+        "title": "My profile",
+        "personal_info": "Personal information",
+        "display_name": "Display name",
+        "email": "Email",
+        "phone": "Phone",
+        "security": "Security",
+        "email_verified": "Email verified",
+        "verified": "Verified",
+        "not_verified": "Not verified",
+        "account_status": "Account status"
     }
 }

@@ -29,7 +29,6 @@ import { db } from '@/lib/firebase/config';
 import { Product, Order, User as UserType } from '@/types';
 import Link from 'next/link';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
-import { useProductsStore } from '@/store/productsStore';
 
 interface DashboardStats {
   totalUsers: number;
@@ -49,8 +48,6 @@ export default function AdminDashboardPage() {
   const { user, loading } = useAuthStore();
   const tAdmin = useTranslations('admin');
   const tCommon = useTranslations('common');
-  // Utilise le store produits (cache 5 min) au lieu de requêtes directes
-  const { products: storeProducts, fetchProducts } = useProductsStore();
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     totalClients: 0,
@@ -82,21 +79,17 @@ export default function AdminDashboardPage() {
     setLoadingStats(true);
     try {
       // Requêtes en parallèle pour réduire le temps de chargement
-      const [usersSnapshot, ordersSnapshot, recentOrdersSnapshot, topProductsSnapshot] = await Promise.all([
+      const [usersSnapshot, ordersSnapshot, recentOrdersSnapshot, topProductsSnapshot, allProductsSnapshot] = await Promise.all([
         getDocs(collection(db, 'users')),
         getDocs(collection(db, 'orders')),
         getDocs(query(collection(db, 'orders'), orderBy('createdAt', 'desc'), limit(5))),
         getDocs(query(collection(db, 'products'), orderBy('sales', 'desc'), limit(5))),
+        getDocs(collection(db, 'products')),
       ]);
 
       const users = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as UserType[];
       const orders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Order[];
-
-      // Utilise le store produits (avec cache) pour les stats
-      if (storeProducts.length === 0) {
-        await fetchProducts();
-      }
-      const products = storeProducts.length > 0 ? storeProducts : [];
+      const products = allProductsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[];
 
       const now = new Date();
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -421,6 +414,14 @@ export default function AdminDashboardPage() {
             >
               <MessageSquare className="mx-auto mb-1 text-gray-600 group-hover:text-indigo-600" size={24} />
               <p className="font-semibold text-gray-900 text-sm">{tAdmin('contact_messages')}</p>
+            </Link>
+            
+            <Link
+              href="/dashboard/admin/messages"
+              className="p-3 border-2 border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all text-center group"
+            >
+              <MessageSquare className="mx-auto mb-1 text-gray-600 group-hover:text-indigo-600" size={24} />
+              <p className="font-semibold text-gray-900 text-sm">{tAdmin('messages') || 'Messages'}</p>
             </Link>
             
             <Link
