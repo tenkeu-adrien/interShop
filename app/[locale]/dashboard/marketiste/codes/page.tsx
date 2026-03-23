@@ -44,12 +44,12 @@ export default function MarketisteCodesPage() {
   });
 
   useEffect(() => {
-    // if (!loading && (!user || user.role !== 'marketiste')) {
-    //   router.push('/dashboard');
-    //   return;
-    // }
+    if (!loading && (!user || (user.role !== 'marketiste' && user.role !== 'admin'))) {
+      router.push('/dashboard');
+      return;
+    }
 
-    if (user && user.role !== 'marketiste') {
+    if (user && (user.role === 'marketiste' || user.role === 'admin')) {
       loadCodes();
     }
   }, [user, loading, router]);
@@ -172,9 +172,9 @@ export default function MarketisteCodesPage() {
     );
   }
 
-  // if (!user || user.role !== 'marketiste') {
-  //   return null;
-  // }
+  if (!user || (user.role !== 'marketiste' && user.role !== 'admin')) {
+    return null;
+  }
 
   const totalEarnings = codes.reduce((sum, c) => sum + c.totalEarnings, 0);
   const totalUsage = codes.reduce((sum, c) => sum + c.usageCount, 0);

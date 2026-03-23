@@ -56,6 +56,10 @@ export default function AdminUsersPage() {
   const usersPerPage = 10;
 
   useEffect(() => {
+    if (!loading && (!user || user.role !== 'admin')) {
+      router.push('/dashboard');
+      return;
+    }
     if (user) {
       loadUsers();
     }

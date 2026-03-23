@@ -55,6 +55,10 @@ export default function AdminProductsPage() {
   const productsPerPage = 12;
 
   useEffect(() => {
+    if (!loading && (!user || user.role !== 'admin')) {
+      router.push('/dashboard');
+      return;
+    }
     if (user) {
       loadProducts();
     }

@@ -51,6 +51,10 @@ export default function AdminOrdersPage() {
   const ordersPerPage = 10;
 
   useEffect(() => {
+    if (!loading && (!user || user.role !== 'admin')) {
+      router.push('/dashboard');
+      return;
+    }
     if (user) {
       loadOrders();
     }

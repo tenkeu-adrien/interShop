@@ -40,8 +40,10 @@ export default function AdminWalletPage() {
       return;
     }
 
-    // Vérifier si admin
-    // TODO: Ajouter vérification du rôle admin
+    if (user.role !== 'admin') {
+      router.push('/dashboard');
+      return;
+    }
 
     loadData();
   }, [user, router]);
