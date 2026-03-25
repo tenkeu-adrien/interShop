@@ -7,6 +7,7 @@ import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
 import { useCurrencyStore } from '@/store/currencyStore';
 import { createOrder } from '@/lib/firebase/orders';
+import { MarketingService } from '@/lib/services/marketingService';
 import { MapPin, CreditCard, Package, ArrowLeft, Loader, Plus } from 'lucide-react';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
 import { Address } from '@/types';
@@ -118,7 +119,7 @@ export default function CheckoutPage() {
 
   const subtotal = getTotal();
   const shippingFee = 10; // Fixed shipping fee for now
-  const discount = marketingCode ? subtotal * 0.1 : 0;
+  const discount = marketingValidation?.totalDiscount ?? (marketingCode ? subtotal * 0.1 : 0);
   const total = subtotal + shippingFee - discount;
 
   const handlePlaceOrder = async () => {
@@ -129,6 +130,19 @@ export default function CheckoutPage() {
 
     setLoading(true);
     try {
+      // Résoudre le marketisteId depuis le code marketing
+      let marketisteId: string | undefined;
+      let codeId: string | undefined;
+      const commission = marketingValidation?.totalCommission ?? 0;
+
+      if (marketingCode) {
+        const codeData = await MarketingService.getCodeByName(marketingCode);
+        if (codeData) {
+          marketisteId = codeData.marketisteId;
+          codeId = codeData.id;
+        }
+      }
+
       // Create order data - only include marketisteId if there's a marketing code
       const orderData: any = {
         orderNumber: `ORD-${Date.now()}`,
@@ -140,9 +154,13 @@ export default function CheckoutPage() {
           image: item.image,
           quantity: item.quantity,
           price: item.price,
+          discountApplied: false,
+          discountPercentage: 0,
+          finalPrice: item.price,
         })),
         subtotal,
-        marketingCommission: discount,
+        discountAmount: discount,
+        marketingCommission: commission,
         platformFee: 0,
         shippingFee,
         total,
@@ -158,12 +176,15 @@ export default function CheckoutPage() {
       // Only add marketingCode and marketisteId if they exist
       if (marketingCode) {
         orderData.marketingCode = marketingCode;
-        // TODO: Get actual marketiste ID from the marketing code
-        // For now, we'll leave it out if we don't have it
-        // orderData.marketisteId = 'actual-marketiste-id';
+        if (marketisteId) orderData.marketisteId = marketisteId;
       }
 
       const orderId = await createOrder(orderData, selectedCurrency);
+
+      // Incrémenter les stats du code marketing
+      if (codeId && commission > 0) {
+        await MarketingService.incrementCodeUsage(codeId, commission);
+      }
       
       // Clear cart
       clearCart();

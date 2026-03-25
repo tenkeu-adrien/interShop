@@ -82,6 +82,13 @@ function FournisseurDashboardContent() {
           <h2 className="text-xl font-bold mb-4">{tFournisseur('my_products')}</h2>
           <div className="space-y-3">
             <Link
+              href="/dashboard/fournisseur/orders"
+              className="flex items-center justify-between p-3 border rounded-lg hover:bg-orange-50 transition-colors text-orange-600"
+            >
+              <span>Mes commandes</span>
+              <ShoppingBag size={20} />
+            </Link>
+            <Link
               href="/dashboard/fournisseur/products"
               className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"
             >

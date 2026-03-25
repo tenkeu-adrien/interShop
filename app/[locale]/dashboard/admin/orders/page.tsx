@@ -27,6 +27,7 @@ import {
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { Order, OrderStatus } from '@/types';
+import { creditMarketisteCommission } from '@/lib/firebase/wallet';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
@@ -114,6 +115,23 @@ export default function AdminOrdersPage() {
       if (newStatus === 'delivered') updates.deliveredAt = new Date();
 
       await updateDoc(doc(db, 'orders', orderId), updates);
+
+      // Créditer la commission marketiste à la livraison
+      const order = orders.find(o => o.id === orderId);
+      if (newStatus === 'delivered' && order?.marketisteId && (order?.marketingCommission ?? 0) > 0) {
+        try {
+          await creditMarketisteCommission(
+            order.marketisteId,
+            order.id,
+            order.orderNumber,
+            order.marketingCommission
+          );
+          toast.success(`Commission $${order.marketingCommission.toFixed(2)} créditée au marketiste`);
+        } catch (e) {
+          console.error('Erreur crédit commission:', e);
+        }
+      }
+
       // Mise à jour locale immédiate — pas de re-fetch
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...updates } : o));
       if (selectedOrder?.id === orderId) {

@@ -874,3 +874,73 @@ export async function getWalletStatistics(): Promise<WalletStatistics> {
     todayVolume: todayTransactions.reduce((sum, d) => sum + d.data().amount, 0)
   };
 }
+
+// ============================================
+// COMMISSION MARKETISTE
+// ============================================
+
+/**
+ * Crédite automatiquement la commission d'un marketiste quand une commande est livrée.
+ * Appelé par le fournisseur ou l'admin lors du passage à "delivered".
+ */
+export async function creditMarketisteCommission(
+  marketisteId: string,
+  orderId: string,
+  orderNumber: string,
+  commissionUSD: number,
+  exchangeRateCDF: number = 2800
+): Promise<void> {
+  // Convertir USD → CDF
+  const commissionCDF = Math.round(commissionUSD * exchangeRateCDF);
+
+  if (commissionCDF <= 0) return;
+
+  return await runTransaction(db, async (transaction) => {
+    const walletRef = doc(db, 'wallets', marketisteId);
+    let walletDoc = await transaction.get(walletRef);
+
+    // Créer le wallet si inexistant
+    if (!walletDoc.exists()) {
+      const newWallet = {
+        id: marketisteId,
+        userId: marketisteId,
+        balance: 0,
+        pendingBalance: 0,
+        currency: 'XAF',
+        status: 'active',
+        pinAttempts: 0,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+      transaction.set(walletRef, newWallet);
+      // Re-read after set
+      walletDoc = await transaction.get(walletRef);
+    }
+
+    const currentBalance = walletDoc.exists() ? (walletDoc.data().balance || 0) : 0;
+
+    // Créer la transaction de commission
+    const commissionRef = doc(collection(db, 'transactions'));
+    transaction.set(commissionRef, {
+      walletId: marketisteId,
+      userId: marketisteId,
+      type: 'commission',
+      amount: commissionCDF,
+      fees: 0,
+      totalAmount: commissionCDF,
+      currency: 'XAF',
+      status: 'completed',
+      orderId,
+      reference: `COM-${orderNumber}`,
+      description: `Commission commande ${orderNumber}`,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    // Créditer le wallet
+    transaction.update(walletRef, {
+      balance: currentBalance + commissionCDF,
+      updatedAt: serverTimestamp(),
+    });
+  });
+}
