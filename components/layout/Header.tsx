@@ -418,7 +418,7 @@ export default function Header() {
             ) : (
               <Link
                 href="/login"
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-full font-medium transition-colors shadow-md"
+                className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 sm:px-6 rounded-full font-medium transition-colors shadow-md text-sm sm:text-base whitespace-nowrap"
               >
                 {tCommon('login')}
               </Link>
