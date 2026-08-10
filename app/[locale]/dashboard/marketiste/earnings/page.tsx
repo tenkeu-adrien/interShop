@@ -22,6 +22,7 @@ import {
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { Order } from '@/types';
+import { toDate } from '@/lib/utils/date';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
@@ -88,12 +89,12 @@ export default function MarketisteEarningsPage() {
   const filterOrdersByPeriod = (orders: Order[]) => {
     if (periodFilter === 'month') {
       return orders.filter(o => {
-        const orderDate = o.createdAt instanceof Date ? o.createdAt : new Date(o.createdAt);
+        const orderDate = toDate(o.createdAt);
         return orderDate >= firstDayOfMonth;
       });
     } else if (periodFilter === 'week') {
       return orders.filter(o => {
-        const orderDate = o.createdAt instanceof Date ? o.createdAt : new Date(o.createdAt);
+        const orderDate = toDate(o.createdAt);
         return orderDate >= firstDayOfWeek;
       });
     }
@@ -116,7 +117,7 @@ export default function MarketisteEarningsPage() {
   // Earnings by month
   const earningsByMonth: { [key: string]: number } = {};
   orders.forEach(order => {
-    const date = order.createdAt instanceof Date ? order.createdAt : new Date(order.createdAt);
+    const date = toDate(order.createdAt);
     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     earningsByMonth[monthKey] = (earningsByMonth[monthKey] || 0) + order.marketingCommission;
   });
@@ -129,8 +130,8 @@ export default function MarketisteEarningsPage() {
   // Recent transactions
   const recentTransactions = [...filteredOrders]
     .sort((a, b) => {
-      const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
-      const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+      const dateA = toDate(a.createdAt);
+      const dateB = toDate(b.createdAt);
       return dateB.getTime() - dateA.getTime();
     })
     .slice(0, 10);
@@ -388,7 +389,7 @@ export default function MarketisteEarningsPage() {
                 {recentTransactions.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {new Date(order.createdAt).toLocaleDateString('fr-FR')}
+                      {toDate(order.createdAt).toLocaleDateString('fr-FR')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       {order.orderNumber}

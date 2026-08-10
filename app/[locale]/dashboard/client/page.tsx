@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { Order } from '@/types';
+import { toDate } from '@/lib/utils/date';
 
 function ClientDashboardContent() {
   const { user } = useAuthStore();
@@ -128,7 +129,7 @@ function ClientDashboardContent() {
                       <div>
                         <p className="font-semibold text-sm text-gray-900">{order.orderNumber}</p>
                         <p className="text-xs text-gray-500">
-                          {new Date(order.createdAt).toLocaleDateString('fr-FR')} · {order.products.length} {t('items')}
+                          {toDate(order.createdAt).toLocaleDateString('fr-FR')} · {order.products.length} {t('items')}
                         </p>
                       </div>
                     </div>

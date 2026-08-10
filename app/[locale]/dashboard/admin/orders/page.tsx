@@ -26,7 +26,9 @@ import {
 } from 'lucide-react';
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { updateOrderStatus as updateOrderStatusWithNotif } from '@/lib/firebase/orders';
 import { Order, OrderStatus } from '@/types';
+import { toDate } from '@/lib/utils/date';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
@@ -69,8 +71,8 @@ export default function AdminOrdersPage() {
         ...doc.data() 
       })) as Order[];
       ordersData.sort((a, b) => {
-        const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
-        const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+        const dateA = toDate(a.createdAt);
+        const dateB = toDate(b.createdAt);
         return dateB.getTime() - dateA.getTime();
       });
       setOrders(ordersData);
@@ -104,12 +106,14 @@ export default function AdminOrdersPage() {
 
   const handleUpdateStatus = async (orderId: string, newStatus: OrderStatus) => {
     try {
+      // Utilise updateOrderStatus (notifie le client à chaque étape)
+      await updateOrderStatusWithNotif(orderId, newStatus);
       const updates: any = { status: newStatus, updatedAt: new Date() };
       if (newStatus === 'paid') updates.paidAt = new Date();
+      if (newStatus === 'processing') updates.processingAt = new Date();
       if (newStatus === 'shipped') updates.shippedAt = new Date();
       if (newStatus === 'delivered') updates.deliveredAt = new Date();
 
-      await updateDoc(doc(db, 'orders', orderId), updates);
       // Mise à jour locale immédiate — pas de re-fetch
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...updates } : o));
       if (selectedOrder?.id === orderId) {
@@ -312,7 +316,7 @@ export default function AdminOrdersPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex items-center gap-1">
                         <Calendar size={14} />
-                        {new Date(order.createdAt).toLocaleDateString('fr-FR')}
+                        {toDate(order.createdAt).toLocaleDateString('fr-FR')}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -396,7 +400,7 @@ export default function AdminOrdersPage() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">{tOrders('date')}</p>
-                      <p className="font-semibold">{new Date(selectedOrder.createdAt).toLocaleDateString('fr-FR')}</p>
+                      <p className="font-semibold">{toDate(selectedOrder.createdAt).toLocaleDateString('fr-FR')}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">{tCommon('payment_method')}</p>

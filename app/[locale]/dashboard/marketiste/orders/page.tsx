@@ -22,6 +22,7 @@ import {
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { Order, OrderStatus } from '@/types';
+import { toDate } from '@/lib/utils/date';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
@@ -286,7 +287,7 @@ export default function MarketisteOrdersPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex items-center gap-1">
                         <Calendar size={14} />
-                        {new Date(order.createdAt).toLocaleDateString('fr-FR')}
+                        {toDate(order.createdAt).toLocaleDateString('fr-FR')}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -381,7 +382,7 @@ export default function MarketisteOrdersPage() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Date</p>
-                      <p className="font-semibold">{new Date(selectedOrder.createdAt).toLocaleDateString('fr-FR')}</p>
+                      <p className="font-semibold">{toDate(selectedOrder.createdAt).toLocaleDateString('fr-FR')}</p>
                     </div>
                   </div>
 

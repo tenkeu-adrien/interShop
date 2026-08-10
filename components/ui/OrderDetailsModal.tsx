@@ -6,6 +6,7 @@ import { Order, UserRole } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { SUPPORTED_CURRENCIES } from '@/lib/constants/currencies';
+import { toDate } from '@/lib/utils/date';
 
 interface OrderDetailsModalProps {
   order: Order;
@@ -54,7 +55,7 @@ export function OrderDetailsModal({
                     Commande #{order.orderNumber}
                   </h2>
                   <p className="text-sm text-gray-600 mt-1">
-                    {format(order.createdAt, 'PPP', { locale: fr })}
+                    {format(toDate(order.createdAt), 'PPP', { locale: fr })}
                   </p>
                 </div>
                 <button

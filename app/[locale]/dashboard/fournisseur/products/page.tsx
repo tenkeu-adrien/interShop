@@ -23,6 +23,7 @@ import toast from 'react-hot-toast';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import Link from 'next/link';
 import { usePublicProductsStore } from '@/store/publicProductsStore';
+import { PriceDisplay } from '@/components/ui/PriceDisplay';
 
 type ViewMode = 'grid' | 'list';
 
@@ -407,7 +408,7 @@ function ProductsListContent() {
                     <div>
                       <p className="text-xs text-gray-500">Prix</p>
                       <p className="text-lg font-bold text-orange-600">
-                        ${product.prices[0].price}
+                        <PriceDisplay priceUSD={product.prices[0].price} currency={product.currency} />
                       </p>
                     </div>
                     <div className="text-right">
@@ -511,7 +512,9 @@ function ProductsListContent() {
                     <div className="flex flex-wrap gap-6 text-sm mb-4">
                       <div>
                         <span className="text-gray-600">Prix: </span>
-                        <span className="font-semibold text-orange-600">${product.prices[0].price}</span>
+                        <span className="font-semibold text-orange-600">
+                          <PriceDisplay priceUSD={product.prices[0].price} currency={product.currency} />
+                        </span>
                       </div>
                       <div>
                         <span className="text-gray-600">MOQ: </span>

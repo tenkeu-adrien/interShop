@@ -10,6 +10,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { toDate } from '@/lib/utils/date';
 
 function ExchangeRatesContent() {
   const { exchangeRates, lastUpdate, updateExchangeRates, loading } = useCurrencyStore();
@@ -61,7 +62,7 @@ function ExchangeRatesContent() {
   const getTimeSinceUpdate = () => {
     if (!lastUpdate) return 'Jamais';
     const now = new Date();
-    const diff = now.getTime() - new Date(lastUpdate).getTime();
+    const diff = now.getTime() - toDate(lastUpdate).getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     
@@ -74,7 +75,7 @@ function ExchangeRatesContent() {
   const isStale = () => {
     if (!lastUpdate) return true;
     const now = new Date();
-    const diff = now.getTime() - new Date(lastUpdate).getTime();
+    const diff = now.getTime() - toDate(lastUpdate).getTime();
     return diff > 24 * 60 * 60 * 1000; // Plus de 24h
   };
 

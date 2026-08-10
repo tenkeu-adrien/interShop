@@ -10,8 +10,9 @@ import {
   orderBy,
 } from 'firebase/firestore';
 import { db } from './config';
-import { Order, OrderStatus, PaymentStatus, SupportedCurrency } from '@/types';
+import { Order, OrderStatus, PaymentStatus, SupportedCurrency, NotificationType } from '@/types';
 import { ExchangeRateService } from '@/lib/services/exchangeRateService';
+import { createNotification } from './notifications';
 
 export const createOrder = async (
   orderData: Omit<Order, 'id'>,
@@ -46,6 +47,25 @@ export const getOrder = async (orderId: string): Promise<Order | null> => {
   return { id: docSnap.id, ...docSnap.data() } as Order;
 };
 
+// Configuration des notifications clients à chaque étape du suivi
+const STATUS_NOTIFICATION: Partial<Record<OrderStatus, { type: NotificationType; title: string; message: string }>> = {
+  processing: {
+    type: 'order_processing',
+    title: 'Commande en traitement',
+    message: 'Votre commande est en cours de traitement.',
+  },
+  shipped: {
+    type: 'order_shipped',
+    title: 'Commande expédiée',
+    message: 'Votre commande a été expédiée.',
+  },
+  delivered: {
+    type: 'order_delivered',
+    title: 'Commande livrée',
+    message: 'Votre commande a été livrée.',
+  },
+};
+
 export const updateOrderStatus = async (
   orderId: string,
   status: OrderStatus,
@@ -54,10 +74,30 @@ export const updateOrderStatus = async (
   const updates: any = { status, updatedAt: new Date(), ...additionalData };
 
   if (status === 'paid') updates.paidAt = new Date();
+  if (status === 'processing') updates.processingAt = new Date();
   if (status === 'shipped') updates.shippedAt = new Date();
   if (status === 'delivered') updates.deliveredAt = new Date();
 
   await updateDoc(doc(db, 'orders', orderId), updates);
+
+  // Notifier le client à chaque étape + push FCM
+  const config = STATUS_NOTIFICATION[status];
+  if (config) {
+    try {
+      const order = await getOrder(orderId);
+      if (order?.clientId) {
+        await createNotification(
+          order.clientId,
+          config.type,
+          config.title,
+          `Commande ${order.orderNumber || orderId} — ${config.message}`,
+          { orderId, status, orderNumber: order.orderNumber }
+        );
+      }
+    } catch (error) {
+      console.error('Erreur notification changement de statut:', error);
+    }
+  }
 };
 
 export const updatePaymentStatus = async (

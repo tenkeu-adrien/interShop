@@ -105,6 +105,7 @@ export function OptimizedProductCard({ product, index = 0, variant = 'default' }
           <div className="flex flex-col gap-1">
             <PriceDisplay 
               priceUSD={product.prices[0].price}
+              currency={product.currency}
               className={`text-lg font-bold ${
                 variant === 'hot' ? 'text-red-600' : 'text-green-600'
               }`}

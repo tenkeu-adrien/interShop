@@ -30,6 +30,7 @@ import {
 import { collection, getDocs, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { User as UserType, UserRole, ApprovalStatus } from '@/types';
+import { toDate } from '@/lib/utils/date';
 import Link from 'next/link';
 import { BackButton } from '@/components/ui/BackButton';
 import toast from 'react-hot-toast';
@@ -388,7 +389,7 @@ export default function AdminUsersPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex items-center gap-1">
                         <Calendar size={14} />
-                        {new Date(u.createdAt).toLocaleDateString('fr-FR')}
+                        {toDate(u.createdAt).toLocaleDateString('fr-FR')}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -539,7 +540,7 @@ export default function AdminUsersPage() {
                       <div>
                         <p className="text-sm text-gray-600">{tAdmin('registration_date')}</p>
                         <p className="font-semibold">
-                          {new Date(selectedUser.createdAt).toLocaleDateString('fr-FR')}
+                          {toDate(selectedUser.createdAt).toLocaleDateString('fr-FR')}
                         </p>
                       </div>
                     </div>

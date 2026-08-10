@@ -2,9 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ShoppingBag, ShoppingCart, MessageCircle, User } from 'lucide-react';
+import { Home, Store, MessageCircle, User } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
-import { useCartStore } from '@/store/cartStore';
 import { useChatStore } from '@/store/chatStore';
 import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
@@ -12,26 +11,20 @@ import { useTranslations } from 'next-intl';
 export default function MobileNav() {
   const pathname = usePathname();
   const { user } = useAuthStore();
-  const { items } = useCartStore();
   const { totalUnreadCount } = useChatStore();
   const tNav = useTranslations('nav');
-  const tCommon = useTranslations('common');
 
   const navItems = [
     { href: '/', icon: Home, label: tNav('home') },
-    { href: '/products', icon: ShoppingBag, label: tNav('products') },
-    { href: '/cart', icon: ShoppingCart, label: tNav('cart'), badge: items.length },
-    { href: '/chat', icon: MessageCircle, label: tNav('messages'), badge: totalUnreadCount, requireAuth: true },
-    { href: user ? '/dashboard' : '/login', icon: User, label: user ? tNav('profile') : tCommon('login') },
+    { href: '/boutiques', icon: Store, label: tNav('shops') },
+    { href: '/chat', icon: MessageCircle, label: tNav('messages'), badge: totalUnreadCount },
+    { href: user ? '/dashboard' : '/login', icon: User, label: tNav('profile') },
   ];
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-bottom">
       <div className="flex justify-around items-center h-16 px-2">
         {navItems.map((item) => {
-          // Skip auth-required items if not logged in
-          if (item.requireAuth && !user) return null;
-          
           const isActive = pathname === item.href;
           const Icon = item.icon;
           

@@ -24,7 +24,10 @@ import {
   Heart,
   Wallet,
   Globe,
-  Tag
+  Tag,
+  Home,
+  Store,
+  User
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CurrencySelector } from '@/components/ui/CurrencySelector';
@@ -329,7 +332,7 @@ export default function Header() {
 
                         {user.role === 'client' && (
                           <Link
-                            href="/dashboard/client/orders"
+                            href="/orders"
                             onClick={() => setShowUserMenu(false)}
                             className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-gray-700"
                           >
@@ -437,34 +440,26 @@ export default function Header() {
       <div className="bg-green-600 border-t border-green-500">
         <div className="container mx-auto px-4">
           <nav className="flex items-center gap-4 md:gap-6 h-12 text-sm overflow-x-auto scrollbar-hide">
-            <Link href="/products" className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
-              <ShoppingBag size={16} />
-              <span className="hidden sm:inline">{tNav('products')}</span>
+            <Link href="/" className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
+              <Home size={16} />
+              <span>{tNav('home')}</span>
             </Link>
-            <Link href="/restaurants" className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
-              <UtensilsCrossed size={16} />
-              <span className="hidden sm:inline">{tNav('restaurants')}</span>
+            <Link href="/boutiques" className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
+              <Store size={16} />
+              <span>{tNav('shops')}</span>
             </Link>
-            <Link href="/hotels" className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
-              <Hotel size={16} />
-              <span className="hidden sm:inline">{tNav('hotels')}</span>
+            <Link href="/chat" className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2 whitespace-nowrap relative">
+              <MessageCircle size={16} />
+              <span>{tNav('messages')}</span>
+              {totalUnreadCount > 0 && (
+                <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] px-1 flex items-center justify-center">
+                  {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
+                </span>
+              )}
             </Link>
-            <Link href="/dating" className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
-              <Heart size={16} />
-              <span className="hidden sm:inline">{tNav('dating')}</span>
-            </Link>
-            <div className="hidden md:block h-6 w-px bg-green-500"></div>
-            <Link href="/categories" className="text-white hover:text-yellow-300 font-medium transition-colors whitespace-nowrap">
-              {tNav('categories')}
-            </Link>
-            <Link href="/suppliers" className="text-white hover:text-yellow-300 font-medium transition-colors whitespace-nowrap hidden md:inline">
-              {tNav('suppliers')}
-            </Link>
-            <Link href="/deals" className="text-white hover:text-yellow-300 font-medium transition-colors whitespace-nowrap">
-              {tNav('deals')}
-            </Link>
-            <Link href="/help" className="text-white hover:text-yellow-300 font-medium transition-colors whitespace-nowrap hidden lg:inline">
-              {tNav('help')}
+            <Link href={user ? '/dashboard' : '/login'} className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
+              <User size={16} />
+              <span>{tNav('profile')}</span>
             </Link>
           </nav>
         </div>

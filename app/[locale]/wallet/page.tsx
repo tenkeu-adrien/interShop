@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { toDate } from '@/lib/utils/date';
 import { useTranslations } from 'next-intl';
 import DepositModal from '@/components/wallet/DepositModal';
 import WithdrawalModal from '@/components/wallet/WithdrawalModal';
@@ -192,7 +193,7 @@ export default function WalletPage() {
                           {transaction.description}
                         </p>
                         <p className="text-sm text-gray-600">
-                          {formatDistanceToNow(transaction.createdAt, { 
+                          {formatDistanceToNow(toDate(transaction.createdAt), { 
                             addSuffix: true,
                             locale: fr 
                           })}

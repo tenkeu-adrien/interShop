@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/authStore';
 import { MessageCircle, Search, Loader2, Package, Filter } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { toDate } from '@/lib/utils/date';
 import { ConversationType, getConversationTypeLabel, getConversationTypeIcon, getConversationTypeColor } from '@/types/chat';
 
 export function ChatList() {
@@ -15,7 +16,7 @@ export function ChatList() {
   const { conversations, loading, subscribeConversations, unsubscribeConversations } = useChatStore();
   const [selectedFilter, setSelectedFilter] = useState<ConversationType | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-
+    
   useEffect(() => {
     if (user) {
       subscribeConversations(user.id);
@@ -183,7 +184,7 @@ export function ChatList() {
                       </h3>
                       {lastMessage && (
                         <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
-                          {formatDistanceToNow(new Date(lastMessage.createdAt), {
+                          {formatDistanceToNow(toDate(lastMessage.createdAt), {
                             addSuffix: true,
                             locale: fr,
                           })}

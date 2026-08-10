@@ -111,6 +111,7 @@ export default function CartPage() {
                         <div className="flex items-center gap-2">
                           <PriceDisplay 
                             priceUSD={item.price}
+                            currency={item.currency}
                             className="text-gray-400 line-through text-sm"
                           />
                           <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
@@ -119,12 +120,14 @@ export default function CartPage() {
                         </div>
                         <PriceDisplay 
                           priceUSD={item.price * (1 - applicableProduct.discountPercentage / 100)}
+                          currency={item.currency}
                           className="text-orange-600 font-bold text-lg"
                         />
                       </div>
                     ) : (
                       <PriceDisplay 
                         priceUSD={item.price}
+                        currency={item.currency}
                         className="text-orange-600 font-bold"
                       />
                     )}

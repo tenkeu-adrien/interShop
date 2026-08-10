@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { toDate } from '@/lib/utils/date';
 
 export default function AdminWalletTransactionsPage() {
   const { user } = useAuthStore();
@@ -105,8 +106,8 @@ export default function AdminWalletTransactionsPage() {
     setAdminNotes('');
   };
 
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleString('fr-FR', {
+  const formatDate = (date: unknown) => {
+    return toDate(date).toLocaleString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

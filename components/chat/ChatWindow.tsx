@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { toDate } from '@/lib/utils/date';
 import { Conversation } from '@/types/chat';
 import toast from 'react-hot-toast';
 
@@ -381,7 +382,7 @@ export function ChatWindow({
               isOwn ? 'justify-end' : 'justify-start'
             }`}>
               <span>
-                {formatDistanceToNow(new Date(message.createdAt), {
+                {formatDistanceToNow(toDate(message.createdAt), {
                   addSuffix: true,
                   locale: fr,
                 })}

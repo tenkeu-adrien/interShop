@@ -10,6 +10,7 @@ interface CartItem {
   quantity: number;
   fournisseurId: string;
   moq: number;
+  currency?: 'USD' | 'CDF';
 }
 
 interface CartState {

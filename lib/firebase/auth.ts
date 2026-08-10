@@ -8,15 +8,35 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
 import { auth, db } from './config';
-import { User, UserRole, AccountStatus } from '@/types';
+import { User, UserRole, AccountStatus, SupportedCurrency } from '@/types';
 import { generateEmailVerificationCode } from './verification';
 import { sendVerificationEmail } from '../services/emailService';
+
+export interface ShopCreationData {
+  shopName?: string;
+  shopCategory?: string;
+  shopCurrency?: 'USD' | 'CDF';
+  shopLocation?: {
+    latitude: number;
+    longitude: number;
+    address?: string;
+    city?: string;
+    country: string;
+  };
+}
+
+export interface RegisterOptions {
+  phoneNumber?: string;
+  phoneCountryCode?: string;
+  shop?: ShopCreationData;
+}
 
 export const registerUser = async (
   email: string,
   password: string,
   displayName: string,
-  role: UserRole
+  role: UserRole,
+  options?: RegisterOptions
 ): Promise<User> => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -33,12 +53,19 @@ export const registerUser = async (
       displayName,
       role,
       photoURL: firebaseUser.photoURL || null,
-      phoneNumber: firebaseUser.phoneNumber || null,
+      phoneNumber: options?.phoneNumber || firebaseUser.phoneNumber || null,
+      phoneCountryCode: options?.phoneCountryCode || '+243',
       createdAt: new Date(),
       updatedAt: new Date(),
       isVerified: false,
       isActive: true,
       approvalStatus: (role === 'fournisseur' || role === 'marketiste') ? 'pending' : 'approved',
+      
+      // Boutique fournisseur
+      ...(options?.shop?.shopName && { shopName: options.shop.shopName }),
+      ...(options?.shop?.shopCategory && { shopCategory: options.shop.shopCategory }),
+      ...(options?.shop?.shopCurrency && { shopCurrency: options.shop.shopCurrency }),
+      ...(options?.shop?.shopLocation && { shopLocation: options.shop.shopLocation }),
       
       // Nouveau système de vérification
       accountStatus: initialStatus,

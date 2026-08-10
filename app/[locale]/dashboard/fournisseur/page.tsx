@@ -142,7 +142,14 @@ function FournisseurDashboardContent() {
 
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-bold mb-4">{tDashboard('orders')}</h2>
-          <div className="text-gray-500 text-center py-8">
+          <Link
+            href="/dashboard/fournisseur/orders"
+            className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <span>{tFournisseur('manage_orders')}</span>
+            <ShoppingBag size={20} className="text-gray-400" />
+          </Link>
+          <div className="text-gray-500 text-center py-4">
             {tDashboard('no_activity')}
           </div>
         </div>

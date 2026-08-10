@@ -27,6 +27,7 @@ import {
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { Product, Order, User as UserType } from '@/types';
+import { toDate } from '@/lib/utils/date';
 import Link from 'next/link';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
 
@@ -95,7 +96,7 @@ export default function AdminDashboardPage() {
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const monthlyRevenue = orders
         .filter(o => {
-          const d = o.createdAt instanceof Date ? o.createdAt : new Date(o.createdAt);
+          const d = toDate(o.createdAt);
           return d >= firstDayOfMonth;
         })
         .reduce((sum, o) => sum + o.total, 0);

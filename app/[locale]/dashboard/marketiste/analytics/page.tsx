@@ -23,6 +23,7 @@ import {
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { MarketingCode, Order } from '@/types';
+import { toDate } from '@/lib/utils/date';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
@@ -127,7 +128,7 @@ export default function MarketisteAnalyticsPage() {
   // Monthly performance
   const monthlyPerformance: { [key: string]: { orders: number; earnings: number } } = {};
   orders.forEach(order => {
-    const date = order.createdAt instanceof Date ? order.createdAt : new Date(order.createdAt);
+    const date = toDate(order.createdAt);
     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     if (!monthlyPerformance[monthKey]) {
       monthlyPerformance[monthKey] = { orders: 0, earnings: 0 };

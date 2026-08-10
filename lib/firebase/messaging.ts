@@ -56,10 +56,9 @@ export const requestNotificationPermission = async (userId: string): Promise<str
     }
 
     // Récupérer le token FCM
-    // IMPORTANT: Vous devez ajouter votre VAPID key dans Firebase Console
-    // Firebase Console > Project Settings > Cloud Messaging > Web Push certificates
+    // IMPORTANT: Clé VAPID dans Firebase Console > Project Settings > Cloud Messaging > Web Push certificates
     const token = await getToken(messagingInstance, {
-      vapidKey: 'VOTRE_VAPID_KEY_ICI' // À remplacer par votre clé VAPID
+      vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || 'VOTRE_VAPID_KEY_ICI', // À remplacer par votre clé VAPID
     });
 
     if (token) {

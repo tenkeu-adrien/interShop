@@ -17,11 +17,23 @@ import { db } from './config';
 import { Product, SearchFilters } from '@/types';
 
 export const createProduct = async (productData: Omit<Product, 'id'>): Promise<string> => {
+  const fournisseurId = productData.fournisseurId;
+
+  // Vérifier le quota (3 produits gratuits, plus selon la licence)
+  const usage = await getProductUsage(fournisseurId);
+  if (usage.currentCount >= usage.quota && usage.quota !== -1) {
+    throw new Error('Limite de produits atteinte (3 produits pour la version gratuite). Veuillez passer à une licence supérieure.');
+  }
+
   const docRef = await addDoc(collection(db, 'products'), {
     ...productData,
     createdAt: new Date(),
     updatedAt: new Date(),
   });
+
+  // Incrémenter l'usage
+  await updateProductUsage(fournisseurId, 1);
+
   return docRef.id;
 };
 
@@ -41,7 +53,21 @@ export const updateProduct = async (
 };
 
 export const deleteProduct = async (productId: string): Promise<void> => {
-  await deleteDoc(doc(db, 'products', productId));
+  const docRef = doc(db, 'products', productId);
+  const snapshot = await getDoc(docRef);
+
+  if (snapshot.exists()) {
+    const fournisseurId = snapshot.data().fournisseurId;
+    await deleteDoc(docRef);
+
+    // Décrémenter l'usage du quota
+    if (fournisseurId) {
+      await updateProductUsage(fournisseurId, -1);
+    }
+    return;
+  }
+
+  await deleteDoc(docRef);
 };
 
 export const searchProducts = async (

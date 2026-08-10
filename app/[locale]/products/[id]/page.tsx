@@ -213,6 +213,7 @@ export default function ProductDetailPage() {
       price: currentPrice.price,
       fournisseurId: product.fournisseurId,
       moq: product.moq,
+      currency: product.currency,
     });
 
     toast.success(t('products.add_to_cart') + ' !');
@@ -371,6 +372,7 @@ export default function ProductDetailPage() {
                 <div className="flex items-baseline gap-2 mb-2">
                   <PriceDisplay 
                     priceUSD={currentPrice.price}
+                    currency={product.currency}
                     className="text-4xl font-bold text-green-600"
                   />
                   <span className="text-gray-600">{t('products.per_unit')}</span>
@@ -405,6 +407,7 @@ export default function ProductDetailPage() {
                         </div>
                         <PriceDisplay 
                           priceUSD={tier.price}
+                          currency={product.currency}
                           className="text-lg font-bold text-green-600"
                         />
                       </motion.button>
@@ -450,6 +453,7 @@ export default function ProductDetailPage() {
                 <div className="mt-2 text-sm text-gray-600">
                   {t('products.total')}: <PriceDisplay 
                     priceUSD={totalPrice}
+                    currency={product.currency}
                     className="font-bold text-green-600 text-lg inline"
                   />
                 </div>
@@ -645,6 +649,7 @@ export default function ProductDetailPage() {
                     <div className="flex items-baseline gap-2">
                       <PriceDisplay 
                         priceUSD={similarProduct.prices[0].price}
+                        currency={similarProduct.currency}
                         className="text-lg font-bold text-green-600"
                       />
                       <span className="text-xs text-gray-500">

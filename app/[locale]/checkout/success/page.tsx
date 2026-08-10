@@ -41,23 +41,23 @@ export default function CheckoutSuccessPage() {
         </h1>
         
         <p className="text-gray-600 mb-6">
-          Votre commande a été passée avec succès ! Vous recevrez un email de confirmation sous peu.
+          {t('success_desc')}
         </p>
         
         {orderId && (
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <p className="text-sm text-gray-600 mb-1">Numéro de commande</p>
+            <p className="text-sm text-gray-600 mb-1">{t('order_number_label')}</p>
             <p className="font-mono text-lg font-bold text-gray-900">{orderId}</p>
           </div>
         )}
         
         <div className="space-y-3">
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push('/orders')}
             className="w-full bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors flex items-center justify-center gap-2"
           >
             <Package size={20} />
-            Voir mes commandes
+            {t('track_my_order')}
           </button>
           
           <button
@@ -65,7 +65,7 @@ export default function CheckoutSuccessPage() {
             className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
           >
             <Home size={20} />
-            Retour à l'accueil
+            {tCommon('back')}
           </button>
         </div>
       </motion.div>

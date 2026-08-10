@@ -7,12 +7,45 @@ import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
 import { useCurrencyStore } from '@/store/currencyStore';
 import { createOrder } from '@/lib/firebase/orders';
-import { MapPin, CreditCard, Package, ArrowLeft, Loader, Plus } from 'lucide-react';
+import { createNotification } from '@/lib/firebase/notifications';
+import { MapPin, CreditCard, Package, ArrowLeft, Loader, Plus, Truck, Store } from 'lucide-react';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
+import { MobileMoneyIcon, OrangeMoneyIcon, StripeIcon, PayPalIcon } from '@/components/ui/PaymentMethodIcons';
 import { Address } from '@/types';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+
+type OrderPaymentMethod = 'mobile_money' | 'orange_money' | 'card' | 'paypal';
+type DeliveryMethod = 'delivery' | 'pickup';
+
+const PAYMENT_METHODS: { id: OrderPaymentMethod; icon: React.ReactNode }[] = [
+  { id: 'mobile_money', icon: <MobileMoneyIcon /> },
+  { id: 'orange_money', icon: <OrangeMoneyIcon /> },
+  { id: 'card', icon: <StripeIcon /> },
+  { id: 'paypal', icon: <PayPalIcon /> },
+];
+
+const PAYMENT_INFO: Record<OrderPaymentMethod, { labelKey: string; descKey: string }> = {
+  mobile_money: { labelKey: 'pay_mobile_money', descKey: 'pay_mobile_money_desc' },
+  orange_money: { labelKey: 'pay_orange_money', descKey: 'pay_orange_money_desc' },
+  card: { labelKey: 'pay_card', descKey: 'pay_card_desc' },
+  paypal: { labelKey: 'pay_paypal', descKey: 'pay_paypal_desc' },
+};
+
+const COUNTRIES_LIST = [
+  'Congo (RDC)', 'RDC - République Démocratique du Congo', 'Congo (Brazzaville)',
+  'Cameroun', "Côte d'Ivoire", 'Sénégal', 'Burkina Faso', 'Mali', 'Niger', 'Togo', 'Bénin',
+  'Ghana', 'Nigeria', 'Kenya', 'Tanzanie', 'Ouganda', 'Rwanda', 'Burundi', 'Gabon', 'Tchad',
+  'Centrafrique', 'Guinée', 'Sierra Leone', 'Liberia', 'Gambie', 'Guinée-Bissau', 'Cap-Vert',
+  'Angola', 'Zambie', 'Zimbabwe', 'Mozambique', 'Malawi', 'Botswana', 'Namibie', 'Mauritanie',
+  'Maroc', 'Algérie', 'Tunisie', 'Libye', 'Égypte', 'Soudan', 'Soudan du Sud', 'Éthiopie',
+  'Somalie', 'Djibouti', 'Érythrée', 'Madagascar', 'Maurice', 'Seychelles', 'Comores',
+  'Afrique du Sud', 'États-Unis', 'Canada', 'Brésil', 'Argentine', 'Mexique', 'Chine', 'Inde',
+  'Japon', 'Corée du Sud', 'Royaume-Uni', 'France', 'Allemagne', 'Espagne', 'Italie', 'Belgique',
+  'Pays-Bas', 'Portugal', 'Suisse', 'Turquie', 'Émirats arabes unis', 'Arabie saoudite', 'Israël',
+  'Australie', 'Russie', 'Indonésie', 'Thaïlande', 'Vietnam', 'Philippines',
+];
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -21,16 +54,17 @@ export default function CheckoutPage() {
   const { selectedCurrency } = useCurrencyStore();
   const t = useTranslations('checkout');
   const [loading, setLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<OrderPaymentMethod>('mobile_money');
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('delivery');
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [newAddress, setNewAddress] = useState<Partial<Address>>({
     label: 'Domicile',
     fullName: '',
-    phone: '',
+    phone: '+243',
     street: '',
     city: '',
-    state: '',
-    country: '',
+    country: 'Congo (RDC)',
     postalCode: '',
     isDefault: false,
   });
@@ -62,8 +96,7 @@ export default function CheckoutPage() {
           phone: user.phoneNumber || '',
           street: '',
           city: '',
-          state: '',
-          country: '',
+          country: 'Congo (RDC)',
           postalCode: '',
           isDefault: false,
         });
@@ -77,8 +110,7 @@ export default function CheckoutPage() {
         phone: user.phoneNumber || '',
         street: '',
         city: '',
-        state: '',
-        country: '',
+        country: 'Congo (RDC)',
         postalCode: '',
         isDefault: false,
       });
@@ -105,7 +137,7 @@ export default function CheckoutPage() {
       phone: newAddress.phone!,
       street: newAddress.street!,
       city: newAddress.city!,
-      state: newAddress.state || '',
+      state: '',
       country: newAddress.country!,
       postalCode: newAddress.postalCode!,
       isDefault: false,
@@ -117,12 +149,14 @@ export default function CheckoutPage() {
   };
 
   const subtotal = getTotal();
-  const shippingFee = 10; // Fixed shipping fee for now
+  const shippingFee = deliveryMethod === 'pickup' ? 0 : 10; // Livraison ou retrait boutique
   const discount = marketingCode ? subtotal * 0.1 : 0;
   const total = subtotal + shippingFee - discount;
 
   const handlePlaceOrder = async () => {
-    if (!user || !selectedAddress) {
+    if (!user) return;
+
+    if (deliveryMethod === 'delivery' && !selectedAddress) {
       toast.error(t('please_select_address'));
       return;
     }
@@ -149,8 +183,9 @@ export default function CheckoutPage() {
         currency: 'USD',
         status: 'pending' as const,
         paymentStatus: 'pending' as const,
-        paymentMethod: 'card',
-        shippingAddress: selectedAddress,
+        paymentMethod: paymentMethod,
+        deliveryMethod: deliveryMethod,
+        ...(deliveryMethod === 'delivery' ? { shippingAddress: selectedAddress } : {}),
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -165,6 +200,21 @@ export default function CheckoutPage() {
 
       const orderId = await createOrder(orderData, selectedCurrency);
       
+      // Notifier le fournisseur de la nouvelle commande
+      if (items[0]?.fournisseurId) {
+        try {
+          await createNotification(
+            items[0].fournisseurId,
+            'order_created',
+            'Nouvelle commande reçue',
+            `Vous avez reçu une nouvelle commande (${orderId}) de ${user.displayName}.`,
+            { orderId, clientId: user.id, status: 'pending' }
+          );
+        } catch (notifError) {
+          console.error('Erreur notification fournisseur:', notifError);
+        }
+      }
+
       // Clear cart
       clearCart();
       
@@ -206,7 +256,68 @@ export default function CheckoutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Forms */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Shipping Address */}
+            {/* Mode de livraison */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white rounded-lg shadow-md p-6"
+            >
+              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <Truck size={24} className="text-green-600" />
+                {t('delivery_method')}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div
+                  onClick={() => setDeliveryMethod('delivery')}
+                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    deliveryMethod === 'delivery'
+                      ? 'border-green-500 bg-green-50'
+                      : 'border-gray-200 hover:border-green-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="delivery"
+                      checked={deliveryMethod === 'delivery'}
+                      readOnly
+                      className="w-4 h-4 text-green-600"
+                    />
+                    <Truck size={20} className="text-green-600" />
+                    <div>
+                      <p className="font-semibold">{t('delivery')}</p>
+                      <p className="text-sm text-gray-600">{t('delivery_desc')}</p>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  onClick={() => setDeliveryMethod('pickup')}
+                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    deliveryMethod === 'pickup'
+                      ? 'border-green-500 bg-green-50'
+                      : 'border-gray-200 hover:border-green-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="delivery"
+                      checked={deliveryMethod === 'pickup'}
+                      readOnly
+                      className="w-4 h-4 text-green-600"
+                    />
+                    <Store size={20} className="text-green-600" />
+                    <div>
+                      <p className="font-semibold">{t('pickup')}</p>
+                      <p className="text-sm text-gray-600">{t('pickup_desc')}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Adresse de livraison (masquée si retrait en boutique) */}
+            {deliveryMethod === 'delivery' && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -265,7 +376,7 @@ export default function CheckoutPage() {
                           street: '',
                           city: '',
                           state: '',
-                          country: '',
+                          country: 'Congo (RDC)',
                           postalCode: '',
                           isDefault: false,
                         });
@@ -309,7 +420,7 @@ export default function CheckoutPage() {
                         value={newAddress.phone || ''}
                         onChange={(e) => handleAddressInputChange('phone', e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="+225 XX XX XX XX"
+                        placeholder="+243 812345678"
                       />
                     </div>
                   </div>
@@ -343,34 +454,6 @@ export default function CheckoutPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {t('state')}
-                      </label>
-                      <input
-                        type="text"
-                        value={newAddress.state || ''}
-                        onChange={(e) => handleAddressInputChange('state', e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="Region"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {t('country')} <span className="text-red-500">{t('required')}</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={newAddress.country || ''}
-                        onChange={(e) => handleAddressInputChange('country', e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="Côte d'Ivoire"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         {t('postal_code')} <span className="text-red-500">{t('required')}</span>
                       </label>
                       <input
@@ -381,6 +464,29 @@ export default function CheckoutPage() {
                         placeholder="00225"
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('country')} <span className="text-red-500">{t('required')}</span>
+                    </label>
+                    <input
+                      type="text"
+                      list="countries-list"
+                      value={newAddress.country || ''}
+                      onChange={(e) => handleAddressInputChange('country', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Congo (RDC)"
+                      autoComplete="off"
+                    />
+                    <datalist id="countries-list">
+                      {COUNTRIES_LIST.map(c => (
+                        <option key={c} value={c} />
+                      ))}
+                    </datalist>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {t('country_help')}
+                    </p>
                   </div>
 
                   <div>
@@ -417,6 +523,22 @@ export default function CheckoutPage() {
                 </motion.div>
               )}
             </motion.div>
+            )}
+
+            {/* Mode retrait boutique */}
+            {deliveryMethod === 'pickup' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-lg shadow-md p-6"
+              >
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <Store size={24} className="text-green-600" />
+                  {t('pickup')}
+                </h2>
+                <p className="text-sm text-gray-600">{t('pickup_note')}</p>
+              </motion.div>
+            )}
 
             {/* Payment Method */}
             <motion.div
@@ -430,55 +552,45 @@ export default function CheckoutPage() {
                 {t('payment_method')}
               </h2>
 
-              <div className="space-y-3">
-                <div className="p-4 border-2 border-green-500 bg-green-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked
-                      readOnly
-                      className="w-4 h-4 text-green-600"
-                    />
-                    <div>
-                      <p className="font-semibold">{t('card_payment')}</p>
-                      <p className="text-sm text-gray-600">
-                        {t('secure_card_payment')}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+              <p className="text-sm text-gray-500 mb-4">
+                {t('choose_payment_method')}
+              </p>
 
-                <div className="p-4 border-2 border-gray-200 rounded-lg opacity-50">
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="payment"
-                      disabled
-                      className="w-4 h-4"
-                    />
-                    <div>
-                      <p className="font-semibold">{t('paypal')}</p>
-                      <p className="text-sm text-gray-600">{t('coming_soon')}</p>
+              <div className="flex flex-wrap gap-3">
+                {PAYMENT_METHODS.map(method => {
+                  const info = PAYMENT_INFO[method.id];
+                  return (
+                    <div
+                      key={method.id}
+                      onClick={() => setPaymentMethod(method.id)}
+                      className={`flex-1 min-w-[200px] p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                        paymentMethod === method.id
+                          ? 'border-green-500 bg-green-50'
+                          : 'border-gray-200 hover:border-green-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="radio"
+                          name="payment"
+                          checked={paymentMethod === method.id}
+                          readOnly
+                          className="w-4 h-4 text-green-600"
+                        />
+                        {method.icon}
+                        <div className="min-w-0">
+                          <p className="font-semibold text-sm">{t(info.labelKey)}</p>
+                          <p className="text-xs text-gray-600">{t(info.descKey)}</p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-
-                <div className="p-4 border-2 border-gray-200 rounded-lg opacity-50">
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="payment"
-                      disabled
-                      className="w-4 h-4"
-                    />
-                    <div>
-                      <p className="font-semibold">{t('mobile_money')}</p>
-                      <p className="text-sm text-gray-600">{t('coming_soon')}</p>
-                    </div>
-                  </div>
-                </div>
+                  );
+                })}
               </div>
+
+              <p className="text-xs text-gray-500 mt-3">
+                {t('payment_phone_note')}
+              </p>
             </motion.div>
           </div>
 
@@ -511,6 +623,7 @@ export default function CheckoutPage() {
                       </p>
                       <PriceDisplay 
                         priceUSD={item.price * item.quantity}
+                        currency={item.currency}
                         className="text-sm font-semibold text-green-600"
                       />
                     </div>
@@ -560,7 +673,7 @@ export default function CheckoutPage() {
               {/* Place Order Button */}
               <button
                 onClick={handlePlaceOrder}
-                disabled={loading || !selectedAddress}
+                disabled={loading || (deliveryMethod === 'delivery' && !selectedAddress)}
                 className="w-full mt-6 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (

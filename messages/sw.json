@@ -28,10 +28,12 @@
         "client": "Mteja",
         "users": "Watumiaji",
         "settings": "Mipangilio",
-        "view_all": "Tazama zote"
+        "view_all": "Tazama zote",
+        "refresh": "Onyesha upya"
     },
     "nav": {
         "home": "Nyumbani",
+        "shops": "Maduka",
         "products": "Bidhaa",
         "categories": "Kategoria",
         "cart": "Kikapu",
@@ -57,6 +59,18 @@
         "toys": "Vifaa vya kuchezea na Watoto",
         "automotive": "Magari",
         "food": "Chakula"
+    },
+    "boutiques": {
+        "title": "Maduka",
+        "search_placeholder": "Tafuta duka...",
+        "no_shops": "Hakuna duka lililopatikana",
+        "open_shop": "Fungua duka langu",
+        "products": "bidhaa",
+        "products_plural": "bidhaa",
+        "empty_shop": "Hakuna bidhaa zinazouzwa kwa sasa",
+        "shop_currency": "Sarafu ya duka:",
+        "general_shop": "Duka la jumla",
+        "not_found": "Duka halikupatikana"
     },
     "home": {
         "hero_title": "Karibu InterAppshop",
@@ -180,6 +194,7 @@
         "back_to_cart": "Rudi kwenye kikapu",
         "shipping_address": "Anwani ya usafirishaji",
         "payment_method": "Njia ya malipo",
+        "choose_payment_method": "Chagua njia yako ya malipo",
         "order_summary": "Muhtasari wa oda",
         "subtotal": "Jumla ndogo",
         "shipping": "Usafirishaji",

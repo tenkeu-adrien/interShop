@@ -378,6 +378,7 @@ export default function HomePage() {
                       <div className="flex flex-col gap-1">
                         <PriceDisplay
                           priceUSD={product.prices[0].price}
+                          currency={product.currency}
                           className="text-lg font-bold text-red-600"
                         />
                         <span className="text-xs text-gray-500">
@@ -473,6 +474,7 @@ export default function HomePage() {
                       <div className="flex flex-col gap-1">
                         <PriceDisplay
                           priceUSD={product.prices[0].price}
+                          currency={product.currency}
                           className="text-lg font-bold text-green-600"
                         />
                         <span className="text-xs text-gray-500">
@@ -559,6 +561,7 @@ export default function HomePage() {
                       <div className="flex flex-col gap-1">
                         <PriceDisplay
                           priceUSD={product.prices[0].price}
+                          currency={product.currency}
                           className="text-lg font-bold text-green-600"
                         />
                         <span className="text-xs text-gray-500">

@@ -49,6 +49,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <div>
               <PriceDisplay 
                 priceUSD={minPrice}
+                currency={product.currency}
                 className="text-orange-600 font-bold text-lg"
               />
               <span className="text-gray-500 text-sm ml-1">/ unité</span>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import { useProductsStore } from '@/store/productsStore';
+import { useLicenseStore } from '@/store/licenseStore';
 import { createProduct } from '@/lib/firebase/products';
 import { 
   uploadImage, 
@@ -31,11 +32,15 @@ import {
   Info,
   Tag,
   CreditCard,
-  Percent
+  Percent,
+  ShieldAlert,
+  ExternalLink
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { EditableSelect } from '@/components/ui/EditableSelect';
+import { ProductQuotaDisplay } from '@/components/ProductQuotaDisplay';
+import Link from 'next/link';
 import { COUNTRIES, DELIVERY_TIMES, CERTIFICATIONS, PRODUCT_TAGS, PAYMENT_METHOD_TYPES } from '@/lib/data/productOptions';
 import { getPaymentMethodCategory, getPaymentMethodInstructions } from '@/lib/utils/paymentMethodFields';
 
@@ -59,8 +64,28 @@ function NewProductContent() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { addProduct } = useProductsStore();
+  const licenseStore = useLicenseStore();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'general' | 'media' | 'pricing' | 'inventory' | 'shipping'>('general');
+
+  const shopCurrency = (user?.shopCurrency || 'USD') as 'USD' | 'CDF';
+
+  // Charger l'usage du quota et l'abonnement licence au montage
+  useEffect(() => {
+    if (user) {
+      licenseStore.fetchProductUsage(user.id);
+      licenseStore.fetchSubscription(user.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  // Synchroniser la devise des paliers de prix avec celle de la boutique
+  useEffect(() => {
+    if (user?.shopCurrency) {
+      setPriceTiers(prev => prev.map(tier => ({ ...tier, currency: user.shopCurrency as string })));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.shopCurrency]);
 
   // General Info
   const [name, setName] = useState('');
@@ -76,7 +101,7 @@ function NewProductContent() {
 
   // Pricing
   const [priceTiers, setPriceTiers] = useState<PriceTier[]>([
-    { minQuantity: 1, price: 0, currency: 'USD' }
+    { minQuantity: 1, price: 0, currency: user?.shopCurrency || 'USD' }
   ]);
 
   // Inventory
@@ -289,6 +314,14 @@ function NewProductContent() {
       return;
     }
 
+    // Vérification du quota produits (3 gratuits, renvoi vers le système de licences)
+    const { productUsage, checkQuota } = licenseStore;
+    if (productUsage && !checkQuota()) {
+      toast.error('Vous avez atteint la limite de produits de votre licence.');
+      setTimeout(() => router.push('/dashboard/fournisseur/licenses'), 1200);
+      return;
+    }
+
     // Validation des champs spécifiques selon le type
     for (const method of acceptedPaymentMethods) {
       if (!method.accountName.trim()) {
@@ -439,6 +472,7 @@ function NewProductContent() {
         sales: 0,
         isActive: true,
         serviceCategory: 'ecommerce', // Par défaut pour les produits normaux
+        currency: shopCurrency,
         createdAt: new Date(),
         updatedAt: new Date(),
         
@@ -473,7 +507,12 @@ function NewProductContent() {
       router.push('/dashboard/fournisseur/products');
     } catch (error: any) {
       console.error('Error creating product:', error);
-      toast.error(error.message || 'Erreur lors de la création du produit', { id: 'upload' });
+      if (error.message?.includes('Limite') || error.message?.includes('Quota')) {
+        toast.error('Limite de produits atteinte. Redirection vers le système de licences...', { id: 'upload' });
+        setTimeout(() => router.push('/dashboard/fournisseur/licenses'), 1500);
+      } else {
+        toast.error(error.message || 'Erreur lors de la création du produit', { id: 'upload' });
+      }
     } finally {
       setLoading(false);
     }
@@ -495,6 +534,26 @@ function NewProductContent() {
             <X size={20} />
             Annuler
           </button>
+        </div>
+
+        {/* Quota + devise boutique */}
+        <div className="mb-6 space-y-3">
+          <ProductQuotaDisplay fournisseurId={user?.id || ''} />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <div className="flex items-center gap-2 text-sm text-orange-800">
+              <ShieldAlert size={18} />
+              <span>
+                Devise de votre boutique : <strong>{shopCurrency === 'CDF' ? 'CDF (Franc congolais — FC)' : 'USD (Dollar américain — $)'}</strong>
+                {shopCurrency === 'CDF' && ' — les prix s\'afficheront en FC.'}
+              </span>
+            </div>
+            <Link
+              href="/dashboard/fournisseur/licenses"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-orange-700 hover:text-orange-900"
+            >
+              Gérer mes licences <ExternalLink size={16} />
+            </Link>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -841,7 +900,7 @@ function NewProductContent() {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Prix unitaire (USD) *
+                            Prix unitaire ({shopCurrency === 'CDF' ? 'FC' : 'USD'}) *
                           </label>
                           <input
                             type="number"
@@ -1029,11 +1088,11 @@ function NewProductContent() {
                       <div className="bg-gradient-to-r from-yellow-50 to-green-50 p-4 rounded-lg border border-yellow-200">
                         <p className="text-sm font-medium text-gray-900 mb-2">💡 Exemple de calcul :</p>
                         <div className="text-sm text-gray-700 space-y-1">
-                          <p>• Prix du produit : {priceTiers[0]?.price || 100} USD</p>
-                          <p>• Réduction client : -{((priceTiers[0]?.price || 100) * discountPercentage / 100).toFixed(2)} USD ({discountPercentage}%)</p>
-                          <p>• Commission marketiste : +{((priceTiers[0]?.price || 100) * marketisteCommissionRate / 100).toFixed(2)} USD ({marketisteCommissionRate}%)</p>
+                          <p>• Prix du produit : {priceTiers[0]?.price || 100} {shopCurrency === 'CDF' ? 'FC' : 'USD'}</p>
+                          <p>• Réduction client : -{((priceTiers[0]?.price || 100) * discountPercentage / 100).toFixed(2)} {shopCurrency === 'CDF' ? 'FC' : 'USD'} ({discountPercentage}%)</p>
+                          <p>• Commission marketiste : +{((priceTiers[0]?.price || 100) * marketisteCommissionRate / 100).toFixed(2)} {shopCurrency === 'CDF' ? 'FC' : 'USD'} ({marketisteCommissionRate}%)</p>
                           <p className="font-semibold text-green-700 pt-2 border-t border-yellow-200">
-                            → Client paie : {((priceTiers[0]?.price || 100) * (1 - discountPercentage / 100)).toFixed(2)} USD
+                            → Client paie : {((priceTiers[0]?.price || 100) * (1 - discountPercentage / 100)).toFixed(2)} {shopCurrency === 'CDF' ? 'FC' : 'USD'}
                           </p>
                         </div>
                       </div>
@@ -1100,7 +1159,7 @@ function NewProductContent() {
                                     {
                                       method,
                                       accountName: '',
-                                      accountNumber: '',
+                                      phoneNumber: '',
                                       accountDetails: '',
                                       isActive: true
                                     }

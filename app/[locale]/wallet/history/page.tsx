@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { toDate } from '@/lib/utils/date';
 
 export default function WalletHistoryPage() {
   const router = useRouter();
@@ -184,7 +185,7 @@ export default function WalletHistoryPage() {
                         </p>
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
                           <span>
-                            {formatDistanceToNow(transaction.createdAt, { 
+                            {formatDistanceToNow(toDate(transaction.createdAt), { 
                               addSuffix: true,
                               locale: fr 
                             })}

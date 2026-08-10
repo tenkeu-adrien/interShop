@@ -24,6 +24,7 @@ export interface User {
   displayName: string;
   photoURL?: string | null;
   phoneNumber?: string | null;
+  phoneCountryCode?: string;            // Indicatif pays (ex: +243)
   createdAt: Date;
   updatedAt: Date;
   isVerified: boolean;
@@ -32,6 +33,18 @@ export interface User {
   approvedBy?: string;
   approvedAt?: Date;
   rejectionReason?: string;
+
+  // Boutique (fournisseur)
+  shopName?: string;                    // Nom / label de la boutique
+  shopCategory?: string;                // Catégorie de la boutique
+  shopCurrency?: 'USD' | 'CDF';         // Devise de la boutique
+  shopLocation?: {                      // Position de la boutique (= position du créateur)
+    latitude: number;
+    longitude: number;
+    address?: string;
+    city?: string;
+    country: string;
+  };
   
   // Nouveau système de vérification
   accountStatus: AccountStatus;
@@ -123,6 +136,9 @@ export interface Product {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+  
+  // Devise du produit (héritée de la boutique du fournisseur)
+  currency?: 'USD' | 'CDF';
   
   // NEW: Service category
   serviceCategory: ProductCategory;
@@ -264,6 +280,7 @@ export interface Order {
   createdAt: Date;
   updatedAt: Date;
   paidAt?: Date;
+  processingAt?: Date;
   shippedAt?: Date;
   deliveredAt?: Date;
   
@@ -359,6 +376,7 @@ export interface Notification {
 export type NotificationType =
   | 'order_created'
   | 'order_paid'
+  | 'order_processing'
   | 'order_shipped'
   | 'order_delivered'
   | 'message_received'

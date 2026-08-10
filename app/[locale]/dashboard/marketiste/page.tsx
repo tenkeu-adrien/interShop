@@ -30,6 +30,7 @@ import {
 import { collection, getDocs, query, where, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { MarketingCode, Order } from '@/types';
+import { toDate } from '@/lib/utils/date';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
@@ -233,8 +234,8 @@ export default function MarketisteDashboardPage() {
   // Commandes récentes
   const recentOrders = [...orders]
     .sort((a, b) => {
-      const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
-      const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+      const dateA = toDate(a.createdAt);
+      const dateB = toDate(b.createdAt);
       return dateB.getTime() - dateA.getTime();
     })
     .slice(0, 5);

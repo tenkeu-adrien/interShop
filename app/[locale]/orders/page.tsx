@@ -5,18 +5,22 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import { useTranslations } from 'next-intl';
-import { ShoppingCart, Search, Package, Truck, CheckCircle, XCircle, Clock, ArrowLeft } from 'lucide-react';
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { useLocale } from 'next-intl';
+import { ShoppingCart, Search, Package, Truck, CheckCircle, XCircle, Clock, ArrowLeft, Store } from 'lucide-react';
+import { collection, getDocs, query, where, orderBy, onSnapshot, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { Order, OrderStatus } from '@/types';
 import Link from 'next/link';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { OrderStatusStepper } from '@/components/orders/OrderStatusStepper';
+import { toDate } from '@/lib/utils/date';
 
 export default function OrdersPage() {
   const { user } = useAuthStore();
   const t = useTranslations('orders');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
   const router = useRouter();
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -24,28 +28,70 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
+  const [shopNames, setShopNames] = useState<Record<string, string>>({});
+  const [productMap, setProductMap] = useState<Record<string, { tags?: string[]; sku?: string }>>({});
+
+  useEffect(() => {
+    // Récupérer le label des boutiques liées aux commandes
+    const ids = [...new Set(orders.map(o => o.fournisseurId).filter(Boolean))] as string[];
+    ids.forEach(async (id) => {
+      if (shopNames[id]) return;
+      try {
+        const snap = await getDoc(doc(db, 'users', id));
+        if (snap.exists()) {
+          const d = snap.data();
+          setShopNames(prev => ({ ...prev, [id]: d.shopName || '' }));
+        }
+      } catch (err) {
+        console.error('Erreur chargement boutique:', err);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orders]);
+
+  useEffect(() => {
+    // Récupérer les infos produit (SKU, labels/tags)
+    const ids = [...new Set(orders.flatMap(o => o.products.map(p => p.productId)))];
+    ids.forEach(async (id) => {
+      if (productMap[id]) return;
+      try {
+        const snap = await getDoc(doc(db, 'products', id));
+        if (snap.exists()) {
+          const d = snap.data();
+          setProductMap(prev => ({ ...prev, [id]: { tags: d.tags || [], sku: d.sku || '' } }));
+        }
+      } catch (err) {
+        console.error('Erreur chargement produit:', err);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orders]);
 
   useEffect(() => {
     if (!user) return;
-    const load = async () => {
-      setLoading(true);
-      try {
-        const q = query(
-          collection(db, 'orders'),
-          where('clientId', '==', user.id),
-          orderBy('createdAt', 'desc')
-        );
-        const snap = await getDocs(q);
+    const q = query(
+      collection(db, 'orders'),
+      where('clientId', '==', user.id),
+      orderBy('createdAt', 'desc')
+    );
+    // Écoute en temps réel pour le suivi de commande
+    const unsubscribe = onSnapshot(q, (snap) => {
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() })) as Order[];
+      setOrders(data);
+      setFiltered(data);
+      setLoading(false);
+    }, (e) => {
+      console.error(e);
+      setLoading(false);
+      // Repli sur chargement statique
+      getDocs(q).then(snap => {
         const data = snap.docs.map(d => ({ id: d.id, ...d.data() })) as Order[];
         setOrders(data);
         setFiltered(data);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+      }).catch(console.error);
+    });
+
+    return () => unsubscribe();
   }, [user]);
 
   useEffect(() => {
@@ -66,6 +112,7 @@ export default function OrdersPage() {
     shipped:   { color: 'bg-indigo-100 text-indigo-800', icon: <Truck size={14} /> },
     delivered: { color: 'bg-green-100 text-green-800',  icon: <CheckCircle size={14} /> },
     cancelled: { color: 'bg-red-100 text-red-800',     icon: <XCircle size={14} /> },
+    refunded:  { color: 'bg-red-100 text-red-800',     icon: <XCircle size={14} /> },
   };
 
   return (
@@ -79,7 +126,7 @@ export default function OrdersPage() {
               className="flex items-center gap-2 text-gray-800 hover:text-gray-900 mb-4 transition-colors"
             >
               <ArrowLeft size={20} />
-              Retour
+              {tCommon('back')}
             </button>
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
               <ShoppingCart size={32} />
@@ -108,6 +155,7 @@ export default function OrdersPage() {
             >
               <option value="all">{tCommon('all')}</option>
               <option value="pending">{t('pending')}</option>
+              <option value="processing">{t('processing')}</option>
               <option value="shipped">{t('shipped')}</option>
               <option value="delivered">{t('delivered')}</option>
               <option value="cancelled">{t('cancelled')}</option>
@@ -145,7 +193,7 @@ export default function OrdersPage() {
                       <div>
                         <p className="font-bold text-gray-900">{order.orderNumber}</p>
                         <p className="text-sm text-gray-500">
-                          {new Date(order.createdAt).toLocaleDateString('fr-FR')} &bull; {order.products.length} {order.products.length > 1 ? 'articles' : 'article'}
+                          {toDate(order.createdAt).toLocaleDateString(locale)} &bull; {order.products.length} {order.products.length > 1 ? t('items') : t('item')}
                         </p>
                       </div>
                       <div className="flex items-center gap-4">
@@ -157,21 +205,63 @@ export default function OrdersPage() {
                       </div>
                     </div>
 
-                    {/* Products preview */}
-                    <div className="mt-3 flex gap-2 overflow-x-auto">
-                      {order.products.slice(0, 4).map((p, i) => (
-                        <img
-                          key={i}
-                          src={p.image || '/placeholder.png'}
-                          alt={p.name}
-                          className="w-14 h-14 object-cover rounded-lg flex-shrink-0"
-                        />
-                      ))}
-                      {order.products.length > 4 && (
-                        <div className="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center text-sm text-gray-500 flex-shrink-0">
-                          +{order.products.length - 4}
-                        </div>
-                      )}
+                    {/* Suivi de commande */}
+                    <div className="mt-4 bg-gray-50 border border-gray-100 rounded-lg p-3">
+                      <OrderStatusStepper status={order.status} />
+                    </div>
+
+                    {/* Boutique liée (si le fournisseur en a créé une) */}
+                    {order.fournisseurId && shopNames[order.fournisseurId] && (
+                      <div className="mt-3">
+                        <Link
+                          href={`/boutiques/${order.fournisseurId}`}
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full hover:bg-green-100 transition-colors"
+                        >
+                          <Store size={12} />
+                          {shopNames[order.fournisseurId]}
+                        </Link>
+                      </div>
+                    )}
+
+                    {/* Produits */}
+                    <div className="mt-3 space-y-2">
+                      {order.products.map((p) => {
+                        const pinfo = productMap[p.productId];
+                        return (
+                          <div key={p.productId} className="flex items-start gap-3">
+                            <img
+                              src={p.image || '/logo.png'}
+                              alt={p.name}
+                              className="w-12 h-12 object-cover rounded-lg flex-shrink-0 border border-gray-100"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">{p.name}</p>
+                              {pinfo?.sku && (
+                                <p className="text-xs text-gray-500">{tCommon('sku')}: {pinfo.sku}</p>
+                              )}
+                              <p className="text-xs text-gray-500">
+                                {tCommon('quantity')}: {p.quantity}
+                              </p>
+                              {pinfo?.tags?.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                  {pinfo.tags.slice(0, 4).map((tag) => (
+                                    <span
+                                      key={tag}
+                                      className="text-[10px] font-medium text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded-full"
+                                    >
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <PriceDisplay
+                              priceUSD={p.price * p.quantity}
+                              className="text-sm font-semibold text-gray-900"
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
                   </motion.div>
                 );

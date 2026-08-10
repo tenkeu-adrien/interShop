@@ -11,6 +11,23 @@ export const CATEGORIES = [
   'Bureautique',
 ];
 
+// Catégories de boutique pour les fournisseurs
+export const SHOP_CATEGORIES = [
+  'Électronique',
+  'Téléphones & Accessoires',
+  'Électroménager',
+  'Matériaux de Construction',
+  'Mode',
+  'Maison & Jardin',
+  'Sport & Loisirs',
+  'Beauté & Santé',
+  'Jouets & Bébé',
+  'Automobile',
+  'Livres & Médias',
+  'Alimentation',
+  'Fournitures Bureau',
+];
+
 export const COUNTRIES = [
   'Chine',
   'États-Unis',

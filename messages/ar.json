@@ -28,10 +28,12 @@
         "client": "عميل",
         "users": "المستخدمين",
         "settings": "الإعدادات",
-        "view_all": "عرض الكل"
+        "view_all": "عرض الكل",
+        "refresh": "تحديث"
     },
     "nav": {
         "home": "الرئيسية",
+        "shops": "المتاجر",
         "products": "المنتجات",
         "categories": "الفئات",
         "cart": "سلة التسوق",
@@ -57,6 +59,18 @@
         "toys": "الألعاب والأطفال",
         "automotive": "السيارات",
         "food": "الطعام"
+    },
+    "boutiques": {
+        "title": "المتاجر",
+        "search_placeholder": "ابحث عن متجر...",
+        "no_shops": "لم يتم العثور على أي متجر",
+        "open_shop": "افتح متجري",
+        "products": "منتج",
+        "products_plural": "منتجات",
+        "empty_shop": "لا توجد منتجات للبيع حالياً",
+        "shop_currency": "عملة المتجر:",
+        "general_shop": "متجر عام",
+        "not_found": "المتجر غير موجود"
     },
     "home": {
         "hero_title": "مرحباً بك في إنترشوب",
@@ -180,6 +194,7 @@
         "back_to_cart": "الرجوع إلى السلة",
         "shipping_address": "عنوان الشحن",
         "payment_method": "طريقة الدفع",
+        "choose_payment_method": "اختر طريقة الدفع الخاصة بك",
         "order_summary": "ملخص الطلب",
         "subtotal": "المجموع الفرعي",
         "shipping": "الشحن",

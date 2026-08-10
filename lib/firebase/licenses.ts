@@ -28,11 +28,11 @@ export async function getProductUsage(fournisseurId: string): Promise<ProductUsa
   const snapshot = await getDoc(usageRef);
   
   if (!snapshot.exists()) {
-    // Initialize with free tier
+    // Initialize with free tier (3 products max)
     const defaultUsage: ProductUsage = {
       fournisseurId,
       currentCount: 0,
-      quota: 5,
+      quota: 3,
       lastUpdated: new Date(),
     };
     await setDoc(usageRef, defaultUsage);
@@ -48,9 +48,10 @@ export async function updateProductUsage(
 ): Promise<void> {
   const usageRef = doc(db, 'productUsage', fournisseurId);
   const usage = await getProductUsage(fournisseurId);
-  
+  const newCount = Math.max(0, usage.currentCount + increment);
+
   await updateDoc(usageRef, {
-    currentCount: usage.currentCount + increment,
+    currentCount: newCount,
     lastUpdated: new Date(),
   });
 }

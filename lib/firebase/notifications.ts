@@ -38,6 +38,15 @@ export const createNotification = async (
   }
   
   await addDoc(collection(db, 'notifications'), notificationData);
+
+  // Notification push FCM (best-effort, uniquement si configurée)
+  if (typeof window !== 'undefined') {
+    fetch('/api/send-push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, title, body: message, data }),
+    }).catch(() => {});
+  }
 };
 
 export const subscribeToNotifications = (
@@ -159,6 +168,15 @@ export async function sendNotification(
     }
     
     await addDoc(collection(db, 'notifications'), notificationData);
+    
+    // Notification push FCM (best-effort, uniquement si configurée)
+    if (typeof window !== 'undefined') {
+      fetch('/api/send-push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, title, body: message, data }),
+      }).catch(() => {});
+    }
     
     // Envoyer l'email si nécessaire
     if (channel === 'email' || channel === 'both') {
