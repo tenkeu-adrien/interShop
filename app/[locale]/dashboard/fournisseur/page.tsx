@@ -6,6 +6,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { Package, DollarSign, ShoppingBag, TrendingUp, Plus, UtensilsCrossed, Hotel, Heart, Shield } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { AccountTabs } from '@/components/account/AccountTabs';
 
 function FournisseurDashboardContent() {
   const { user } = useAuthStore();
@@ -34,6 +35,9 @@ function FournisseurDashboardContent() {
           {tFournisseur('add_product')}
         </Link>
       </div>
+
+      {/* Mon compte - tabs */}
+      <AccountTabs role="fournisseur" />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

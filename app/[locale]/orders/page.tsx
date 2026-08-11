@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import { useTranslations } from 'next-intl';
@@ -22,6 +22,8 @@ export default function OrdersPage() {
   const tCommon = useTranslations('common');
   const locale = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const statusParam = searchParams.get('status');
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [filtered, setFiltered] = useState<Order[]>([]);
@@ -30,6 +32,12 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
   const [shopNames, setShopNames] = useState<Record<string, string>>({});
   const [productMap, setProductMap] = useState<Record<string, { tags?: string[]; sku?: string }>>({});
+
+  useEffect(() => {
+    if (statusParam) {
+      setStatusFilter(statusParam as OrderStatus | 'all');
+    }
+  }, [statusParam]);
 
   useEffect(() => {
     // Récupérer le label des boutiques liées aux commandes
@@ -155,10 +163,12 @@ export default function OrdersPage() {
             >
               <option value="all">{tCommon('all')}</option>
               <option value="pending">{t('pending')}</option>
+              <option value="paid">{t('paid')}</option>
               <option value="processing">{t('processing')}</option>
               <option value="shipped">{t('shipped')}</option>
               <option value="delivered">{t('delivered')}</option>
               <option value="cancelled">{t('cancelled')}</option>
+              <option value="refunded">{t('refunded')}</option>
             </select>
           </div>
 

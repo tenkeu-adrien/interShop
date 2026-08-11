@@ -377,5 +377,18 @@
         "minutes_ago": "منذ {count} دقيقة",
         "hours_ago": "منذ {count} ساعة",
         "days_ago": "منذ {count} يوم"
+    },
+    "accountTabs": {
+        "title": "طلباتي",
+        "echoue": "فاشل",
+        "emballage": "التغليف",
+        "expedition": "الشحن",
+        "avis": "التقييمات",
+        "details": "التفاصيل",
+        "historique": "السجل",
+        "rembours": "استرداد",
+        "recu": "تم الاستلام",
+        "reviews_title": "التقييمات المستلمة",
+        "no_reviews": "لا توجد تقييمات بعد"
     }
 }

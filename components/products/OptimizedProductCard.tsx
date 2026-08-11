@@ -88,6 +88,13 @@ export function OptimizedProductCard({ product, index = 0, variant = 'default' }
             {product.name}
           </h3>
 
+          {/* Description tronquée */}
+          {product.description && (
+            <p className="text-xs text-gray-500 line-clamp-2 mb-2">
+              {product.description}
+            </p>
+          )}
+
           {/* Rating */}
           <div className={`flex items-center gap-1 mb-2 ${
             variant === 'top' ? 'bg-yellow-50 px-2 py-1 rounded' : ''

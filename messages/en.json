@@ -753,6 +753,7 @@
         "total": "Total",
         "pending": "Pending",
         "confirmed": "Confirmed",
+        "paid": "Paid",
         "processing": "Processing",
         "shipped": "Shipped",
         "delivered": "Delivered",
@@ -1080,7 +1081,22 @@
         "notifications": "Notifications",
         "items": "item(s)",
         "addresses": "My addresses",
-        "security": "Security"
+        "security": "Security",
+        "recommended_products": "Recommended products",
+        "no_products": "No products available"
+    },
+    "accountTabs": {
+        "title": "My orders",
+        "echoue": "Failed",
+        "emballage": "Packaging",
+        "expedition": "Shipping",
+        "avis": "Reviews",
+        "details": "Details",
+        "historique": "History",
+        "rembours": "Refunds",
+        "recu": "Received",
+        "reviews_title": "Received reviews",
+        "no_reviews": "No reviews yet"
     },
     "profile": {
         "title": "My profile",

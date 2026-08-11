@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -20,6 +20,8 @@ type StatusFilter = OrderStatus | 'all';
 
 function FournisseurOrdersContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const statusParam = searchParams.get('status');
   const { user } = useAuthStore();
   const tOrders = useTranslations('orders');
   const tCommon = useTranslations('common');
@@ -31,6 +33,12 @@ function FournisseurOrdersContent() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [updating, setUpdating] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (statusParam) {
+      setStatusFilter(statusParam as StatusFilter);
+    }
+  }, [statusParam]);
 
   const loadOrders = async () => {
     if (!user) return;
@@ -149,10 +157,12 @@ function FournisseurOrdersContent() {
         >
           <option value="all">{tCommon('all')}</option>
           <option value="pending">{tOrders('pending')}</option>
+          <option value="paid">{tOrders('paid')}</option>
           <option value="processing">{tOrders('processing')}</option>
           <option value="shipped">{tOrders('shipped')}</option>
           <option value="delivered">{tOrders('delivered')}</option>
           <option value="cancelled">{tOrders('cancelled')}</option>
+          <option value="refunded">{tOrders('refunded')}</option>
         </select>
       </div>
 

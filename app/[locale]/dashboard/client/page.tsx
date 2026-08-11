@@ -14,6 +14,8 @@ import { collection, getDocs, query, where, orderBy, limit } from 'firebase/fire
 import { db } from '@/lib/firebase/config';
 import { Order } from '@/types';
 import { toDate } from '@/lib/utils/date';
+import { AccountTabs } from '@/components/account/AccountTabs';
+import { ClientProducts } from '@/components/account/ClientProducts';
 
 function ClientDashboardContent() {
   const { user } = useAuthStore();
@@ -78,6 +80,12 @@ function ClientDashboardContent() {
             </div>
           </div>
         </div>
+
+        {/* Mon compte - tabs */}
+        <AccountTabs role="client" />
+
+        {/* Produits recommandés */}
+        <ClientProducts />
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">

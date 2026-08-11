@@ -377,5 +377,18 @@
         "minutes_ago": "Dakika {count} zilizopita",
         "hours_ago": "Saa {count} zilizopita",
         "days_ago": "Siku {count} zilizopita"
+    },
+    "accountTabs": {
+        "title": "Maagizo yangu",
+        "echoue": "Imeshindwa",
+        "emballage": "Ufungaji",
+        "expedition": "Usafirishaji",
+        "avis": "Maoni",
+        "details": "Maelezo",
+        "historique": "Historia",
+        "rembours": "Rudisho",
+        "recu": "Imepokelewa",
+        "reviews_title": "Maoni yaliyopokelewa",
+        "no_reviews": "Hakuna maoni kwa sasa"
     }
 }
