@@ -80,9 +80,14 @@ export default function BoutiquesPage() {
   const filtered = shops.filter(s => {
     if (!search) return true;
     const q = search.toLowerCase();
+    const shopCats = Array.isArray(s.fournisseur.shopCategory)
+      ? s.fournisseur.shopCategory
+      : s.fournisseur.shopCategory
+        ? [s.fournisseur.shopCategory]
+        : [];
     return (
       s.fournisseur.shopName?.toLowerCase().includes(q) ||
-      s.fournisseur.shopCategory?.toLowerCase().includes(q) ||
+      shopCats.some(cat => cat.toLowerCase().includes(q)) ||
       s.fournisseur.displayName.toLowerCase().includes(q)
     );
   });
@@ -165,7 +170,14 @@ export default function BoutiquesPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-bold text-gray-900 truncate">{fournisseur.shopName}</h3>
-                      <p className="text-xs text-gray-500 truncate">{fournisseur.shopCategory}</p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {(Array.isArray(fournisseur.shopCategory)
+                          ? fournisseur.shopCategory
+                          : fournisseur.shopCategory
+                            ? [fournisseur.shopCategory]
+                            : []
+                        ).join(', ')}
+                      </p>
                       <div className="flex flex-wrap gap-2 mt-2">
                         <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
                           {fournisseur.shopCurrency === 'CDF' ? 'CDF (FC)' : 'USD ($)'}

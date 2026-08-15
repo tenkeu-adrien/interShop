@@ -65,6 +65,12 @@ export default function BoutiqueDetailPage() {
     );
   }
 
+  const shopCategories = Array.isArray(fournisseur.shopCategory)
+    ? fournisseur.shopCategory
+    : fournisseur.shopCategory
+      ? [fournisseur.shopCategory]
+      : [];
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* En-tête boutique */}
@@ -88,9 +94,17 @@ export default function BoutiqueDetailPage() {
             <div>
               <h1 className="text-3xl font-bold text-white">{fournisseur.shopName}</h1>
               <div className="flex flex-wrap items-center gap-3 mt-2 text-white/90 text-sm">
-                <span className="inline-flex items-center gap-1 bg-white/20 px-3 py-1 rounded-full">
-                  {fournisseur.shopCategory || t('general_shop')}
-                </span>
+                {shopCategories.length > 0 ? (
+                  shopCategories.map(cat => (
+                    <span key={cat} className="inline-flex items-center gap-1 bg-white/20 px-3 py-1 rounded-full">
+                      {cat}
+                    </span>
+                  ))
+                ) : (
+                  <span className="inline-flex items-center gap-1 bg-white/20 px-3 py-1 rounded-full">
+                    {t('general_shop')}
+                  </span>
+                )}
                 {(fournisseur.shopLocation?.city || fournisseur.shopLocation?.country) && (
                   <span className="inline-flex items-center gap-1 bg-white/20 px-3 py-1 rounded-full">
                     <MapPin size={14} />
@@ -145,6 +159,9 @@ export default function BoutiqueDetailPage() {
                   </div>
                   <div className="p-4">
                     <h3 className="font-semibold text-sm text-gray-900 line-clamp-2 mb-2">{product.name}</h3>
+                    {product.description && (
+                      <p className="text-xs text-gray-500 line-clamp-2 mb-2">{product.description}</p>
+                    )}
                     <div className="flex items-center mb-2">
                       <Star size={14} className="text-yellow-400 fill-yellow-400" />
                       <span className="text-sm ml-1">{product.rating.toFixed(1)}</span>

@@ -20,6 +20,7 @@ import {
   Clock
 } from 'lucide-react';
 import { collection, query, limit, getDocs, orderBy, where } from 'firebase/firestore';
+import type { Query, QuerySnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { Product } from '@/types';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
@@ -52,30 +53,50 @@ export default function HomePage() {
 
   const loadAllProducts = async () => {
     setLoading(true);
-    try {
-      const productsRef = collection(db, 'products');
 
-      // Charger en parallèle pour améliorer la performance
-      const [bestDealsSnapshot, topRankedSnapshot, newArrivalsSnapshot, restaurantsSnapshot] = await Promise.all([
-        getDocs(query(
+    const productsRef = collection(db, 'products');
+
+    const mapDocs = (snap: QuerySnapshot) => snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Product[];
+
+    // Charge chaque section indépendamment : si une requête échoue
+    // (index composite manquant par ex.), les autres sections s'affichent quand même.
+    const loadSection = async (queryBuilder: () => Query): Promise<Product[]> => {
+      try {
+        const snap = await getDocs(queryBuilder());
+        return mapDocs(snap);
+      } catch (error) {
+        console.warn('Requête de section échouée, tentative avec requête simple:', error);
+        try {
+          const snap = await getDocs(query(productsRef, where('isActive', '==', true), limit(12)));
+          return mapDocs(snap);
+        } catch (fallbackError) {
+          console.error('La requête de secours a échoué:', fallbackError);
+          return [];
+        }
+      }
+    };
+
+    try {
+      const [bestDealsItems, topRankedItems, newArrivalsItems, restaurantsItems] = await Promise.all([
+        loadSection(() => query(
           productsRef,
           where('isActive', '==', true),
           orderBy('sales', 'desc'),
           limit(12)
         )),
-        getDocs(query(
+        loadSection(() => query(
           productsRef,
           where('isActive', '==', true),
           orderBy('rating', 'desc'),
           limit(12)
         )),
-        getDocs(query(
+        loadSection(() => query(
           productsRef,
           where('isActive', '==', true),
           orderBy('createdAt', 'desc'),
           limit(12)
         )),
-        getDocs(query(
+        loadSection(() => query(
           productsRef,
           where('isActive', '==', true),
           where('serviceCategory', '==', 'restaurant'),
@@ -84,10 +105,10 @@ export default function HomePage() {
         ))
       ]);
 
-      setBestDeals(bestDealsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[]);
-      setTopRanked(topRankedSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[]);
-      setNewArrivals(newArrivalsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[]);
-      setRestaurants(restaurantsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[]);
+      setBestDeals(bestDealsItems);
+      setTopRanked(topRankedItems);
+      setNewArrivals(newArrivalsItems);
+      setRestaurants(restaurantsItems);
 
     } catch (error) {
       console.error('Error loading products:', error);
@@ -369,6 +390,11 @@ export default function HomePage() {
                       <h3 className="font-medium text-sm text-gray-900 line-clamp-2 mb-2 h-10 group-hover:text-red-600 transition-colors">
                         {product.name}
                       </h3>
+                      {product.description && (
+                        <p className="text-xs text-gray-500 line-clamp-2 mb-2">
+                          {product.description}
+                        </p>
+                      )}
                       <div className="flex items-center gap-1 mb-2">
                         <Star className="text-yellow-400 fill-yellow-400" size={14} />
                         <span className="text-xs text-gray-600">
@@ -462,6 +488,11 @@ export default function HomePage() {
                       <h3 className="font-medium text-sm text-gray-900 line-clamp-2 mb-2 h-10 group-hover:text-yellow-600 transition-colors">
                         {product.name}
                       </h3>
+                      {product.description && (
+                        <p className="text-xs text-gray-500 line-clamp-2 mb-2">
+                          {product.description}
+                        </p>
+                      )}
                       <div className="flex items-center gap-1 mb-2 bg-yellow-50 px-2 py-1 rounded">
                         <Star className="text-yellow-400 fill-yellow-400" size={16} />
                         <span className="text-sm font-bold text-yellow-600">
@@ -552,6 +583,11 @@ export default function HomePage() {
                       <h3 className="font-medium text-sm text-gray-900 line-clamp-2 mb-2 h-10 group-hover:text-green-600 transition-colors">
                         {product.name}
                       </h3>
+                      {product.description && (
+                        <p className="text-xs text-gray-500 line-clamp-2 mb-2">
+                          {product.description}
+                        </p>
+                      )}
                       <div className="flex items-center gap-1 mb-2">
                         <Star className="text-yellow-400 fill-yellow-400" size={14} />
                         <span className="text-xs text-gray-600">

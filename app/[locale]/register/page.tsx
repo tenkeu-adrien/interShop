@@ -29,7 +29,7 @@ export default function RegisterPage() {
   });
   const [shopData, setShopData] = useState({
     shopName: '',
-    shopCategory: '',
+    shopCategory: [] as string[],
     shopCurrency: 'USD' as 'USD' | 'CDF',
     city: '',
     country: '',
@@ -90,7 +90,7 @@ export default function RegisterPage() {
         toast.error(t('err_shop_name_required'));
         return;
       }
-      if (!shopData.shopCategory) {
+      if (shopData.shopCategory.length === 0) {
         toast.error(t('err_shop_category_required'));
         return;
       }
@@ -281,16 +281,39 @@ export default function RegisterPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t('shop_category_label')}
                   </label>
-                  <select
-                    value={shopData.shopCategory}
-                    onChange={(e) => setShopData({ ...shopData, shopCategory: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  >
-                    <option value="">{t('shop_category_placeholder')}</option>
-                    {SHOP_CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
+                  <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
+                    {SHOP_CATEGORIES.map(cat => {
+                      const checked = shopData.shopCategory.includes(cat);
+                      return (
+                        <label
+                          key={cat}
+                          className={`flex items-center gap-2 border-2 rounded-lg px-3 py-2 cursor-pointer transition-colors text-sm ${
+                            checked
+                              ? 'border-orange-500 bg-orange-50'
+                              : 'border-gray-200 hover:border-orange-300'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() =>
+                              setShopData({
+                                ...shopData,
+                                shopCategory: checked
+                                  ? shopData.shopCategory.filter(c => c !== cat)
+                                  : [...shopData.shopCategory, cat],
+                              })
+                            }
+                            className="accent-orange-500"
+                          />
+                          <span className="text-gray-800">{cat}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {t('shop_category_placeholder')} ({shopData.shopCategory.length})
+                  </p>
                 </div>
 
                 <div>

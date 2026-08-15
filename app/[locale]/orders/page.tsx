@@ -20,6 +20,7 @@ export default function OrdersPage() {
   const { user } = useAuthStore();
   const t = useTranslations('orders');
   const tCommon = useTranslations('common');
+  const tTabs = useTranslations('accountTabs');
   const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -123,6 +124,20 @@ export default function OrdersPage() {
     refunded:  { color: 'bg-red-100 text-red-800',     icon: <XCircle size={14} /> },
   };
 
+  // Label de l'onglet actif (provenant du dashboard "Mon compte")
+  const tabKeyByStatus: Record<string, string> = {
+    cancelled: 'echoue',
+    processing: 'emballage',
+    shipped: 'expedition',
+    refunded: 'rembours',
+    delivered: 'recu',
+  };
+  const activeTabLabel = statusParam === 'all'
+    ? tTabs('details')
+    : statusParam && tabKeyByStatus[statusParam]
+      ? tTabs(tabKeyByStatus[statusParam])
+      : null;
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
@@ -140,6 +155,12 @@ export default function OrdersPage() {
               <ShoppingCart size={32} />
               {t('title')}
             </h1>
+            {activeTabLabel && (
+              <span className="mt-2 inline-flex items-center gap-2 bg-white/90 text-gray-900 text-sm font-semibold px-3 py-1.5 rounded-full shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-green-600" />
+                {activeTabLabel}
+              </span>
+            )}
           </div>
         </div>
 

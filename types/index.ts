@@ -36,7 +36,7 @@ export interface User {
 
   // Boutique (fournisseur)
   shopName?: string;                    // Nom / label de la boutique
-  shopCategory?: string;                // Catégorie de la boutique
+  shopCategory?: string[];             // Catégories de la boutique
   shopCurrency?: 'USD' | 'CDF';         // Devise de la boutique
   shopLocation?: {                      // Position de la boutique (= position du créateur)
     latitude: number;

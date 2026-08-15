@@ -26,6 +26,7 @@ function FournisseurOrdersContent() {
   const tOrders = useTranslations('orders');
   const tCommon = useTranslations('common');
   const locale = useLocale();
+  const tTabs = useTranslations('accountTabs');
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [filtered, setFiltered] = useState<Order[]>([]);
@@ -105,6 +106,20 @@ function FournisseurOrdersContent() {
     refunded:   { color: 'bg-red-100 text-red-800' },
   };
 
+  // Label de l'onglet actif (provenant du dashboard "Mon compte")
+  const tabKeyByStatus: Record<string, string> = {
+    cancelled: 'echoue',
+    processing: 'emballage',
+    shipped: 'expedition',
+    refunded: 'rembours',
+    delivered: 'recu',
+  };
+  const activeTabLabel = statusParam === 'all'
+    ? tTabs('details')
+    : statusParam && tabKeyByStatus[statusParam]
+      ? tTabs(tabKeyByStatus[statusParam])
+      : null;
+
   if (loading) {
     return (
       <div className="flex justify-center py-20">
@@ -128,6 +143,12 @@ function FournisseurOrdersContent() {
             <ShoppingBag size={28} className="text-green-600" />
             {tOrders('title')}
           </h1>
+          {activeTabLabel && (
+            <span className="mt-2 inline-flex items-center gap-2 bg-green-50 text-green-700 text-sm font-semibold px-3 py-1.5 rounded-full">
+              <span className="w-2 h-2 rounded-full bg-green-600" />
+              {activeTabLabel}
+            </span>
+          )}
         </div>
         <button
           onClick={loadOrders}

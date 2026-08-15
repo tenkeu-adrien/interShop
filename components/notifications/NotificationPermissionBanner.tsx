@@ -16,10 +16,30 @@ export default function NotificationPermissionBanner() {
   const [showBanner, setShowBanner] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const DISMISS_KEY = 'notification-banner-dismissed';
+  const REASK_DELAY = 24 * 60 * 60 * 1000; // Ne redemander qu'après 24h
+  const AUTO_DISMISS_MS = 5000; // Disparition automatique après 5 secondes
+
+  const isDismissedRecently = (): boolean => {
+    const raw = localStorage.getItem(DISMISS_KEY);
+    if (!raw) return false;
+    const ts = Number(raw);
+    // Ancienne valeur "true" => considérée comme fermée
+    if (isNaN(ts)) return true;
+    return Date.now() - ts < REASK_DELAY;
+  };
+
+  const dismiss = (persist: boolean) => {
+    setShowBanner(false);
+    if (persist) {
+      localStorage.setItem(DISMISS_KEY, String(Date.now()));
+    }
+  };
+
   useEffect(() => {
     // Vérifier si on doit afficher la bannière
     if (!user) return;
-    
+
     const checkPermission = () => {
       // Vérifier si les notifications sont supportées
       if (!areNotificationsSupported()) {
@@ -27,31 +47,34 @@ export default function NotificationPermissionBanner() {
       }
 
       const permission = getNotificationPermissionStatus();
-      
+
       // Afficher la bannière seulement si la permission n'a pas encore été demandée
-      // et que l'utilisateur n'a pas déjà refusé
-      if (permission === 'default') {
-        // Vérifier si l'utilisateur a déjà fermé la bannière (localStorage)
-        const dismissed = localStorage.getItem('notification-banner-dismissed');
-        if (!dismissed) {
-          setShowBanner(true);
-        }
+      // et que l'utilisateur n'a pas déjà fermé la bannière récemment
+      if (permission === 'default' && !isDismissedRecently()) {
+        setShowBanner(true);
       }
     };
 
     // Attendre un peu avant d'afficher (pour ne pas être trop intrusif)
     const timer = setTimeout(checkPermission, 3000);
-    
+
     return () => clearTimeout(timer);
   }, [user]);
 
+  // Disparition automatique après quelques secondes
+  useEffect(() => {
+    if (!showBanner) return;
+    const autoDismiss = setTimeout(() => dismiss(true), AUTO_DISMISS_MS);
+    return () => clearTimeout(autoDismiss);
+  }, [showBanner]);
+
   const handleAllow = async () => {
     if (!user) return;
-    
+
     setLoading(true);
     try {
       const token = await requestNotificationPermission(user.id);
-      
+
       if (token) {
         toast.success('🔔 Notifications activées !');
         setShowBanner(false);
@@ -67,14 +90,11 @@ export default function NotificationPermissionBanner() {
   };
 
   const handleDismiss = () => {
-    setShowBanner(false);
-    // Sauvegarder que l'utilisateur a fermé la bannière
-    localStorage.setItem('notification-banner-dismissed', 'true');
+    dismiss(true);
   };
 
   const handleNotNow = () => {
-    setShowBanner(false);
-    // Ne pas sauvegarder dans localStorage pour redemander plus tard
+    dismiss(true);
   };
 
   return (

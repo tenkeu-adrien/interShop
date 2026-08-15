@@ -35,6 +35,12 @@ export default function ProductCard({ product }: ProductCardProps) {
             {product.name}
           </h3>
 
+          {product.description && (
+            <p className="text-xs text-gray-500 line-clamp-2 mb-2">
+              {product.description}
+            </p>
+          )}
+
           <div className="flex items-center gap-2 mb-2">
             <div className="flex items-center">
               <Star className="text-yellow-400 fill-yellow-400" size={16} />
