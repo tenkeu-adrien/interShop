@@ -347,7 +347,10 @@
         "amount_positive": "Kiasi lazima kiwe chanya",
         "not_found": "Haikupatikana",
         "unauthorized": "Hairuhusiwi",
-        "server_error": "Hitilafu ya seva"
+        "server_error": "Hitilafu ya seva",
+        "invalid_credentials": "Barua pepe au nenosiri si sahihi",
+        "too_many_attempts": "Majaribio mengi sana. Tafadhali jaribu tena baadaye.",
+        "account_disabled": "Akaunti hii imezimwa."
     },
     "chat": {
         "login_required": "Lazima uingie ili kutuma ujumbe",

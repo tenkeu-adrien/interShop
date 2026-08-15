@@ -347,7 +347,10 @@
         "amount_positive": "يجب أن يكون المبلغ موجباً",
         "not_found": "غير موجود",
         "unauthorized": "غير مصرح",
-        "server_error": "خطأ في الخادم"
+        "server_error": "خطأ في الخادم",
+        "invalid_credentials": "بيانات الدخول غير صحيحة",
+        "too_many_attempts": "محاولات كثيرة. حاول مرة أخرى لاحقاً.",
+        "account_disabled": "تم تعطيل هذا الحساب."
     },
     "chat": {
         "login_required": "يجب تسجيل الدخول لإرسال رسالة",

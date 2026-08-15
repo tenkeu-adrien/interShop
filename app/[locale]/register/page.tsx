@@ -152,7 +152,7 @@ export default function RegisterPage() {
       } else if (error.code === 'auth/operation-not-allowed') {
         toast.error(t('err_op_not_allowed'));
       } else {
-        toast.error(error.message || t('err_generic'));
+        toast.error(t('err_generic'));
       }
     } finally {
       setLoading(false);
@@ -210,15 +210,32 @@ export default function RegisterPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t('account_type')}
               </label>
-              <select
-                value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-              >
-                <option value="client">{t('account_client')}</option>
-                <option value="fournisseur">{t('account_fournisseur')}</option>
-                <option value="marketiste">{t('account_marketiste')}</option>
-              </select>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { value: 'client', label: t('account_client') },
+                  { value: 'fournisseur', label: t('account_fournisseur') },
+                  { value: 'marketiste', label: t('account_marketiste') },
+                ] as { value: UserRole; label: string }[]).map((role) => (
+                  <label
+                    key={role.value}
+                    className={`flex flex-col items-center justify-center gap-1 border-2 rounded-lg px-2 py-2 cursor-pointer transition-colors text-center text-xs ${
+                      formData.role === role.value
+                        ? 'border-orange-500 bg-orange-50 text-orange-700'
+                        : 'border-gray-200 hover:border-orange-300 text-gray-600'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="role"
+                      value={role.value}
+                      checked={formData.role === role.value}
+                      onChange={() => setFormData({ ...formData, role: role.value })}
+                      className="accent-orange-500"
+                    />
+                    <span className="font-semibold">{role.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             <div>

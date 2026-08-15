@@ -599,7 +599,10 @@
     "amount_positive": "Le montant doit être positif",
     "not_found": "Non trouvé",
     "unauthorized": "Non autorisé",
-    "server_error": "Erreur serveur"
+    "server_error": "Erreur serveur",
+    "invalid_credentials": "Identifiants incorrects",
+    "too_many_attempts": "Trop de tentatives. Réessayez plus tard.",
+    "account_disabled": "Ce compte a été désactivé."
   },
   "orders": {
     "title": "Mes commandes",

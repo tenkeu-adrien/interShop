@@ -714,7 +714,10 @@
         "amount_positive": "Amount must be positive",
         "not_found": "Not found",
         "unauthorized": "Unauthorized",
-        "server_error": "Server error"
+        "server_error": "Server error",
+        "invalid_credentials": "Incorrect email or password",
+        "too_many_attempts": "Too many attempts. Please try again later.",
+        "account_disabled": "This account has been disabled."
     },
     "chat": {
         "login_required": "You must be logged in to send a message",

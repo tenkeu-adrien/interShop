@@ -123,3 +123,22 @@ export const getUserData = async (uid: string): Promise<User | null> => {
   if (!userDoc.exists()) return null;
   return userDoc.data() as User;
 };
+
+// Convertit les erreurs Firebase en clé de traduction générique
+// pour ne jamais exposer les détails internes à l'utilisateur.
+export const getAuthErrorKey = (error: unknown): string => {
+  const code = (error as any)?.code || '';
+  switch (code) {
+    case 'auth/invalid-credential':
+    case 'auth/wrong-password':
+    case 'auth/user-not-found':
+    case 'auth/invalid-email':
+      return 'invalid_credentials';
+    case 'auth/too-many-requests':
+      return 'too_many_attempts';
+    case 'auth/user-disabled':
+      return 'account_disabled';
+    default:
+      return 'server_error';
+  }
+};

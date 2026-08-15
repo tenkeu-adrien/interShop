@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { loginUser } from '@/lib/firebase/auth';
+import { loginUser, getAuthErrorKey } from '@/lib/firebase/auth';
 import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
 import { useTranslations } from 'next-intl';
@@ -31,7 +31,7 @@ export default function LoginPage() {
       toast.success(tAuth('login_success'));
       router.push('/dashboard');
     } catch (error: any) {
-      toast.error(error.message || tErrors('server_error'));
+      toast.error(tErrors(getAuthErrorKey(error)));
     } finally {
       setLoading(false);
     }

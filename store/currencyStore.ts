@@ -9,9 +9,12 @@ interface CurrencyState {
   loading: boolean;
   error: string | null;
   lastUpdate: Date | null;
+  /** true si l'utilisateur a choisi une devise manuellement (ne plus surcharger) */
+  manualPreference: boolean;
 
   // Actions
   setCurrency: (currency: SupportedCurrency) => void;
+  setShopDefaultCurrency: (currency: SupportedCurrency) => void;
   updateExchangeRates: () => Promise<void>;
   convertPrice: (amountUSD: number) => Promise<number>;
   formatPrice: (amount: number) => string;
@@ -25,8 +28,15 @@ export const useCurrencyStore = create<CurrencyState>()(
       loading: false,
       error: null,
       lastUpdate: null,
+      manualPreference: false,
 
       setCurrency: (currency: SupportedCurrency) => {
+        set({ selectedCurrency: currency, manualPreference: true });
+      },
+
+      // Applique la devise de la boutique sans marquer de préférence manuelle,
+      // pour ne pas empêcher une surcharge automatique ultérieure.
+      setShopDefaultCurrency: (currency: SupportedCurrency) => {
         set({ selectedCurrency: currency });
       },
 
@@ -66,7 +76,8 @@ export const useCurrencyStore = create<CurrencyState>()(
       name: 'currency-storage',
       partialize: (state) => ({
         selectedCurrency: state.selectedCurrency,
-        lastUpdate: state.lastUpdate
+        lastUpdate: state.lastUpdate,
+        manualPreference: state.manualPreference
       })
     }
   )
