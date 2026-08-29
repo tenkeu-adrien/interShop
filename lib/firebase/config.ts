@@ -14,12 +14,24 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+// Vérifie que la configuration web est complète avant d'initialiser,
+// afin d'éviter que le build plante sur Vercel quand les variables
+// d'environnement ne sont pas (encore) définies.
+const hasValidConfig = Boolean(
+  firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.appId
+);
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+// Initialize Firebase
+const app =
+  getApps().length === 0
+    ? hasValidConfig
+      ? initializeApp(firebaseConfig)
+      : (null as unknown as ReturnType<typeof initializeApp>)
+    : getApps()[0];
+
+export const auth = app ? getAuth(app) : null;
+export const db = app ? getFirestore(app) : null;
+export const storage = app ? getStorage(app) : null;
 
 // Messaging (only in browser)
 export const getMessagingInstance = async () => {
