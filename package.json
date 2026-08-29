@@ -9,6 +9,7 @@
     "seed": "tsx scripts/seedFirestoreOnly.ts",
     "seed:full": "tsx scripts/seedFirebase.ts",
     "seed:auth": "tsx scripts/seedAuthUsers.ts",
+    "seed:all": "tsx scripts/seedAll.ts",
     "algolia:sync": "tsx scripts/syncAlgolia.ts"
   },
   "dependencies": {
