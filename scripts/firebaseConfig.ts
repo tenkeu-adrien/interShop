@@ -6,7 +6,8 @@ import { getFirestore } from 'firebase/firestore';
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Charger les variables d'environnement
+// Charger les variables d'environnement (préférer .env, fallback .env.local)
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
 
 const firebaseConfig = {
