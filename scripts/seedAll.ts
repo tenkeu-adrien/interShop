@@ -19,6 +19,7 @@ import {
   createMockClient,
   createMockFournisseur,
   createMockMarketiste,
+  createMockProduct,
 } from '../lib/factories';
 import type { User } from '../types';
 
@@ -128,6 +129,9 @@ async function main() {
   let updated = 0;
   let failed = 0;
 
+  // Uid des fournisseurs seed (pour y lier les produits)
+  const fournisseurUids: string[] = [];
+
   // Admin
   const adminSpec: Spec = { role: 'admin', count: 1, factory: (o) => createMockClient() as User };
 
@@ -141,6 +145,8 @@ async function main() {
 
         // 1) Créer (ou retrouver) le compte Firebase Auth -> uid généré par Firebase
         const uid = await createOrUpdateAuthUser(auth, email, base.displayName || `${spec.role} ${i}`);
+
+        if (role === 'fournisseur') fournisseurUids.push(uid);
 
         const userFields = cleanUndefined({
           ...base,
@@ -174,6 +180,35 @@ async function main() {
         failed++;
       }
     }
+  }
+
+  // ----- Génération des produits liés aux fournisseurs seed -----
+  const productCount = Number(process.env.SEED_PRODUCTS) || 150;
+  if (fournisseurUids.length === 0) {
+    log('\n⚠️ Aucun fournisseur seed trouvé, produits non générés.', 'yellow');
+  } else {
+    log(`\n📦 Génération de ${productCount} produits (fournisseurs: ${fournisseurUids.length})...`, 'cyan');
+    let productsCreated = 0;
+    let productsFailed = 0;
+
+    for (let i = 0; i < productCount; i++) {
+      try {
+        const provider = fournisseurUids[Math.floor(Math.random() * fournisseurUids.length)];
+        const product = createMockProduct({ fournisseurId: provider, isActive: true }) as any;
+        const { id, ...productData } = product;
+        const cleaned = cleanUndefined({
+          ...productData,
+          createdAt: Timestamp.fromDate(new Date()),
+          updatedAt: Timestamp.fromDate(new Date()),
+        });
+        await db.collection('products').add(cleaned);
+        productsCreated++;
+      } catch (e: any) {
+        log(`  ✗ produit ${i + 1}: ${e.message}`, 'red');
+        productsFailed++;
+      }
+    }
+    log(`📦 Produits créés: ${productsCreated} | Échecs: ${productsFailed}`, 'green');
   }
 
   log('\n==========================================================', 'cyan');
