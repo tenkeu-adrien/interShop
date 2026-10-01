@@ -53,16 +53,8 @@ export default function Header() {
   const menuRef = useRef<HTMLDivElement>(null);
   const langRef = useRef<HTMLDivElement>(null);
 
-  // Subscribe to unread count
-  useEffect(() => {
-    if (user) {
-      subscribeTotalUnreadCount(user.id);
-    }
-
-    return () => {
-      unsubscribeTotalUnreadCount();
-    };
-  }, [user]);
+  // NOTE: La souscription au compteur de messages est déjà gérée dans AuthProvider
+  // Pas besoin de souscrire ici pour éviter les doublons
 
   // Fermer les menus quand on clique ailleurs
   useEffect(() => {
@@ -307,7 +299,11 @@ export default function Header() {
                         <Link
                           href={getDashboardLink()}
                           onClick={() => setShowUserMenu(false)}
-                          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-gray-700"
+                          className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                            pathname.includes('/dashboard')
+                              ? 'bg-green-50 text-green-700 border-l-4 border-green-600'
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
                         >
                           <LayoutDashboard size={20} className="text-green-600" />
                           <span className="font-medium">
@@ -323,7 +319,11 @@ export default function Header() {
                           <Link
                             href="/dashboard/fournisseur/products"
                             onClick={() => setShowUserMenu(false)}
-                            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-gray-700"
+                            className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                              pathname.includes('/dashboard/fournisseur/products')
+                                ? 'bg-green-50 text-green-700 border-l-4 border-green-600'
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
                           >
                             <Package size={20} className="text-green-600" />
                             <span className="font-medium">{tDashboard('my_products')}</span>
@@ -334,7 +334,11 @@ export default function Header() {
                           <Link
                             href="/orders"
                             onClick={() => setShowUserMenu(false)}
-                            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-gray-700"
+                            className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                              pathname.includes('/orders')
+                                ? 'bg-green-50 text-green-700 border-l-4 border-green-600'
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
                           >
                             <ShoppingBag size={20} className="text-green-600" />
                             <span className="font-medium">{tNav('orders')}</span>
@@ -345,7 +349,11 @@ export default function Header() {
                           <Link
                             href="/dashboard/admin/users"
                             onClick={() => setShowUserMenu(false)}
-                            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-gray-700"
+                            className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                              pathname.includes('/dashboard/admin/users')
+                                ? 'bg-green-50 text-green-700 border-l-4 border-green-600'
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
                           >
                             <Users size={20} className="text-green-600" />
                             <span className="font-medium">{tCommon('users')}</span>
@@ -389,7 +397,11 @@ export default function Header() {
                         <Link
                           href="/wallet"
                           onClick={() => setShowUserMenu(false)}
-                          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-gray-700"
+                          className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                            pathname.includes('/wallet')
+                              ? 'bg-green-50 text-green-700 border-l-4 border-green-600'
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
                         >
                           <Wallet size={20} className="text-green-600" />
                           <span className="font-medium">{tNav('wallet')}</span>
@@ -398,7 +410,11 @@ export default function Header() {
                         <Link
                           href="/settings"
                           onClick={() => setShowUserMenu(false)}
-                          className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-gray-700"
+                          className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                            pathname.includes('/settings')
+                              ? 'bg-green-50 text-green-700 border-l-4 border-green-600'
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
                         >
                           <Settings size={20} className="text-green-600" />
                           <span className="font-medium">{tCommon('settings')}</span>
@@ -440,15 +456,52 @@ export default function Header() {
       <div className="bg-green-600 border-t border-green-500">
         <div className="container mx-auto px-4">
           <nav className="flex items-center gap-4 md:gap-6 h-12 text-sm overflow-x-auto scrollbar-hide">
-            <Link href="/" className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
+            <Link 
+              href="/" 
+              className={`font-medium transition-colors flex items-center gap-2 whitespace-nowrap relative ${
+                pathname === `/${locale}` || pathname === '/'
+                  ? 'text-yellow-300 font-bold'
+                  : 'text-white hover:text-yellow-300'
+              }`}
+            >
               <Home size={16} />
               <span>{tNav('home')}</span>
+              {(pathname === `/${locale}` || pathname === '/') && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-300"
+                  initial={false}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                />
+              )}
             </Link>
-            <Link href="/boutiques" className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
+            <Link 
+              href="/boutiques" 
+              className={`font-medium transition-colors flex items-center gap-2 whitespace-nowrap relative ${
+                pathname.includes('/boutiques')
+                  ? 'text-yellow-300 font-bold'
+                  : 'text-white hover:text-yellow-300'
+              }`}
+            >
               <Store size={16} />
               <span>{tNav('shops')}</span>
+              {pathname.includes('/boutiques') && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-300"
+                  initial={false}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                />
+              )}
             </Link>
-            <Link href="/chat" className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2 whitespace-nowrap relative">
+            <Link 
+              href="/chat" 
+              className={`font-medium transition-colors flex items-center gap-2 whitespace-nowrap relative ${
+                pathname.includes('/chat')
+                  ? 'text-yellow-300 font-bold'
+                  : 'text-white hover:text-yellow-300'
+              }`}
+            >
               <MessageCircle size={16} />
               <span>{tNav('messages')}</span>
               {totalUnreadCount > 0 && (
@@ -456,10 +509,33 @@ export default function Header() {
                   {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
                 </span>
               )}
+              {pathname.includes('/chat') && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-300"
+                  initial={false}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                />
+              )}
             </Link>
-            <Link href={user ? '/dashboard' : '/login'} className="text-white hover:text-yellow-300 font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
+            <Link 
+              href={user ? '/dashboard' : '/login'} 
+              className={`font-medium transition-colors flex items-center gap-2 whitespace-nowrap relative ${
+                pathname.includes('/dashboard') || pathname.includes('/profile')
+                  ? 'text-yellow-300 font-bold'
+                  : 'text-white hover:text-yellow-300'
+              }`}
+            >
               <User size={16} />
               <span>{tNav('profile')}</span>
+              {(pathname.includes('/dashboard') || pathname.includes('/profile')) && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-300"
+                  initial={false}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                />
+              )}
             </Link>
           </nav>
         </div>

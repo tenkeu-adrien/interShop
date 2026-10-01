@@ -21,6 +21,10 @@ interface ChatStore {
   loading: boolean;
   sending: boolean;
   
+  // Cache pour éviter les rechargements
+  lastConversationsLoad: number;
+  lastMessagesLoad: number;
+  
   // Subscriptions
   conversationsUnsubscribe: (() => void) | null;
   messagesUnsubscribe: (() => void) | null;
@@ -93,15 +97,25 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   totalUnreadCount: 0,
   loading: false,
   sending: false,
+  lastConversationsLoad: 0,
+  lastMessagesLoad: 0,
   conversationsUnsubscribe: null,
   messagesUnsubscribe: null,
   unreadCountUnsubscribe: null,
   
   loadConversations: async (userId: string) => {
+    // Cache: Ne recharge que si plus de 30 secondes
+    const now = Date.now();
+    const { lastConversationsLoad } = get();
+    if (now - lastConversationsLoad < 30000) {
+      console.log('⚡ Utilisation du cache pour les conversations');
+      return;
+    }
+    
     set({ loading: true });
     try {
       const conversations = await getUserConversations(userId);
-      set({ conversations, loading: false });
+      set({ conversations, loading: false, lastConversationsLoad: now });
     } catch (error) {
       console.error('Error loading conversations:', error);
       set({ loading: false });
@@ -128,10 +142,18 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
   
   loadMessages: async (conversationId: string) => {
+    // Cache: Ne recharge que si plus de 10 secondes
+    const now = Date.now();
+    const { lastMessagesLoad, currentConversation } = get();
+    if (currentConversation?.id === conversationId && now - lastMessagesLoad < 10000) {
+      console.log('⚡ Utilisation du cache pour les messages');
+      return;
+    }
+    
     set({ loading: true });
     try {
       const messages = await getConversationMessages(conversationId);
-      set({ messages, loading: false });
+      set({ messages, loading: false, lastMessagesLoad: now });
     } catch (error) {
       console.error('Error loading messages:', error);
       set({ loading: false });
@@ -293,6 +315,13 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
   
   subscribeTotalUnreadCount: (userId: string) => {
+    // Éviter les doubles souscriptions
+    const { unreadCountUnsubscribe } = get();
+    if (unreadCountUnsubscribe) {
+      console.log('⚠️ Souscription déjà active, ignorée');
+      return;
+    }
+    
     console.log('📊 Initialisation de la souscription au compteur pour userId:', userId);
     const unsubscribe = subscribeToTotalUnreadCount(userId, (count) => {
       console.log('📬 Nouveau compteur de messages non lus:', count);

@@ -40,7 +40,13 @@ export default function AdminProductsPage() {
   const tProducts = useTranslations('products');
 
   // Utilise le store public (cache + pagination) au lieu de getDocs direct
-  const { products: storeProducts, loading: storeLoading, loadProducts: loadStoreProducts } = usePublicProductsStore();
+  const { 
+    products: storeProducts, 
+    loading: storeLoading, 
+    hasMore,
+    loadProducts: loadStoreProducts,
+    loadMore: loadMoreProducts
+  } = usePublicProductsStore();
   
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -428,6 +434,22 @@ export default function AdminProductsPage() {
                 <ChevronRight size={16} />
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Bouton "Charger plus depuis Firestore" */}
+        {hasMore && !storeLoading && (
+          <div className="mt-6 text-center">
+            <button
+              onClick={loadMoreProducts}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+            >
+              <Package size={20} />
+              Charger plus de produits depuis la base
+            </button>
+            <p className="text-sm text-gray-500 mt-2">
+              {storeProducts.length} produits chargés • La pagination ci-dessus affiche les produits déjà chargés
+            </p>
           </div>
         )}
 

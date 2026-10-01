@@ -381,12 +381,12 @@ function NewProductContent() {
     setLoading(true);
 
     try {
-      // Upload images
+      // Upload images EN PARALLÈLE pour plus de rapidité
       toast.loading('Upload des images...', { id: 'upload' });
       const imageUrls: string[] = [];
       
-      for (let i = 0; i < images.length; i++) {
-        const image = images[i];
+      // Upload toutes les images en parallèle au lieu de séquentiellement
+      const imageUploadPromises = images.map(async (image, i) => {
         setImages(prev => {
           const newImages = [...prev];
           newImages[i].uploading = true;
@@ -405,22 +405,26 @@ function NewProductContent() {
           }
         );
 
-        imageUrls.push(url);
         setImages(prev => {
           const newImages = [...prev];
           newImages[i].url = url;
           newImages[i].uploading = false;
           return newImages;
         });
-      }
 
-      // Upload videos
+        return url;
+      });
+
+      // Attendre que toutes les images soient uploadées
+      const uploadedImages = await Promise.all(imageUploadPromises);
+      imageUrls.push(...uploadedImages);
+
+      // Upload videos EN PARALLÈLE
       const videoUrls: string[] = [];
       if (videos.length > 0) {
         toast.loading('Upload des vidéos...', { id: 'upload' });
         
-        for (let i = 0; i < videos.length; i++) {
-          const video = videos[i];
+        const videoUploadPromises = videos.map(async (video, i) => {
           setVideos(prev => {
             const newVideos = [...prev];
             newVideos[i].uploading = true;
@@ -439,14 +443,19 @@ function NewProductContent() {
             }
           );
 
-          videoUrls.push(url);
           setVideos(prev => {
             const newVideos = [...prev];
             newVideos[i].url = url;
             newVideos[i].uploading = false;
             return newVideos;
           });
-        }
+
+          return url;
+        });
+
+        // Attendre que toutes les vidéos soient uploadées
+        const uploadedVideos = await Promise.all(videoUploadPromises);
+        videoUrls.push(...uploadedVideos);
       }
 
       // Create product

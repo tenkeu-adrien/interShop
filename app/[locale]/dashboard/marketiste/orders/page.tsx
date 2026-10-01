@@ -17,29 +17,46 @@ import {
   Package,
   TrendingUp,
   Clock,
-  CheckCircle
+  CheckCircle,
+  RefreshCw
 } from 'lucide-react';
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, where, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { Order, OrderStatus } from '@/types';
 import { toDate } from '@/lib/utils/date';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
+import { usePagination } from '@/hooks/usePagination';
 
 export default function MarketisteOrdersPage() {
   const router = useRouter();
   const { user, loading } = useAuthStore();
   
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
-  const [loadingOrders, setLoadingOrders] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showModal, setShowModal] = useState(false);
   
-  // Pagination
+  // Utiliser usePagination au lieu de charger toutes les commandes
+  const baseQuery = user 
+    ? query(
+        collection(db, 'orders'),
+        where('marketisteId', '==', user.id),
+        orderBy('createdAt', 'desc')
+      )
+    : null;
+
+  const {
+    data: orders,
+    loading: loadingOrders,
+    hasMore,
+    loadMore
+  } = usePagination<Order>(baseQuery, 20);
+
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
+  
+  // Pagination client-side pour les résultats filtrés
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 10;
 
@@ -48,39 +65,13 @@ export default function MarketisteOrdersPage() {
       router.push('/dashboard');
       return;
     }
-
-    if (user && (user.role === 'marketiste' || user.role === 'admin')) {
-      loadOrders();
-    }
   }, [user, loading, router]);
+
+  // Plus besoin de loadOrders(), usePagination s'en charge
 
   useEffect(() => {
     filterOrders();
   }, [orders, searchQuery, statusFilter]);
-
-  const loadOrders = async () => {
-    if (!user) return;
-    
-    setLoadingOrders(true);
-    try {
-      const ordersQuery = query(
-        collection(db, 'orders'),
-        where('marketisteId', '==', user.id),
-        orderBy('createdAt', 'desc')
-      );
-      const ordersSnapshot = await getDocs(ordersQuery);
-      const ordersData = ordersSnapshot.docs.map(doc => ({ 
-        id: doc.id, 
-        ...doc.data() 
-      })) as Order[];
-      setOrders(ordersData);
-    } catch (error) {
-      console.error('Error loading orders:', error);
-      toast.error('Erreur lors du chargement des commandes');
-    } finally {
-      setLoadingOrders(false);
-    }
-  };
 
   const filterOrders = () => {
     let filtered = [...orders];
@@ -336,10 +327,23 @@ export default function MarketisteOrdersPage() {
           )}
         </div>
 
-        {filteredOrders.length === 0 && (
+        {filteredOrders.length === 0 && !loadingOrders && (
           <div className="text-center py-16">
             <ShoppingCart className="mx-auto mb-4 text-gray-300" size={64} />
             <p className="text-gray-500 text-lg">Aucune commande trouvée</p>
+          </div>
+        )}
+
+        {/* Bouton "Charger plus" */}
+        {hasMore && !loadingOrders && filteredOrders.length > 0 && (
+          <div className="mt-8 text-center">
+            <button
+              onClick={loadMore}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+            >
+              <RefreshCw size={20} />
+              Charger plus de commandes
+            </button>
           </div>
         )}
 

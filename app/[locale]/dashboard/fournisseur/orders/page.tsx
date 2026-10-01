@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/authStore';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { OrderStatusStepper } from '@/components/orders/OrderStatusStepper';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
-import { getFournisseurOrders, updateOrderStatus } from '@/lib/firebase/orders';
+import { updateOrderStatus } from '@/lib/firebase/orders';
 import { toDate } from '@/lib/utils/date';
 import { Order, OrderStatus } from '@/types';
 import { ShoppingBag, Search, Package, Loader, Play, Truck, CheckCircle, ArrowLeft, RefreshCw } from 'lucide-react';
@@ -15,6 +15,9 @@ import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { usePagination } from '@/hooks/usePagination';
+import { collection, query, where, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase/config';
 
 type StatusFilter = OrderStatus | 'all';
 
@@ -28,12 +31,27 @@ function FournisseurOrdersContent() {
   const locale = useLocale();
   const tTabs = useTranslations('accountTabs');
 
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [filtered, setFiltered] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [updating, setUpdating] = useState<string | null>(null);
+
+  // Utiliser usePagination au lieu de charger toutes les commandes
+  const baseQuery = user 
+    ? query(
+        collection(db, 'orders'),
+        where('fournisseurId', '==', user.id),
+        orderBy('createdAt', 'desc')
+      )
+    : null;
+
+  const {
+    data: orders,
+    loading,
+    hasMore,
+    loadMore
+  } = usePagination<Order>(baseQuery, 20);
+
+  const [filtered, setFiltered] = useState<Order[]>([]);
 
   useEffect(() => {
     if (statusParam) {
@@ -41,24 +59,7 @@ function FournisseurOrdersContent() {
     }
   }, [statusParam]);
 
-  const loadOrders = async () => {
-    if (!user) return;
-    setLoading(true);
-    try {
-      const data = await getFournisseurOrders(user.id);
-      setOrders(data);
-    } catch (error) {
-      console.error('Erreur chargement commandes:', error);
-      toast.error(tCommon('error'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadOrders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  // Plus besoin de loadOrders(), usePagination s'en charge
 
   useEffect(() => {
     let result = [...orders];
@@ -86,8 +87,7 @@ function FournisseurOrdersContent() {
     try {
       await updateOrderStatus(order.id, next);
       toast.success(tCommon('success'));
-      // Mise à jour locale immédiate
-      setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: next! } : o));
+      // Pas besoin de mise à jour manuelle, usePagination rafraîchit automatiquement
     } catch (error) {
       console.error('Erreur mise à jour statut:', error);
       toast.error(tCommon('error'));
@@ -282,6 +282,19 @@ function FournisseurOrdersContent() {
             );
           })}
         </div>
+
+        {/* Bouton "Charger plus" */}
+        {hasMore && !loading && (
+          <div className="mt-8 text-center">
+            <button
+              onClick={loadMore}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+            >
+              <RefreshCw size={20} />
+              Charger plus de commandes
+            </button>
+          </div>
+        )}
       )}
     </div>
   );

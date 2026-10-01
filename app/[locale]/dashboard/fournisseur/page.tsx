@@ -1,12 +1,15 @@
 'use client';
 
 import { useAuthStore } from '@/store/authStore';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { Package, DollarSign, ShoppingBag, TrendingUp, Plus, UtensilsCrossed, Hotel, Heart, Shield } from 'lucide-react';
+import { Package, DollarSign, ShoppingBag, TrendingUp, Plus, UtensilsCrossed, Hotel, Heart, Shield, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { AccountTabs } from '@/components/account/AccountTabs';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase/config';
+import { Product, Order } from '@/types';
 
 function FournisseurDashboardContent() {
   const { user } = useAuthStore();
@@ -14,12 +17,57 @@ function FournisseurDashboardContent() {
   const tCommon = useTranslations('common');
   const tDashboard = useTranslations('dashboard');
   
-  const [stats] = useState({
+  const [stats, setStats] = useState({
     totalProducts: 0,
     totalOrders: 0,
     totalRevenue: 0,
     pendingOrders: 0,
   });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user?.id) {
+      loadStats();
+    }
+  }, [user?.id]);
+
+  const loadStats = async () => {
+    if (!user?.id) return;
+    
+    setLoading(true);
+    try {
+      // Charger les produits du fournisseur
+      const productsQuery = query(
+        collection(db, 'products'),
+        where('fournisseurId', '==', user.id)
+      );
+      const productsSnapshot = await getDocs(productsQuery);
+      const products = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[];
+
+      // Charger les commandes du fournisseur
+      const ordersQuery = query(
+        collection(db, 'orders'),
+        where('fournisseurId', '==', user.id)
+      );
+      const ordersSnapshot = await getDocs(ordersQuery);
+      const orders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Order[];
+
+      // Calculer les stats
+      const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+      const pendingOrders = orders.filter(o => o.status === 'pending').length;
+
+      setStats({
+        totalProducts: products.length,
+        totalOrders: orders.length,
+        totalRevenue,
+        pendingOrders,
+      });
+    } catch (error) {
+      console.error('Error loading fournisseur stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -163,7 +211,17 @@ function FournisseurDashboardContent() {
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-bold mb-4">{tFournisseur('my_stats')}</h2>
         <div className="h-64 flex items-center justify-center text-gray-500">
-          {tCommon('loading')}
+          {loading ? (
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="animate-spin text-orange-500" size={48} />
+              <p>{tCommon('loading')}...</p>
+            </div>
+          ) : (
+            <div className="text-center">
+              <p className="text-lg">Graphique de performance à venir</p>
+              <p className="text-sm mt-2">Vos statistiques seront affichées ici</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
