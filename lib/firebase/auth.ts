@@ -1,6 +1,9 @@
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  FacebookAuthProvider,
   signOut,
   sendPasswordResetEmail,
   updateProfile,
@@ -110,6 +113,58 @@ export const loginUser = async (email: string, password: string): Promise<User> 
   return userDoc.data() as User;
 };
 
+// Crée le profil Firestore d'un utilisateur lors de sa première connexion
+// via un fournisseur social (Google, Facebook), ou renvoie son profil existant.
+const getOrCreateSocialUser = async (firebaseUser: FirebaseUser): Promise<User> => {
+  const userRef = doc(db, 'users', firebaseUser.uid);
+  const userDoc = await getDoc(userRef);
+
+  if (userDoc.exists()) {
+    return userDoc.data() as User;
+  }
+
+  const userData: User = {
+    id: firebaseUser.uid,
+    email: firebaseUser.email!,
+    displayName: firebaseUser.displayName || firebaseUser.email!.split('@')[0],
+    role: 'client',
+    photoURL: firebaseUser.photoURL || null,
+    phoneNumber: firebaseUser.phoneNumber || null,
+    phoneCountryCode: '+243',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isVerified: true,
+    isActive: true,
+    approvalStatus: 'approved',
+    accountStatus: 'active',
+    emailVerified: true,
+    emailVerificationAttempts: 0,
+    phoneVerified: false,
+    phoneVerificationAttempts: 0,
+    verificationHistory: []
+  };
+
+  await setDoc(userRef, {
+    ...userData,
+    createdAt: Timestamp.fromDate(userData.createdAt),
+    updatedAt: Timestamp.fromDate(userData.updatedAt)
+  });
+
+  return userData;
+};
+
+export const loginWithGoogle = async (): Promise<User> => {
+  const provider = new GoogleAuthProvider();
+  const userCredential = await signInWithPopup(auth, provider);
+  return getOrCreateSocialUser(userCredential.user);
+};
+
+export const loginWithFacebook = async (): Promise<User> => {
+  const provider = new FacebookAuthProvider();
+  const userCredential = await signInWithPopup(auth, provider);
+  return getOrCreateSocialUser(userCredential.user);
+};
+
 export const logoutUser = async (): Promise<void> => {
   await signOut(auth);
 };
@@ -138,6 +193,11 @@ export const getAuthErrorKey = (error: unknown): string => {
       return 'too_many_attempts';
     case 'auth/user-disabled':
       return 'account_disabled';
+    case 'auth/popup-closed-by-user':
+    case 'auth/cancelled-popup-request':
+      return 'popup_closed';
+    case 'auth/account-exists-with-different-credential':
+      return 'account_exists_different_credential';
     default:
       return 'server_error';
   }

@@ -25,7 +25,7 @@ if (!projectId || !clientEmail || !privateKey) {
 }
 
 // Mot de passe par défaut pour les comptes créés
-const DEFAULT_PASSWORD = process.env.SEED_PASSWORD || 'InterShop@2026';
+const DEFAULT_PASSWORD = process.env.SEED_PASSWORD || 'InterAppShop@2026';
 
 if (!admin.apps.length) {
   admin.initializeApp({

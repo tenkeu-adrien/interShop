@@ -6,10 +6,11 @@ import { Home, Store, MessageCircle, User } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useChatStore } from '@/store/chatStore';
 import { motion } from 'framer-motion';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
 export default function MobileNav() {
   const pathname = usePathname();
+  const locale = useLocale();
   const { user } = useAuthStore();
   const { totalUnreadCount } = useChatStore();
   const tNav = useTranslations('nav');
@@ -21,11 +22,18 @@ export default function MobileNav() {
     { href: user ? '/dashboard' : '/login', icon: User, label: tNav('profile') },
   ];
 
+  const isActive = (href: string) => {
+    if (href === '/') {
+      return pathname === `/${locale}` || pathname === '/';
+    }
+    return pathname.includes(href);
+  };
+
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-bottom">
       <div className="flex justify-around items-center h-16 px-2">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const active = isActive(item.href);
           const Icon = item.icon;
           
           return (
@@ -33,12 +41,12 @@ export default function MobileNav() {
               key={item.href}
               href={item.href}
               className={`flex flex-col items-center justify-center gap-1 flex-1 h-full ${
-                isActive ? 'text-green-600' : 'text-gray-600'
+                active ? 'text-green-600' : 'text-gray-600'
               }`}
             >
               <div className="relative flex items-center justify-center">
                 <motion.div whileTap={{ scale: 0.9 }} className="flex items-center justify-center">
-                  <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                  <Icon size={22} strokeWidth={active ? 2.5 : 2} />
                 </motion.div>
                 {item.badge && item.badge > 0 && (
                   <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] px-1 flex items-center justify-center z-10">
@@ -46,12 +54,12 @@ export default function MobileNav() {
                   </span>
                 )}
               </div>
-              <span className={`text-xs font-medium ${isActive ? 'font-semibold' : ''}`}>
+              <span className={`text-xs font-medium ${active ? 'font-semibold' : ''}`}>
                 {item.label}
               </span>
-              {isActive && (
+              {active && (
                 <motion.div
-                  layoutId="activeTab"
+                  layoutId="mobileActiveTab"
                   className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-green-600 rounded-b-full"
                   transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 />

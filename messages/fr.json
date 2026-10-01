@@ -231,7 +231,10 @@
     "error_registration": "Erreur d'inscription",
     "passwords_mismatch": "Les mots de passe ne correspondent pas",
     "password_min_length": "Le mot de passe doit contenir au moins 6 caractères",
-    "enter_full_name": "Veuillez entrer votre nom complet"
+    "enter_full_name": "Veuillez entrer votre nom complet",
+    "or_continue_with": "Ou continuer avec",
+    "continue_with_google": "Continuer avec Google",
+    "continue_with_facebook": "Continuer avec Facebook"
   },
   "cart": {
     "your_cart": "Votre panier",
@@ -416,7 +419,9 @@
     "error_approving": "Erreur lors de l'approbation",
     "error_rejecting": "Erreur lors du rejet",
     "error_deleting": "Erreur lors de la suppression",
-    "error_updating": "Erreur lors de la modification"
+    "error_updating": "Erreur lors de la modification",
+    "revenue_analytics": "Analyses des revenus",
+    "revenue_subtitle": "Visualisez les performances financières de votre plateforme"
   },
   "fournisseur": {
     "dashboard_title": "Dashboard Fournisseur",
@@ -602,7 +607,9 @@
     "server_error": "Erreur serveur",
     "invalid_credentials": "Identifiants incorrects",
     "too_many_attempts": "Trop de tentatives. Réessayez plus tard.",
-    "account_disabled": "Ce compte a été désactivé."
+    "account_disabled": "Ce compte a été désactivé.",
+    "popup_closed": "La fenêtre de connexion a été fermée avant la fin.",
+    "account_exists_different_credential": "Un compte existe déjà avec cet email via un autre mode de connexion."
   },
   "orders": {
     "title": "Mes commandes",

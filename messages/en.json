@@ -231,7 +231,10 @@
         "error_registration": "Registration error",
         "passwords_mismatch": "Passwords do not match",
         "password_min_length": "Password must be at least 6 characters",
-        "enter_full_name": "Please enter your full name"
+        "enter_full_name": "Please enter your full name",
+        "or_continue_with": "Or continue with",
+        "continue_with_google": "Continue with Google",
+        "continue_with_facebook": "Continue with Facebook"
     },
     "cart": {
         "your_cart": "Your cart",
@@ -717,7 +720,9 @@
         "server_error": "Server error",
         "invalid_credentials": "Incorrect email or password",
         "too_many_attempts": "Too many attempts. Please try again later.",
-        "account_disabled": "This account has been disabled."
+        "account_disabled": "This account has been disabled.",
+        "popup_closed": "The sign-in window was closed before completing.",
+        "account_exists_different_credential": "An account already exists with this email using a different sign-in method."
     },
     "chat": {
         "login_required": "You must be logged in to send a message",

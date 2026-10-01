@@ -175,7 +175,10 @@
         "fournisseur": "مورد",
         "marketiste": "مسوّق",
         "verify_email": "تحقق من بريدك الإلكتروني",
-        "verify_phone": "تحقق من هاتفك"
+        "verify_phone": "تحقق من هاتفك",
+        "or_continue_with": "أو تابع باستخدام",
+        "continue_with_google": "المتابعة باستخدام Google",
+        "continue_with_facebook": "المتابعة باستخدام Facebook"
     },
     "cart": {
         "your_cart": "سلة التسوق",
@@ -350,7 +353,9 @@
         "server_error": "خطأ في الخادم",
         "invalid_credentials": "بيانات الدخول غير صحيحة",
         "too_many_attempts": "محاولات كثيرة. حاول مرة أخرى لاحقاً.",
-        "account_disabled": "تم تعطيل هذا الحساب."
+        "account_disabled": "تم تعطيل هذا الحساب.",
+        "popup_closed": "تم إغلاق نافذة تسجيل الدخول قبل الانتهاء.",
+        "account_exists_different_credential": "يوجد حساب بالفعل بهذا البريد الإلكتروني باستخدام طريقة تسجيل دخول مختلفة."
     },
     "chat": {
         "login_required": "يجب تسجيل الدخول لإرسال رسالة",

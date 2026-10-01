@@ -175,7 +175,10 @@
         "fournisseur": "Msambazaji",
         "marketiste": "Mwuzaji",
         "verify_email": "Thibitisha barua pepe yako",
-        "verify_phone": "Thibitisha simu yako"
+        "verify_phone": "Thibitisha simu yako",
+        "or_continue_with": "Au endelea na",
+        "continue_with_google": "Endelea na Google",
+        "continue_with_facebook": "Endelea na Facebook"
     },
     "cart": {
         "your_cart": "Kikapu chako",
@@ -350,7 +353,9 @@
         "server_error": "Hitilafu ya seva",
         "invalid_credentials": "Barua pepe au nenosiri si sahihi",
         "too_many_attempts": "Majaribio mengi sana. Tafadhali jaribu tena baadaye.",
-        "account_disabled": "Akaunti hii imezimwa."
+        "account_disabled": "Akaunti hii imezimwa.",
+        "popup_closed": "Dirisha la kuingia limefungwa kabla ya kukamilika.",
+        "account_exists_different_credential": "Akaunti tayari ipo kwa barua pepe hii kwa kutumia njia nyingine ya kuingia."
     },
     "chat": {
         "login_required": "Lazima uingie ili kutuma ujumbe",
