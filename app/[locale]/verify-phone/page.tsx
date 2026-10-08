@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import { PHONE_COUNTRIES, getPhoneCountry, sanitizePhoneNumber, isValidPhoneNumber } from '@/lib/data/phoneCountries';
 import { Phone, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { 
   sendPhoneVerificationCode, 
@@ -26,29 +27,7 @@ export default function VerifyPhonePage() {
   const [recaptchaVerifier, setRecaptchaVerifier] = useState<any>(null);
   const [recaptchaReady, setRecaptchaReady] = useState(false);
 
-  // Codes pays africains
-  const countryCodes = [
-    { code: '+237', country: 'Cameroun', flag: '🇨🇲' },
-    { code: '+225', country: 'Côte d\'Ivoire', flag: '🇨🇮' },
-    { code: '+221', country: 'Sénégal', flag: '🇸🇳' },
-    { code: '+226', country: 'Burkina Faso', flag: '🇧🇫' },
-    { code: '+223', country: 'Mali', flag: '🇲🇱' },
-    { code: '+227', country: 'Niger', flag: '🇳🇪' },
-    { code: '+228', country: 'Togo', flag: '🇹🇬' },
-    { code: '+229', country: 'Bénin', flag: '🇧🇯' },
-    { code: '+233', country: 'Ghana', flag: '🇬🇭' },
-    { code: '+234', country: 'Nigeria', flag: '🇳🇬' },
-    { code: '+243', country: 'RD Congo', flag: '🇨🇩' },
-    { code: '+242', country: 'Congo', flag: '🇨🇬' },
-    { code: '+241', country: 'Gabon', flag: '🇬🇦' },
-    { code: '+236', country: 'Centrafrique', flag: '🇨🇫' },
-    { code: '+235', country: 'Tchad', flag: '🇹🇩' },
-    { code: '+240', country: 'Guinée Équatoriale', flag: '🇬🇶' },
-    { code: '+220', country: 'Gambie', flag: '🇬🇲' },
-    { code: '+224', country: 'Guinée', flag: '🇬🇳' },
-    { code: '+245', country: 'Guinée-Bissau', flag: '🇬🇼' },
-    { code: '+231', country: 'Liberia', flag: '🇱🇷' },
-  ];
+  const phoneCountry = getPhoneCountry(countryCode);
 
   // Rediriger si pas connecté ou déjà vérifié
   useEffect(() => {
@@ -71,13 +50,10 @@ export default function VerifyPhonePage() {
     if (user.phoneNumber) {
       const phone = user.phoneNumber;
       // Extraire le code pays et le numéro
-      const matchedCode = countryCodes.find(c => phone.startsWith(c.code));
-      if (matchedCode) {
-        setCountryCode(matchedCode.code);
-        setPhoneNumber(phone.substring(matchedCode.code.length));
-      } else {
-        setPhoneNumber(phone);
-      }
+      const matchedCode = PHONE_COUNTRIES.find(c => phone.startsWith(c.code));
+      const code = matchedCode?.code ?? user.phoneCountryCode ?? countryCode;
+      setCountryCode(code);
+      setPhoneNumber(sanitizePhoneNumber(matchedCode ? phone.substring(code.length) : phone, code));
     }
   }, [user, router]);
 
@@ -145,8 +121,8 @@ export default function VerifyPhonePage() {
 
     try {
       // Valider le numéro
-      if (!phoneNumber || phoneNumber.length < 8) {
-        throw new Error('Numéro de téléphone invalide');
+      if (!isValidPhoneNumber(phoneNumber, countryCode)) {
+        throw new Error(`Le numéro doit contenir exactement ${phoneCountry.length} chiffres pour ce pays (${phoneCountry.name})`);
       }
 
       // Vérifier que reCAPTCHA est initialisé
@@ -333,28 +309,31 @@ export default function VerifyPhonePage() {
               <div className="flex gap-2">
                 <select
                   value={countryCode}
-                  onChange={(e) => setCountryCode(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  onChange={(e) => {
+                    setCountryCode(e.target.value);
+                    setPhoneNumber(sanitizePhoneNumber(phoneNumber, e.target.value));
+                  }}
+                  className="w-28 shrink-0 px-1 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 >
-                  {countryCodes.map((country) => (
+                  {PHONE_COUNTRIES.map((country) => (
                     <option key={country.code} value={country.code}>
-                      {country.flag} {country.code}
+                      {country.flag} {country.code} {country.name}
                     </option>
                   ))}
                 </select>
                 <input
                   type="tel"
                   value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
-                  placeholder="6 XX XX XX XX"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  inputMode="numeric"
+                  onChange={(e) => setPhoneNumber(sanitizePhoneNumber(e.target.value, countryCode))}
+                  placeholder={phoneCountry.example}
+                  className="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   required
-                  minLength={8}
-                  maxLength={15}
+                  maxLength={phoneCountry.length + 1}
                 />
               </div>
               <p className="mt-2 text-xs text-gray-500">
-                Format: {countryCode} {phoneNumber || '6XXXXXXXX'}
+                Format: {countryCode} {phoneNumber || 'X'.repeat(phoneCountry.length)} · {phoneNumber.length}/{phoneCountry.length}
               </p>
             </div>
 

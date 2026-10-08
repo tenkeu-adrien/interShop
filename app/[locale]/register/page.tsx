@@ -12,6 +12,8 @@ import { useGeolocationStore } from '@/store/geolocationStore';
 import { MapPin, Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTranslations } from 'next-intl';
+import PasswordInput from '@/components/ui/PasswordInput';
+import { PHONE_COUNTRIES, getPhoneCountry, sanitizePhoneNumber, isValidPhoneNumber } from '@/lib/data/phoneCountries';
 
 export default function RegisterPage() {
   const t = useTranslations('register');
@@ -37,29 +39,7 @@ export default function RegisterPage() {
   const [positionCaptured, setPositionCaptured] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Codes pays populaires en Afrique
-  const countryCodes = [
-    { code: '+243', country: '🇨🇩 RDC', name: 'Congo (RDC)' },
-    { code: '+242', country: '🇨🇬 Congo', name: 'Congo (Brazzaville)' },
-    { code: '+237', country: '🇨🇲 Cameroun', name: 'Cameroun' },
-    { code: '+225', country: '🇨🇮 Côte d\'Ivoire', name: 'Côte d\'Ivoire' },
-    { code: '+221', country: '🇸🇳 Sénégal', name: 'Sénégal' },
-    { code: '+226', country: '🇧🇫 Burkina Faso', name: 'Burkina Faso' },
-    { code: '+223', country: '🇲🇱 Mali', name: 'Mali' },
-    { code: '+227', country: '🇳🇪 Niger', name: 'Niger' },
-    { code: '+228', country: '🇹🇬 Togo', name: 'Togo' },
-    { code: '+229', country: '🇧🇯 Bénin', name: 'Bénin' },
-    { code: '+233', country: '🇬🇭 Ghana', name: 'Ghana' },
-    { code: '+234', country: '🇳🇬 Nigeria', name: 'Nigeria' },
-    { code: '+254', country: '🇰🇪 Kenya', name: 'Kenya' },
-    { code: '+255', country: '🇹🇿 Tanzanie', name: 'Tanzanie' },
-    { code: '+256', country: '🇺🇬 Ouganda', name: 'Ouganda' },
-    { code: '+27', country: '🇿🇦 Afrique du Sud', name: 'Afrique du Sud' },
-    { code: '+212', country: '🇲🇦 Maroc', name: 'Maroc' },
-    { code: '+213', country: '🇩🇿 Algérie', name: 'Algérie' },
-    { code: '+216', country: '🇹🇳 Tunisie', name: 'Tunisie' },
-    { code: '+20', country: '🇪🇬 Égypte', name: 'Égypte' },
-  ];
+  const phoneCountry = getPhoneCountry(formData.countryCode);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,6 +61,11 @@ export default function RegisterPage() {
 
     if (!formData.phoneNumber.trim()) {
       toast.error(t('err_phone_required'));
+      return;
+    }
+
+    if (!isValidPhoneNumber(formData.phoneNumber, formData.countryCode)) {
+      toast.error(t('err_phone_length', { count: phoneCountry.length, country: phoneCountry.name }));
       return;
     }
 
@@ -162,7 +147,7 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-lg shadow-lg p-8">
+        <div className="bg-white rounded-lg shadow-lg p-5 sm:p-8">
           {/* Logo InterAppShop */}
           <div className="text-center mb-8">
             <Link href="/" className="inline-block">
@@ -210,7 +195,7 @@ export default function RegisterPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t('account_type')}
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {([
                   { value: 'client', label: t('account_client') },
                   { value: 'fournisseur', label: t('account_fournisseur') },
@@ -218,7 +203,7 @@ export default function RegisterPage() {
                 ] as { value: UserRole; label: string }[]).map((role) => (
                   <label
                     key={role.value}
-                    className={`flex flex-col items-center justify-center gap-1 border-2 rounded-lg px-2 py-2 cursor-pointer transition-colors text-center text-xs ${
+                    className={`flex sm:flex-col items-center sm:justify-center gap-2 sm:gap-1 border-2 rounded-lg px-3 sm:px-2 py-2 cursor-pointer transition-colors sm:text-center text-sm sm:text-xs min-w-0 ${
                       formData.role === role.value
                         ? 'border-orange-500 bg-orange-50 text-orange-700'
                         : 'border-gray-200 hover:border-orange-300 text-gray-600'
@@ -230,9 +215,9 @@ export default function RegisterPage() {
                       value={role.value}
                       checked={formData.role === role.value}
                       onChange={() => setFormData({ ...formData, role: role.value })}
-                      className="accent-orange-500"
+                      className="accent-orange-500 shrink-0"
                     />
-                    <span className="font-semibold">{role.label}</span>
+                    <span className="font-semibold min-w-0 break-words">{role.label}</span>
                   </label>
                 ))}
               </div>
@@ -245,26 +230,41 @@ export default function RegisterPage() {
               <div className="flex gap-2">
                 <select
                   value={formData.countryCode}
-                  onChange={(e) => setFormData({ ...formData, countryCode: e.target.value })}
-                  className="w-32 px-1 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      countryCode: e.target.value,
+                      phoneNumber: sanitizePhoneNumber(formData.phoneNumber, e.target.value),
+                    })
+                  }
+                  className="w-28 shrink-0 px-1 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                 >
-                  {countryCodes.map((country) => (
+                  {PHONE_COUNTRIES.map((country) => (
                     <option key={country.code} value={country.code}>
-                      {country.country} {country.code}
+                      {country.flag} {country.code} {country.name}
                     </option>
                   ))}
                 </select>
                 <input
                   type="tel"
+                  inputMode="numeric"
                   value={formData.phoneNumber}
-                  onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value.replace(/\D/g, '') })}
-                  placeholder="812345678"
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      phoneNumber: sanitizePhoneNumber(e.target.value, formData.countryCode),
+                    })
+                  }
+                  placeholder={phoneCountry.example}
+                  maxLength={phoneCountry.length + 1}
                   required
-                  className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="flex-1 min-w-0 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {t('phone_format')} {formData.countryCode}{formData.phoneNumber || 'XXXXXXXXX'}
+              <p className="text-xs text-gray-500 mt-1 break-words">
+                {t('phone_format')} {formData.countryCode}{formData.phoneNumber || 'X'.repeat(phoneCountry.length)}
+                {' · '}
+                {t('phone_digits', { current: formData.phoneNumber.length, count: phoneCountry.length })}
               </p>
             </div>
 
@@ -475,8 +475,7 @@ export default function RegisterPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t('password')}
               </label>
-              <input
-                type="password"
+              <PasswordInput
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 required
@@ -489,8 +488,7 @@ export default function RegisterPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {t('confirm_password')}
               </label>
-              <input
-                type="password"
+              <PasswordInput
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 required

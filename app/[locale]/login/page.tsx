@@ -13,8 +13,8 @@ import { Eye, EyeOff } from 'lucide-react';
 export default function LoginPage() {
   const router = useRouter();
   const { setUser } = useAuthStore();
-  const [email, setEmail] = useState('seed.admin.1@interappshop.test');
-  const [password, setPassword] = useState('InterShop@2026');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<'google' | 'facebook' | null>(null);
@@ -69,7 +69,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-lg shadow-lg p-8">
+        <div className="bg-white rounded-lg shadow-lg p-5 sm:p-8">
           {/* Logo InterAppShop */}
           <div className="text-center mb-8">
             <Link href="/" className="inline-block">

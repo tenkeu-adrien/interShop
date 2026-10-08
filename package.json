@@ -10,7 +10,8 @@
     "seed:full": "tsx scripts/seedFirebase.ts",
     "seed:auth": "tsx scripts/seedAuthUsers.ts",
     "seed:all": "tsx scripts/seedAll.ts",
-    "algolia:sync": "tsx scripts/syncAlgolia.ts"
+    "algolia:sync": "tsx scripts/syncAlgolia.ts",
+    "check:i18n": "node scripts/checkI18n.mjs"
   },
   "dependencies": {
     "algoliasearch": "^5.49.0",

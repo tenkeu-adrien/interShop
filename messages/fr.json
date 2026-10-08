@@ -194,7 +194,9 @@
     "results_summary": "{count, plural, one {# produit trouvé} other {# produits trouvés}}",
     "scroll_to_load_more": "Faites défiler pour charger plus",
     "loading_more_products": "Chargement de plus de produits...",
-    "seen_all_products": "Vous avez vu tous les produits disponibles"
+    "seen_all_products": "Vous avez vu tous les produits disponibles",
+    "delete_confirmation": "Voulez-vous vraiment supprimer ce produit ?",
+    "product_deleted": "Produit supprimé"
   },
   "auth": {
     "email": "Email",
@@ -267,7 +269,7 @@
     "pending_balance": "Solde en attente",
     "deposit": "Dépôt",
     "withdraw": "Retrait",
-    "transfer": "Transfert",
+    "transfer": "Transférer",
     "transactions": "Transactions",
     "recent_transactions": "Transactions récentes",
     "no_transactions": "Aucune transaction pour le moment",
@@ -322,10 +324,11 @@
     "pin_required_text": "Pour votre sécurité, veuillez entrer votre code PIN pour confirmer ce transfert.",
     "pin_placeholder": "••••",
     "transfer_processing": "Transfert...",
-    "transfer": "Transférer",
     "transfer_success_title": "Transfert réussi!",
     "transfer_success_text": "Votre transfert a été effectué avec succès",
-    "transfer_new_transfer": "Nouveau transfert"
+    "transfer_new_transfer": "Nouveau transfert",
+    "status": "Statut",
+    "load_error": "Impossible de charger votre portefeuille pour le moment. Veuillez réessayer plus tard."
   },
   "dashboard": {
     "overview": "Vue d'ensemble",
@@ -421,7 +424,10 @@
     "error_deleting": "Erreur lors de la suppression",
     "error_updating": "Erreur lors de la modification",
     "revenue_analytics": "Analyses des revenus",
-    "revenue_subtitle": "Visualisez les performances financières de votre plateforme"
+    "revenue_subtitle": "Visualisez les performances financières de votre plateforme",
+    "manage_orders": "Gérer les commandes",
+    "manage_your_products": "Gérez vos produits",
+    "product_management": "Gestion des produits"
   },
   "fournisseur": {
     "dashboard_title": "Dashboard Fournisseur",
@@ -550,7 +556,8 @@
     "date": "Date",
     "amount": "Montant",
     "commission": "Commission",
-    "view_details": "Voir détails"
+    "view_details": "Voir détails",
+    "my_orders": "Mes commandes"
   },
   "footer": {
     "about": "À propos",
@@ -688,7 +695,9 @@
     "err_invalid_email": "Format d'email invalide",
     "err_weak_password": "Mot de passe trop faible (minimum 6 caractères)",
     "err_op_not_allowed": "L'inscription par email/mot de passe n'est pas activée",
-    "err_generic": "Erreur d'inscription"
+    "err_generic": "Erreur d'inscription",
+    "err_phone_length": "Le numéro doit contenir exactement {count} chiffres pour ce pays ({country})",
+    "phone_digits": "{current}/{count} chiffres"
   },
   "chat": {
     "login_required": "Vous devez être connecté pour envoyer un message",
@@ -864,7 +873,9 @@
     "min_age": "Âge min",
     "max_age": "Âge max",
     "city": "Ville",
-    "enter_city": "Entrez une ville"
+    "enter_city": "Entrez une ville",
+    "intermediary": "Intermédiaire",
+    "profile": "Profil"
   },
   "pricing": {
     "title": "Choisissez votre plan",
@@ -1205,4 +1216,3 @@
     "account_status": "Statut du compte"
   }
 }
-

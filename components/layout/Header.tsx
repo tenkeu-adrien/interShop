@@ -129,14 +129,14 @@ export default function Header() {
 
   return (
     <header className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 text-gray-900 sticky top-0 z-50 shadow-lg px-2 py-3 md:p-5">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+      <div className="container mx-auto px-2 md:px-4">
+        <div className="flex items-center justify-between gap-2 h-16 min-w-0">
           {/* Logo */}
-          <Link href="/" className="flex-shrink-0">
+          <Link href="/" className="min-w-0 shrink">
             <Image
               src="/logo.png"
               alt="InterAppshop"
-              className="object-contain"
+              className="object-contain w-[110px] md:w-[150px] h-auto"
               width={150}
               height={40}
               priority={true}
@@ -168,7 +168,7 @@ export default function Header() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex items-center gap-2 md:gap-4">
+          <nav className="flex items-center gap-1 md:gap-4 shrink-0">
             {/* Lang Switcher */}
             <div className="relative" ref={langRef}>
               <button

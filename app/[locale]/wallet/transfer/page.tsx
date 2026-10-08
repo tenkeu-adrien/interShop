@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import PasswordInput from '@/components/ui/PasswordInput';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useWalletStore } from '@/store/walletStore';
@@ -457,8 +458,8 @@ export default function TransferPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t('pin')}
                   </label>
-                  <input
-                    type="password"
+                  <PasswordInput
+                    inputMode="numeric"
                     value={pin}
                     onChange={(e) => setPin(e.target.value)}
                     placeholder={t('pin_placeholder')}

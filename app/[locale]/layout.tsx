@@ -1,12 +1,8 @@
 import type { Metadata } from 'next';
 import '../globals.css';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
-import MobileNav from '@/components/layout/MobileNav';
+import AppShell from '@/components/layout/AppShell';
 import AuthProvider from '@/components/providers/AuthProvider';
 import { CurrencyProvider } from '@/components/providers/CurrencyProvider';
-import AccountStatusBanner from '@/components/auth/AccountStatusBanner';
-import NotificationPermissionBanner from '@/components/notifications/NotificationPermissionBanner';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { Toaster } from 'react-hot-toast';
 import { NextIntlClientProvider } from 'next-intl';
@@ -36,19 +32,12 @@ export default async function RootLayout(props: {
 
   return (
     <html lang={locale}>
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased overflow-x-hidden">
         <NextIntlClientProvider messages={messages} locale={locale}>
           <ErrorBoundary>
             <AuthProvider>
               <CurrencyProvider>
-                <div className="flex flex-col min-h-screen">
-                  <Header />
-                  <AccountStatusBanner />
-                  <NotificationPermissionBanner />
-                  <main className="flex-1 pb-20 md:pb-0">{children}</main>
-                  <Footer />
-                  <MobileNav />
-                </div>
+                <AppShell>{children}</AppShell>
                 <Toaster
                   position="top-right"
                   toastOptions={{
