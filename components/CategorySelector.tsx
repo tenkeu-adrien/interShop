@@ -5,32 +5,33 @@ import { ShoppingBag, UtensilsCrossed, Hotel, Heart } from 'lucide-react';
 import { useCategoryStore } from '@/store/categoryStore';
 import { ProductCategory } from '@/types';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 const categories = [
   { 
     id: 'ecommerce' as ProductCategory, 
-    name: 'E-commerce', 
+    labelKey: 'home.ecommerce', 
     icon: ShoppingBag, 
     color: 'bg-blue-500',
     route: '/products'
   },
   { 
     id: 'restaurant' as ProductCategory, 
-    name: 'Restaurants', 
+    labelKey: 'nav.restaurants', 
     icon: UtensilsCrossed, 
     color: 'bg-orange-500',
     route: '/restaurants'
   },
   { 
     id: 'hotel' as ProductCategory, 
-    name: 'Hôtels', 
+    labelKey: 'nav.hotels', 
     icon: Hotel, 
     color: 'bg-purple-500',
     route: '/hotels'
   },
   { 
     id: 'dating' as ProductCategory, 
-    name: 'Rencontres', 
+    labelKey: 'nav.dating', 
     icon: Heart, 
     color: 'bg-pink-500',
     route: '/dating'
@@ -40,6 +41,7 @@ const categories = [
 export function CategorySelector() {
   const { setCategory } = useCategoryStore();
   const router = useRouter();
+  const t = useTranslations();
   
   const handleCategoryClick = (category: ProductCategory, route: string) => {
     setCategory(category);
@@ -58,7 +60,7 @@ export function CategorySelector() {
           className={`${cat.color} p-6 rounded-lg hover:shadow-xl transition-all transform hover:scale-105 text-white`}
         >
           <cat.icon className="mx-auto mb-3" size={48} />
-          <h3 className="font-bold text-lg">{cat.name}</h3>
+          <h3 className="font-bold text-lg">{t(cat.labelKey)}</h3>
         </motion.button>
       ))}
     </div>

@@ -233,62 +233,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Category Selector */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 text-gray-900">
-            {tHome('explore_services')}
-          </h2>
-
-          {/* Layout avec sidebar et CategorySelector */}
-          <div className="flex gap-6">
-            {/* Sidebar des catégories */}
-            <div className="hidden lg:block flex-shrink-0">
-              <CategoriesSidebar />
-            </div>
-
-            {/* CategorySelector principal */}
-            <div className="flex-1">
-              <CategorySelector />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Restaurants populaires */}
-      {restaurants.length > 0 && (
-        <section className="py-16 bg-gradient-to-br from-orange-50 to-red-50">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{tNav('restaurants')}</h2>
-                <p className="text-gray-600">{tHome('restaurants_desc')}</p>
-              </div>
-              <Link
-                href="/restaurants"
-                className="text-orange-600 hover:text-orange-700 flex items-center gap-2 font-medium group"
-              >
-                {tCommon('view_all')}
-                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {restaurants.map((restaurant, index) => (
-                <motion.div
-                  key={restaurant.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <RestaurantCard restaurant={restaurant} index={index} />
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
       {/* Categories */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
@@ -612,6 +556,62 @@ export default function HomePage() {
           )}
         </div>
       </section>
+
+      {/* Category Selector */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 text-gray-900">
+            {tHome('explore_services')}
+          </h2>
+
+          {/* Layout avec sidebar et CategorySelector */}
+          <div className="flex gap-6">
+            {/* Sidebar des catégories */}
+            <div className="hidden lg:block flex-shrink-0">
+              <CategoriesSidebar />
+            </div>
+
+            {/* CategorySelector principal */}
+            <div className="flex-1">
+              <CategorySelector />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Restaurants populaires */}
+      {restaurants.length > 0 && (
+        <section className="py-16 bg-gradient-to-br from-orange-50 to-red-50">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{tNav('restaurants')}</h2>
+                <p className="text-gray-600">{tHome('restaurants_desc')}</p>
+              </div>
+              <Link
+                href="/restaurants"
+                className="text-orange-600 hover:text-orange-700 flex items-center gap-2 font-medium group"
+              >
+                {tCommon('view_all')}
+                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {restaurants.map((restaurant, index) => (
+                <motion.div
+                  key={restaurant.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <RestaurantCard restaurant={restaurant} index={index} />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* CTA Section */}
       <section className="bg-gradient-to-r from-green-600 to-green-700 text-white py-16">
