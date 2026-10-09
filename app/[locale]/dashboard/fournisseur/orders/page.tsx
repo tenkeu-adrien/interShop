@@ -193,6 +193,7 @@ function FournisseurOrdersContent() {
           <p className="text-gray-500 text-lg">{tOrders('no_orders')}</p>
         </div>
       ) : (
+        <>
         <div className="space-y-4">
           {filtered.map(order => {
             const sc = statusConfig[order.status] ?? { color: 'bg-gray-100 text-gray-800' };
@@ -295,6 +296,7 @@ function FournisseurOrdersContent() {
             </button>
           </div>
         )}
+        </>
       )}
     </div>
   );
