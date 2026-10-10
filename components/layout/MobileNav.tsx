@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Store, MessageCircle, User } from 'lucide-react';
+import { Home, LayoutGrid, MessageCircle, ShoppingCart, User } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useChatStore } from '@/store/chatStore';
+import { useCartStore } from '@/store/cartStore';
 import { motion } from 'framer-motion';
 import { useTranslations, useLocale } from 'next-intl';
 
@@ -13,12 +14,14 @@ export default function MobileNav() {
   const locale = useLocale();
   const { user } = useAuthStore();
   const { totalUnreadCount } = useChatStore();
+  const cartCount = useCartStore((s) => s.items.length);
   const tNav = useTranslations('nav');
 
   const navItems = [
     { href: '/', icon: Home, label: tNav('home') },
-    { href: '/boutiques', icon: Store, label: tNav('shops') },
+    { href: '/categories', icon: LayoutGrid, label: tNav('categories') },
     { href: '/chat', icon: MessageCircle, label: tNav('messages'), badge: totalUnreadCount },
+    { href: '/cart', icon: ShoppingCart, label: tNav('cart'), badge: cartCount },
     { href: user ? '/dashboard' : '/login', icon: User, label: tNav('profile') },
   ];
 
@@ -31,7 +34,7 @@ export default function MobileNav() {
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-bottom">
-      <div className="flex justify-around items-center h-16 px-2">
+      <div className="flex justify-around items-center h-16 px-1">
         {navItems.map((item) => {
           const active = isActive(item.href);
           const Icon = item.icon;
@@ -40,7 +43,7 @@ export default function MobileNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center gap-1 flex-1 h-full ${
+              className={`relative flex flex-col items-center justify-center gap-1 flex-1 min-w-0 h-full ${
                 active ? 'text-green-600' : 'text-gray-600'
               }`}
             >
@@ -54,7 +57,7 @@ export default function MobileNav() {
                   </span>
                 )}
               </div>
-              <span className={`text-xs font-medium ${active ? 'font-semibold' : ''}`}>
+              <span className={`text-[11px] font-medium truncate max-w-full px-0.5 ${active ? 'font-semibold' : ''}`}>
                 {item.label}
               </span>
               {active && (

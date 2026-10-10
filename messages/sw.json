@@ -121,7 +121,12 @@
         "cta_title": "Uko tayari kukuza biashara yako?",
         "cta_subtitle": "Jiunge na maelfu ya wauzaji waliofanikiwa",
         "cta_button": "Unda akaunti bila malipo",
-        "ecommerce": "Biashara mtandaoni"
+        "ecommerce": "Biashara mtandaoni",
+        "explore_by_category": "Gundua kwa kategoria",
+        "request_quote": "Omba nukuu ya bei",
+        "top_ranking": "Zinazoongoza",
+        "filter_all": "Zote",
+        "explore_category": "Gundua {category}"
     },
     "products": {
         "price": "Bei",

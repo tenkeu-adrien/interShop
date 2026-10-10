@@ -121,7 +121,12 @@
     "cta_title": "Prêt à développer votre business ?",
     "cta_subtitle": "Rejoignez des milliers de vendeurs qui réussissent",
     "cta_button": "Créer un compte gratuitement",
-    "ecommerce": "E-commerce"
+    "ecommerce": "E-commerce",
+    "explore_by_category": "Explorer par catégories",
+    "request_quote": "Demander un devis",
+    "top_ranking": "Top classement",
+    "filter_all": "Tous",
+    "explore_category": "Explorez {category}"
   },
   "products": {
     "price": "Prix",

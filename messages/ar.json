@@ -121,7 +121,12 @@
         "cta_title": "هل أنت مستعد لتنمية عملك؟",
         "cta_subtitle": "انضم إلى آلاف البائعين الناجحين",
         "cta_button": "إنشاء حساب مجاني",
-        "ecommerce": "التجارة الإلكترونية"
+        "ecommerce": "التجارة الإلكترونية",
+        "explore_by_category": "استكشف حسب الفئة",
+        "request_quote": "اطلب عرض سعر",
+        "top_ranking": "الأعلى تصنيفاً",
+        "filter_all": "الكل",
+        "explore_category": "استكشف {category}"
     },
     "products": {
         "price": "السعر",

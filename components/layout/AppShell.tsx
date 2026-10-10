@@ -66,7 +66,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <Header />
       <AccountStatusBanner />
       <main className="flex-1 pb-20 md:pb-0">{children}</main>
-      <Footer />
+      {path !== '/' && <Footer />}
       <MobileNav />
     </div>
   );

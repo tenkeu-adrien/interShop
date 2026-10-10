@@ -121,7 +121,12 @@
         "cta_title": "Ready to grow your business?",
         "cta_subtitle": "Join thousands of successful sellers",
         "cta_button": "Create a free account",
-        "ecommerce": "E-commerce"
+        "ecommerce": "E-commerce",
+        "explore_by_category": "Explore by category",
+        "request_quote": "Request a quote",
+        "top_ranking": "Top ranking",
+        "filter_all": "All",
+        "explore_category": "Explore {category}"
     },
     "products": {
         "price": "Price",

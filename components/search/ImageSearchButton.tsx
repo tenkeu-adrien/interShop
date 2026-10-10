@@ -76,6 +76,7 @@ export function ImageSearchButton() {
     <>
       {/* Bouton Caméra */}
       <button
+        type="button"
         onClick={() => fileInputRef.current?.click()}
         disabled={loading}
         className="p-2 text-gray-500 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
