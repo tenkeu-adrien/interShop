@@ -16,6 +16,9 @@ import {
 } from 'firebase/firestore';
 import { db } from './config';
 import bcrypt from 'bcryptjs';
+import { getCountryCurrency } from '@/lib/data/phoneCountries';
+import { ExchangeRateService } from '@/lib/services/exchangeRateService';
+import { SUPPORTED_CURRENCIES } from '@/lib/constants/currencies';
 import {
   Wallet,
   Transaction,
@@ -25,7 +28,8 @@ import {
   DepositData,
   WithdrawalData,
   PaymentData,
-  MobileMoneyProvider
+  MobileMoneyProvider,
+  SupportedCurrency
 } from '@/types';
 
 // ============================================
@@ -33,15 +37,44 @@ import {
 // ============================================
 
 /**
+ * Devise du portefeuille d'un utilisateur : celle de son pays (indicatif téléphonique).
+ */
+export async function getUserWalletCurrency(userId: string): Promise<SupportedCurrency> {
+  const userDoc = await getDoc(doc(db, 'users', userId));
+  return getCountryCurrency(userDoc.data()?.phoneCountryCode);
+}
+
+/**
+ * Convertit un montant entre deux devises (les taux sont exprimés pour 1 USD).
+ */
+export async function convertBetweenCurrencies(
+  amount: number,
+  from: SupportedCurrency,
+  to: SupportedCurrency
+): Promise<number> {
+  if (from === to) return amount;
+  const [fromRate, toRate] = await Promise.all([
+    ExchangeRateService.getExchangeRate(from),
+    ExchangeRateService.getExchangeRate(to),
+  ]);
+  if (!fromRate || !toRate) {
+    throw new Error('Taux de change indisponible pour ce transfert');
+  }
+  const factor = 10 ** SUPPORTED_CURRENCIES[to].decimals;
+  return Math.round((amount / fromRate) * toRate * factor) / factor;
+}
+
+/**
  * Crée un portefeuille pour un utilisateur
  */
 export async function createWallet(userId: string): Promise<Wallet> {
+  const currency = await getUserWalletCurrency(userId);
   const walletData: Wallet = {
     id: userId,
     userId,
     balance: 0,
     pendingBalance: 0,
-    currency: 'XAF',
+    currency,
     status: 'active',
     pinAttempts: 0,
     createdAt: new Date(),
@@ -298,10 +331,12 @@ export async function initiateDeposit(
   // Vérifier le PIN pour TOUS les dépôts
   await verifyPIN(userId, pin);
 
+  const currency = await getUserWalletCurrency(userId);
+
   // Valider le montant
   const settings = await getWalletSettings();
   if (amount < settings.minDeposit) {
-    throw new Error(`Montant minimum: ${settings.minDeposit} FCFA`);
+    throw new Error(`Montant minimum: ${settings.minDeposit} ${currency}`);
   }
 
   // Calculer les frais
@@ -316,7 +351,7 @@ export async function initiateDeposit(
     amount,
     fees,
     totalAmount,
-    currency: 'XAF',
+    currency,
     status: 'pending',
     mobileMoneyProvider: provider,
     mobileMoneyNumber: phoneNumber,
@@ -418,6 +453,7 @@ export async function initiateWithdrawal(
   data: WithdrawalData
 ): Promise<Transaction> {
   const { amount, provider, phoneNumber, pin } = data;
+  const currency = await getUserWalletCurrency(userId);
 
   // Vérifier le PIN
   await verifyPIN(userId, pin);
@@ -425,7 +461,7 @@ export async function initiateWithdrawal(
   // Valider le montant
   const settings = await getWalletSettings();
   if (amount < settings.minWithdrawal) {
-    throw new Error(`Montant minimum: ${settings.minWithdrawal} FCFA`);
+    throw new Error(`Montant minimum: ${settings.minWithdrawal} ${currency}`);
   }
 
   // Vérifier les limites quotidiennes
@@ -448,7 +484,7 @@ export async function initiateWithdrawal(
   );
 
   if (todayTotal + amount > settings.maxWithdrawalPerDay) {
-    throw new Error(`Limite quotidienne dépassée: ${settings.maxWithdrawalPerDay} FCFA`);
+    throw new Error(`Limite quotidienne dépassée: ${settings.maxWithdrawalPerDay} ${currency}`);
   }
 
   // Calculer les frais
@@ -484,7 +520,7 @@ export async function initiateWithdrawal(
       amount,
       fees,
       totalAmount,
-      currency: 'XAF',
+      currency,
       status: 'pending',
       mobileMoneyProvider: provider,
       mobileMoneyNumber: phoneNumber,
@@ -630,6 +666,14 @@ export async function processPayment(
   // Vérifier le PIN pour TOUS les montants
   await verifyPIN(fromUserId, pin);
 
+  // Chaque portefeuille est tenu dans la devise de son propriétaire :
+  // le destinataire reçoit le montant converti dans la sienne.
+  const [fromCurrency, toCurrency] = await Promise.all([
+    getUserWalletCurrency(fromUserId),
+    getUserWalletCurrency(toUserId),
+  ]);
+  const creditedAmount = await convertBetweenCurrencies(amount, fromCurrency, toCurrency);
+
   // Transaction atomique
   return await runTransaction(db, async (transaction) => {
     // Lire les portefeuilles
@@ -659,7 +703,7 @@ export async function processPayment(
       amount,
       fees: 0,
       totalAmount: amount,
-      currency: 'XAF',
+      currency: fromCurrency,
       status: 'completed',
       recipientWalletId: toUserId,
       recipientUserId: toUserId,
@@ -686,10 +730,12 @@ export async function processPayment(
       walletId: toUserId,
       userId: toUserId,
       type: 'payment',
-      amount,
+      amount: creditedAmount,
       fees: 0,
-      totalAmount: amount,
-      currency: 'XAF',
+      totalAmount: creditedAmount,
+      currency: toCurrency,
+      sourceAmount: amount,
+      sourceCurrency: fromCurrency,
       status: 'completed',
       recipientWalletId: fromUserId,
       recipientUserId: fromUserId,
@@ -719,7 +765,7 @@ export async function processPayment(
     });
 
     transaction.update(toWalletRef, {
-      balance: toBalance + amount,
+      balance: toBalance + creditedAmount,
       updatedAt: serverTimestamp()
     });
 

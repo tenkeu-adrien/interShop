@@ -330,7 +330,8 @@
     "transfer_new_transfer": "Nouveau transfert",
     "status": "Statut",
     "load_error": "Impossible de charger votre portefeuille pour le moment. Veuillez réessayer plus tard.",
-    "convert_to": "Convertir en"
+    "convert_to": "Convertir",
+    "recipient_receives": "Le destinataire reçoit"
   },
   "dashboard": {
     "overview": "Vue d'ensemble",

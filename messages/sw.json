@@ -330,7 +330,8 @@
         "transfer_new_transfer": "Uhamisho mpya",
         "status": "Hali",
         "load_error": "Imeshindikana kupakia pochi yako kwa sasa. Tafadhali jaribu tena baadaye.",
-        "convert_to": "Badilisha kuwa"
+        "convert_to": "Badilisha",
+        "recipient_receives": "Mpokeaji anapokea"
     },
     "dashboard": {
         "overview": "Muhtasari",

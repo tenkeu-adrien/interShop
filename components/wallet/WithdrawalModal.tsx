@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useState, useEffect } from 'react';
+import { useWalletCurrency } from '@/hooks/useWalletCurrency';
 import { X, Loader2, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { useWalletStore } from '@/store/walletStore';
 import { getActivePaymentMethods } from '@/lib/firebase/paymentMethods';
@@ -15,6 +16,7 @@ interface WithdrawalModalProps {
 
 export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalModalProps) {
   const { wallet, initiateFlexibleWithdrawal, calculateWithdrawalFees, loading } = useWalletStore();
+  const currency = useWalletCurrency();
   
   const [step, setStep] = useState<'amount' | 'provider' | 'confirm'>('amount');
   const [amount, setAmount] = useState('');
@@ -76,12 +78,12 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
     const numAmount = parseFloat(amount);
     
     if (isNaN(numAmount) || numAmount < 1000) {
-      setError('Montant minimum: 1,000 CDF');
+      setError(`Montant minimum: 1,000 ${currency}`);
       return;
     }
 
     if (numAmount > 500000) {
-      setError('Montant maximum: 500,000 CDF par jour');
+      setError(`Montant maximum: 500,000 ${currency} par jour`);
       return;
     }
 
@@ -186,7 +188,7 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                 <p className="text-sm text-blue-900 font-medium mb-1">Solde disponible</p>
                 <p className="text-2xl font-bold text-blue-900">
-                  {wallet?.balance.toLocaleString('fr-FR')} CDF
+                  {wallet?.balance.toLocaleString('fr-FR')} {currency}
                 </p>
               </div>
 
@@ -205,11 +207,11 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
                     max="500000"
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
-                    CDF
+                    {currency}
                   </span>
                 </div>
                 <p className="text-sm text-gray-600 mt-2">
-                  Min: 1,000 CDF • Max: 500,000 CDF/jour
+                  Min: 1,000 {currency} • Max: 500,000 {currency}/jour
                 </p>
               </div>
 
@@ -217,19 +219,19 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
                 <div className="bg-gray-50 rounded-lg p-4 mb-6">
                   <div className="flex justify-between mb-2">
                     <span className="text-gray-600">Montant</span>
-                    <span className="font-semibold">{parseFloat(amount).toLocaleString('fr-FR')} CDF</span>
+                    <span className="font-semibold">{parseFloat(amount).toLocaleString('fr-FR')} {currency}</span>
                   </div>
                   <div className="flex justify-between mb-2">
                     <span className="text-gray-600">Frais (0.5%)</span>
                     <span className="font-semibold text-red-600">
-                      -{fees.toLocaleString('fr-FR')} CDF
+                      -{fees.toLocaleString('fr-FR')} {currency}
                     </span>
                   </div>
                   <div className="border-t border-gray-200 pt-2 mt-2">
                     <div className="flex justify-between">
                       <span className="font-semibold">Vous recevrez</span>
                       <span className="font-bold text-lg text-green-600">
-                        {(parseFloat(amount) - fees).toLocaleString('fr-FR')} CDF
+                        {(parseFloat(amount) - fees).toLocaleString('fr-FR')} {currency}
                       </span>
                     </div>
                   </div>
@@ -237,7 +239,7 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Total débité</span>
                       <span className="font-semibold">
-                        {parseFloat(amount).toLocaleString('fr-FR')} CDF
+                        {parseFloat(amount).toLocaleString('fr-FR')} {currency}
                       </span>
                     </div>
                   </div>
@@ -259,8 +261,8 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
                 Continuer
               </button>
 
-              {/* Convertisseur CDF */}
-              <CurrencyConverter amountCDF={amount ? parseFloat(amount) : undefined} />
+              {/* Convertisseur */}
+              <CurrencyConverter amount={amount ? parseFloat(amount) : undefined} baseCurrency={currency} />
             </>
           ) : step === 'provider' ? (
             /* Step 2: Provider Selection */
@@ -324,17 +326,17 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
                 </div>
                 <div className="flex justify-between mb-3">
                   <span className="text-gray-600">Montant</span>
-                  <span className="font-semibold">{parseFloat(amount).toLocaleString('fr-FR')} CDF</span>
+                  <span className="font-semibold">{parseFloat(amount).toLocaleString('fr-FR')} {currency}</span>
                 </div>
                 <div className="flex justify-between mb-3">
                   <span className="text-gray-600">Frais</span>
-                  <span className="font-semibold text-red-600">-{fees.toLocaleString('fr-FR')} CDF</span>
+                  <span className="font-semibold text-red-600">-{fees.toLocaleString('fr-FR')} {currency}</span>
                 </div>
                 <div className="border-t border-gray-200 pt-3">
                   <div className="flex justify-between">
                     <span className="font-semibold">Vous recevrez</span>
                     <span className="font-bold text-lg text-green-600">
-                      {(parseFloat(amount) - fees).toLocaleString('fr-FR')} CDF
+                      {(parseFloat(amount) - fees).toLocaleString('fr-FR')} {currency}
                     </span>
                   </div>
                 </div>

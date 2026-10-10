@@ -1,6 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useWalletCurrency } from '@/hooks/useWalletCurrency';
+import { useCurrencyStore } from '@/store/currencyStore';
+import { getCountryCurrency } from '@/lib/data/phoneCountries';
+import { SUPPORTED_CURRENCIES } from '@/lib/constants/currencies';
+import { SupportedCurrency } from '@/types';
 import PasswordInput from '@/components/ui/PasswordInput';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
@@ -29,6 +34,7 @@ type Step = 'search' | 'confirm' | 'pin' | 'success';
 export default function TransferPage() {
   const router = useRouter();
   const { user } = useAuthStore();
+  const currency = useWalletCurrency();
   const { wallet, processPayment, verifyPIN, fetchWallet } = useWalletStore();
   const t = useTranslations('wallet');
 
@@ -37,6 +43,13 @@ export default function TransferPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<UserType[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserType | null>(null);
+  const exchangeRates = useCurrencyStore((s) => s.exchangeRates);
+  const rateOf = (c: SupportedCurrency) => (c === 'USD' ? 1 : exchangeRates.get(c));
+  const recipientCurrency = getCountryCurrency(selectedUser?.phoneCountryCode);
+  const recipientAmount =
+    recipientCurrency !== currency && rateOf(currency) && rateOf(recipientCurrency)
+      ? (parseFloat(amount) / rateOf(currency)!) * rateOf(recipientCurrency)!
+      : null;
   const [amount, setAmount] = useState('');
   const [pin, setPin] = useState('');
   const [description, setDescription] = useState('');
@@ -196,12 +209,12 @@ export default function TransferPage() {
             {t('available_balance')}
           </p>
           <p className="text-3xl font-bold">
-            {wallet?.balance.toLocaleString('fr-FR')} CDF
+            {wallet?.balance.toLocaleString('fr-FR')} {currency}
           </p>
         </div>
 
-        {/* Convertisseur CDF */}
-        <CurrencyConverter amountCDF={amount ? parseFloat(amount) : undefined} />
+        {/* Convertisseur */}
+        <CurrencyConverter amount={amount ? parseFloat(amount) : undefined} baseCurrency={currency} />
 
         <div className="mt-6">
         {/* Étapes */}
@@ -387,9 +400,18 @@ export default function TransferPage() {
                   <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
                     <span className="text-gray-600">{t('amount')}</span>
                     <span className="font-bold text-green-600 text-xl">
-                      {parseFloat(amount).toLocaleString('fr-FR')} CDF
+                      {parseFloat(amount).toLocaleString('fr-FR')} {currency}
                     </span>
                   </div>
+
+                  {recipientAmount !== null && (
+                    <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">
+                      <span className="text-gray-600">{t('recipient_receives')}</span>
+                      <span className="font-semibold text-gray-900">
+                        ≈ {recipientAmount.toLocaleString('fr-FR', { maximumFractionDigits: SUPPORTED_CURRENCIES[recipientCurrency].decimals })} {recipientCurrency}
+                      </span>
+                    </div>
+                  )}
 
                   {description && (
                     <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -403,7 +425,7 @@ export default function TransferPage() {
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <span className="text-gray-600">{t('new_balance')}</span>
                     <span className="font-semibold text-gray-900">
-                      {((wallet?.balance || 0) - parseFloat(amount)).toLocaleString('fr-FR')} CDF
+                      {((wallet?.balance || 0) - parseFloat(amount)).toLocaleString('fr-FR')} {currency}
                     </span>
                   </div>
                 </div>
@@ -520,7 +542,7 @@ export default function TransferPage() {
                     {t('amount_transferred')}
                   </span>
                   <span className="font-bold text-green-600 text-xl">
-                    {parseFloat(amount).toLocaleString('fr-FR')} CDF
+                    {parseFloat(amount).toLocaleString('fr-FR')} {currency}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -532,7 +554,7 @@ export default function TransferPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">{t('new_balance')}</span>
                   <span className="font-semibold text-gray-900">
-                    {((wallet?.balance || 0)).toLocaleString('fr-FR')} CDF
+                    {((wallet?.balance || 0)).toLocaleString('fr-FR')} {currency}
                   </span>
                 </div>
               </div>

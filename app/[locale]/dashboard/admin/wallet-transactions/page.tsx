@@ -116,8 +116,8 @@ export default function AdminWalletTransactionsPage() {
     });
   };
 
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR').format(amount) + ' CDF';
+  const formatAmount = (amount: number, currency: string) => {
+    return `${new Intl.NumberFormat('fr-FR').format(amount)} ${currency}`;
   };
 
   // Déterminer quelles transactions afficher
@@ -292,7 +292,7 @@ export default function AdminWalletTransactionsPage() {
                       {transaction.type === 'deposit' ? `↓ ${tWallet('deposit')}` : `↑ ${tWallet('withdraw')}`}
                     </span>
                     <span className="text-2xl font-bold text-gray-900">
-                      {formatAmount(transaction.amount)}
+                      {formatAmount(transaction.amount, transaction.currency)}
                     </span>
                   </div>
 
@@ -360,7 +360,7 @@ export default function AdminWalletTransactionsPage() {
 
             <div className="mb-4 p-4 bg-gray-50 rounded">
               <p className="text-sm text-gray-600">Client: {selectedTransaction.clientName}</p>
-              <p className="text-sm text-gray-600">{tWallet('amount')}: {formatAmount(selectedTransaction.amount)}</p>
+              <p className="text-sm text-gray-600">{tWallet('amount')}: {formatAmount(selectedTransaction.amount, selectedTransaction.currency)}</p>
               <p className="text-sm text-gray-600">{tCommon('payment_method')}: {selectedTransaction.paymentMethodName}</p>
             </div>
 
@@ -377,7 +377,7 @@ export default function AdminWalletTransactionsPage() {
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
                 />
                 <p className="text-sm text-green-600 mt-3">
-                  ✓ {formatAmount(selectedTransaction.amount)}
+                  ✓ {formatAmount(selectedTransaction.amount, selectedTransaction.currency)}
                 </p>
               </div>
             ) : (

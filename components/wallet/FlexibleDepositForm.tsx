@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useState, useEffect } from 'react';
+import { useWalletCurrency } from '@/hooks/useWalletCurrency';
 import { useAuthStore } from '@/store/authStore';
 import type { PaymentMethod, FlexibleDepositData } from '@/types';
 
@@ -16,6 +17,7 @@ export default function FlexibleDepositForm({
   onCancel
 }: FlexibleDepositFormProps) {
   const { user } = useAuthStore();
+  const currency = useWalletCurrency();
   
   // État du formulaire
   const [clientName, setClientName] = useState('');
@@ -148,7 +150,7 @@ export default function FlexibleDepositForm({
         {/* Montant */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Montant (CDF) <span className="text-red-500">*</span>
+            Montant ({currency}) <span className="text-red-500">*</span>
           </label>
           <input
             type="number"

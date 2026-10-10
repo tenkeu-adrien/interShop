@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useWalletCurrency } from '@/hooks/useWalletCurrency';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useWalletStore } from '@/store/walletStore';
@@ -18,6 +19,7 @@ import { toDate } from '@/lib/utils/date';
 export default function WalletHistoryPage() {
   const router = useRouter();
   const { user } = useAuthStore();
+  const currency = useWalletCurrency();
   const { transactions, loading, fetchTransactions } = useWalletStore();
 
   useEffect(() => {
@@ -137,7 +139,7 @@ export default function WalletHistoryPage() {
                         </div>
                         {transaction.fees > 0 && (
                           <p className="text-xs text-gray-500 mt-1">
-                            Frais: {transaction.fees.toLocaleString('fr-FR')} CDF
+                            Frais: {transaction.fees.toLocaleString('fr-FR')} {currency}
                           </p>
                         )}
                       </div>
@@ -151,7 +153,7 @@ export default function WalletHistoryPage() {
                         'text-gray-900'
                       }`}>
                         {transaction.type === 'deposit' ? '+' : '-'}
-                        {transaction.amount.toLocaleString('fr-FR')} CDF
+                        {transaction.amount.toLocaleString('fr-FR')} {currency}
                       </p>
                       <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
                         {getStatusLabel(transaction.status)}

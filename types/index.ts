@@ -592,9 +592,9 @@ export type MobileMoneyProvider = 'mtn' | 'orange' | 'moov' | 'wave' | 'vodafone
 export interface Wallet {
   id: string;                    // ID utilisateur
   userId: string;
-  balance: number;               // Solde disponible (FCFA)
-  pendingBalance: number;        // Solde en attente (FCFA)
-  currency: 'XAF' | 'XOF';      // Devise (FCFA)
+  balance: number;               // Solde disponible, dans la devise du portefeuille
+  pendingBalance: number;        // Solde en attente, dans la devise du portefeuille
+  currency: SupportedCurrency;   // Devise du pays de l'utilisateur
   status: WalletStatus;
   pin?: string;                  // Code PIN hashé (bcrypt)
   pinAttempts: number;           // Nombre de tentatives PIN
@@ -608,10 +608,12 @@ export interface Transaction {
   walletId: string;
   userId: string;
   type: TransactionType;
-  amount: number;                // Montant (FCFA)
-  fees: number;                  // Frais (FCFA)
+  amount: number;                // Montant, dans la devise de la transaction
+  fees: number;                  // Frais, dans la devise de la transaction
   totalAmount: number;           // Montant total (amount + fees)
-  currency: 'XAF' | 'XOF';
+  currency: SupportedCurrency;
+  sourceAmount?: number;         // Transfert entre devises : montant débité chez l'expéditeur
+  sourceCurrency?: SupportedCurrency;
   status: TransactionStatus;
   
   // Mobile Money

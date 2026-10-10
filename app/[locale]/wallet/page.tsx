@@ -22,11 +22,8 @@ import DepositModal from '@/components/wallet/DepositModal';
 import WithdrawalModal from '@/components/wallet/WithdrawalModal';
 import { useCurrencyStore } from '@/store/currencyStore';
 import { SUPPORTED_CURRENCIES } from '@/lib/constants/currencies';
-import { getCountryCurrency } from '@/lib/data/phoneCountries';
+import { useWalletCurrency } from '@/hooks/useWalletCurrency';
 import { SupportedCurrency } from '@/types';
-
-const WALLET_CURRENCY: SupportedCurrency = 'CDF';
-const DISPLAY_CURRENCY_KEY = 'wallet-display-currency';
 
 // Réduit la police quand le montant est long pour qu'il reste dans la carte.
 const amountSizeClass = (text: string) =>
@@ -41,34 +38,25 @@ export default function WalletPage() {
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
   const exchangeRates = useCurrencyStore((s) => s.exchangeRates);
+  // Le portefeuille est tenu dans la devise du pays de l'utilisateur ;
+  // le sélecteur ne fait que convertir l'affichage, le temps de la visite.
+  const walletCurrency = useWalletCurrency();
   const [chosenCurrency, setChosenCurrency] = useState<SupportedCurrency | null>(null);
 
-  useEffect(() => {
-    const saved = localStorage.getItem(DISPLAY_CURRENCY_KEY) as SupportedCurrency | null;
-    if (saved && SUPPORTED_CURRENCIES[saved]) setChosenCurrency(saved);
-  }, []);
-
-  // Les taux sont exprimés pour 1 USD ; sans taux disponible on reste dans la devise du portefeuille.
+  // Taux exprimés pour 1 USD.
   const rateOf = (currency: SupportedCurrency) => (currency === 'USD' ? 1 : exchangeRates.get(currency));
-  const preferredCurrency = chosenCurrency ?? getCountryCurrency(user?.phoneCountryCode);
-  const canConvert = Boolean(rateOf(WALLET_CURRENCY) && rateOf(preferredCurrency));
-  const displayCurrency = canConvert ? preferredCurrency : WALLET_CURRENCY;
+  const displayCurrency =
+    chosenCurrency && rateOf(chosenCurrency) && rateOf(walletCurrency) ? chosenCurrency : walletCurrency;
 
   const formatAmount = (amountInWalletCurrency: number) => {
     const converted =
-      displayCurrency === WALLET_CURRENCY
+      displayCurrency === walletCurrency
         ? amountInWalletCurrency
-        : (amountInWalletCurrency / rateOf(WALLET_CURRENCY)!) * rateOf(displayCurrency)!;
+        : (amountInWalletCurrency / rateOf(walletCurrency)!) * rateOf(displayCurrency)!;
     return `${converted.toLocaleString('fr-FR', {
       maximumFractionDigits: SUPPORTED_CURRENCIES[displayCurrency].decimals,
     })} ${displayCurrency}`;
   };
-
-  const changeDisplayCurrency = (currency: SupportedCurrency) => {
-    setChosenCurrency(currency);
-    localStorage.setItem(DISPLAY_CURRENCY_KEY, currency);
-  };
-
   const balanceText = formatAmount(wallet?.balance ?? 0);
 
   useEffect(() => {
@@ -114,33 +102,32 @@ export default function WalletPage() {
 
         {/* Carte du portefeuille */}
         <div className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 rounded-2xl p-5 sm:p-8 text-gray-900 mb-8 shadow-xl">
-          <div className="flex items-start justify-between gap-4 mb-6">
+          <p className="text-sm mb-1 opacity-90">{t('available_balance')}</p>
+          <div className="flex items-center justify-between gap-3 mb-6">
             <div className="min-w-0 flex-1">
-              <p className="text-sm mb-1 opacity-90">
-                {t('available_balance')}
-              </p>
               <p className={`${amountSizeClass(balanceText)} font-bold break-words`}>
                 {balanceText}
               </p>
-              {displayCurrency !== WALLET_CURRENCY && (
+              {displayCurrency !== walletCurrency && (
                 <p className="text-sm mt-1 opacity-80">
-                  = {(wallet?.balance ?? 0).toLocaleString('fr-FR')} {WALLET_CURRENCY}
+                  = {(wallet?.balance ?? 0).toLocaleString('fr-FR')} {walletCurrency}
                 </p>
               )}
             </div>
-            <label className="shrink-0 text-xs font-medium">
-              <span className="block mb-1 opacity-90">{t('convert_to')}</span>
+            <label className="shrink-0 flex items-center gap-2 text-sm font-medium">
+              <span className="hidden sm:inline">{t('convert_to')}</span>
               <select
+                aria-label={t('convert_to')}
                 value={displayCurrency}
-                onChange={(e) => changeDisplayCurrency(e.target.value as SupportedCurrency)}
-                disabled={!rateOf(WALLET_CURRENCY)}
-                className="bg-white text-gray-900 text-sm font-semibold rounded-lg px-2 py-2 shadow-md focus:outline-none focus:ring-2 focus:ring-green-600 max-w-[9rem]"
+                onChange={(e) => setChosenCurrency(e.target.value as SupportedCurrency)}
+                disabled={!rateOf(walletCurrency)}
+                className="bg-white text-gray-900 text-sm font-semibold rounded-lg px-2 py-2 shadow-md focus:outline-none focus:ring-2 focus:ring-green-600"
               >
                 {Object.values(SUPPORTED_CURRENCIES)
-                  .filter((c) => rateOf(c.code))
+                  .filter((c) => c.code === walletCurrency || rateOf(c.code))
                   .map((c) => (
                     <option key={c.code} value={c.code}>
-                      {c.code} — {c.name}
+                      {c.code}
                     </option>
                   ))}
               </select>

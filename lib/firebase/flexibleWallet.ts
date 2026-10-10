@@ -13,7 +13,7 @@ import {
   Timestamp
 } from 'firebase/firestore';
 import { db } from './config';
-import { getWallet } from './wallet';
+import { getWallet, getUserWalletCurrency } from './wallet';
 import { getPaymentMethod } from './paymentMethods';
 import {
   notifyDepositRequested,
@@ -80,7 +80,7 @@ export async function initiateFlexibleDeposit(
       amount,
       fees: 0,
       totalAmount: amount,
-      currency: 'XAF',
+      currency: await getUserWalletCurrency(userId),
       status: 'pending',
       paymentMethodId,
       paymentMethodName: paymentMethod.name,
@@ -175,7 +175,7 @@ export async function initiateFlexibleWithdrawal(
       amount,
       fees: 0,
       totalAmount: amount,
-      currency: 'XAF',
+      currency: await getUserWalletCurrency(userId),
       status: 'pending',
       paymentMethodId,
       paymentMethodName: paymentMethod.name,

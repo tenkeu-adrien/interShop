@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useState, useEffect } from 'react';
+import { useWalletCurrency } from '@/hooks/useWalletCurrency';
 import { X, Loader2, Copy, CheckCircle, AlertCircle } from 'lucide-react';
 import { useWalletStore } from '@/store/walletStore';
 import { getActivePaymentMethods } from '@/lib/firebase/paymentMethods';
@@ -15,6 +16,7 @@ interface DepositModalProps {
 
 export default function DepositModal({ isOpen, onClose, userId }: DepositModalProps) {
   const { initiateFlexibleDeposit, calculateDepositFees, loading } = useWalletStore();
+  const currency = useWalletCurrency();
   
   const [step, setStep] = useState<'amount' | 'provider' | 'instructions'>('amount');
   const [amount, setAmount] = useState('');
@@ -60,7 +62,7 @@ export default function DepositModal({ isOpen, onClose, userId }: DepositModalPr
   const handleAmountSubmit = () => {
     const numAmount = parseFloat(amount);
     if (isNaN(numAmount) || numAmount < 500) {
-      setError('Montant minimum: 500 CDF');
+      setError(`Montant minimum: 500 ${currency}`);
       return;
     }
     setError('');
@@ -168,29 +170,29 @@ export default function DepositModal({ isOpen, onClose, userId }: DepositModalPr
                     min="500"
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
-                    CDF
+                    {currency}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 mt-2">Minimum: 500 CDF</p>
+                <p className="text-sm text-gray-600 mt-2">Minimum: 500 {currency}</p>
               </div>
 
               {amount && parseFloat(amount) >= 500 && (
                 <div className="bg-gray-50 rounded-lg p-4 mb-6">
                   <div className="flex justify-between mb-2">
                     <span className="text-gray-600">Montant</span>
-                    <span className="font-semibold">{parseFloat(amount).toLocaleString('fr-FR')} CDF</span>
+                    <span className="font-semibold">{parseFloat(amount).toLocaleString('fr-FR')} {currency}</span>
                   </div>
                   <div className="flex justify-between mb-2">
                     <span className="text-gray-600">Frais</span>
                     <span className="font-semibold text-green-600">
-                      {fees === 0 ? 'Gratuit' : `${fees.toLocaleString('fr-FR')} CDF`}
+                      {fees === 0 ? 'Gratuit' : `${fees.toLocaleString('fr-FR')} ${currency}`}
                     </span>
                   </div>
                   <div className="border-t border-gray-200 pt-2 mt-2">
                     <div className="flex justify-between">
                       <span className="font-semibold">Total</span>
                       <span className="font-bold text-lg">
-                        {(parseFloat(amount) + fees).toLocaleString('fr-FR')} CDF
+                        {(parseFloat(amount) + fees).toLocaleString('fr-FR')} {currency}
                       </span>
                     </div>
                   </div>
@@ -212,8 +214,8 @@ export default function DepositModal({ isOpen, onClose, userId }: DepositModalPr
                 Continuer
               </button>
 
-              {/* Convertisseur CDF */}
-              <CurrencyConverter amountCDF={amount ? parseFloat(amount) : undefined} />
+              {/* Convertisseur */}
+              <CurrencyConverter amount={amount ? parseFloat(amount) : undefined} baseCurrency={currency} />
             </>
           ) : step === 'provider' ? (
             /* Step 2: Provider Selection */
@@ -324,7 +326,7 @@ export default function DepositModal({ isOpen, onClose, userId }: DepositModalPr
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <p className="text-sm text-gray-600 mb-2">Montant à transférer</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {(parseFloat(amount) + fees).toLocaleString('fr-FR')} CDF
+                  {(parseFloat(amount) + fees).toLocaleString('fr-FR')} {currency}
                 </p>
               </div>
 
