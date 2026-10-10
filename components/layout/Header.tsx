@@ -25,8 +25,6 @@ import {
   Wallet,
   Globe,
   Tag,
-  Home,
-  Store,
   User
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -127,6 +125,28 @@ export default function Header() {
     setShowLangMenu(false);
   };
 
+  const searchForm = (
+    <form onSubmit={handleSearch} className="relative w-full">
+      <input
+        type="text"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        placeholder={tHome('search_placeholder')}
+        className="w-full px-4 py-2.5 pr-24 rounded-full bg-white text-gray-900 border-2 border-green-500 focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-200 shadow-sm transition-all"
+      />
+      <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+        <ImageSearchButton />
+        <button
+          type="submit"
+          className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full transition-colors"
+          aria-label={tCommon('search')}
+        >
+          <Search size={18} />
+        </button>
+      </div>
+    </form>
+  );
+
   return (
     <header className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 text-gray-900 sticky top-0 z-50 shadow-lg px-2 py-3 md:p-5">
       <div className="container mx-auto px-2 md:px-4">
@@ -146,25 +166,7 @@ export default function Header() {
 
           {/* Barre de recherche */}
           <div className="hidden md:flex flex-1 max-w-2xl mx-4 lg:mx-8">
-            <form onSubmit={handleSearch} className="relative w-full">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={tHome('search_placeholder')}
-                className="w-full px-4 py-2.5 pr-24 rounded-full bg-white text-gray-900 border-2 border-green-500 focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-200 shadow-sm transition-all"
-              />
-              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <ImageSearchButton />
-                <button
-                  type="submit"
-                  className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full transition-colors"
-                  aria-label={tCommon('search')}
-                >
-                  <Search size={18} />
-                </button>
-              </div>
-            </form>
+            {searchForm}
           </div>
 
           {/* Navigation */}
@@ -452,94 +454,8 @@ export default function Header() {
         onClose={() => setShowNotifications(false)}
       />
 
-      {/* Navigation secondaire */}
-      <div className="bg-green-600 border-t border-green-500">
-        <div className="container mx-auto px-4">
-          <nav className="flex items-center gap-4 md:gap-6 h-12 text-sm overflow-x-auto scrollbar-hide">
-            <Link 
-              href="/" 
-              className={`font-medium transition-colors flex items-center gap-2 whitespace-nowrap relative ${
-                pathname === `/${locale}` || pathname === '/'
-                  ? 'text-yellow-300 font-bold'
-                  : 'text-white hover:text-yellow-300'
-              }`}
-            >
-              <Home size={16} />
-              <span>{tNav('home')}</span>
-              {(pathname === `/${locale}` || pathname === '/') && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-300"
-                  initial={false}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                />
-              )}
-            </Link>
-            <Link 
-              href="/boutiques" 
-              className={`font-medium transition-colors flex items-center gap-2 whitespace-nowrap relative ${
-                pathname.includes('/boutiques')
-                  ? 'text-yellow-300 font-bold'
-                  : 'text-white hover:text-yellow-300'
-              }`}
-            >
-              <Store size={16} />
-              <span>{tNav('shops')}</span>
-              {pathname.includes('/boutiques') && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-300"
-                  initial={false}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                />
-              )}
-            </Link>
-            <Link 
-              href="/chat" 
-              className={`font-medium transition-colors flex items-center gap-2 whitespace-nowrap relative ${
-                pathname.includes('/chat')
-                  ? 'text-yellow-300 font-bold'
-                  : 'text-white hover:text-yellow-300'
-              }`}
-            >
-              <MessageCircle size={16} />
-              <span>{tNav('messages')}</span>
-              {totalUnreadCount > 0 && (
-                <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] px-1 flex items-center justify-center">
-                  {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
-                </span>
-              )}
-              {pathname.includes('/chat') && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-300"
-                  initial={false}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                />
-              )}
-            </Link>
-            <Link 
-              href={user ? '/dashboard' : '/login'} 
-              className={`font-medium transition-colors flex items-center gap-2 whitespace-nowrap relative ${
-                pathname.includes('/dashboard') || pathname.includes('/profile')
-                  ? 'text-yellow-300 font-bold'
-                  : 'text-white hover:text-yellow-300'
-              }`}
-            >
-              <User size={16} />
-              <span>{tNav('profile')}</span>
-              {(pathname.includes('/dashboard') || pathname.includes('/profile')) && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-300"
-                  initial={false}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                />
-              )}
-            </Link>
-          </nav>
-        </div>
-      </div>
+      {/* Recherche sur mobile (sur bureau elle est dans la barre du haut) */}
+      <div className="md:hidden container mx-auto px-2 pt-2">{searchForm}</div>
     </header>
   );
 }
