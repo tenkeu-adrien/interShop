@@ -36,8 +36,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const path = pathname.replace(new RegExp(`^/${locale}(?=/|$)`), '') || '/';
   const isBare = matches(path, BARE_ROUTES);
   const isPublic = matches(path, PUBLIC_ROUTES);
-  // Pas de pied de page sur l'accueil ni dans les tableaux de bord.
-  const hideFooter = path === '/' || matches(path, ['/dashboard']);
+  // Le pied de page n'apparaît que sur la page de contact.
+  const showFooter = matches(path, ['/contact']);
   const mustLogin = !isPublic && !loading && !user;
 
   useEffect(() => {
@@ -68,7 +68,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <Header />
       <AccountStatusBanner />
       <main className="flex-1 pb-20 md:pb-0">{children}</main>
-      {!hideFooter && <Footer />}
+      {showFooter && <Footer />}
       <MobileNav />
     </div>
   );
