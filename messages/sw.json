@@ -1295,5 +1295,32 @@
         "femmes": "Wanawake",
         "profils_verifies": "Wasifu uliothibitishwa",
         "nouveaux_profils": "Wasifu mpya"
+    },
+    "settings": {
+        "account": "Akaunti",
+        "update_profile": "Sasisha wasifu",
+        "update_password": "Sasisha nenosiri",
+        "saved_addresses": "Anwani zilizohifadhiwa",
+        "my_bookings": "Nafasi nilizoweka",
+        "my_shipments": "Usafirishaji wangu",
+        "wallet_referral": "Pochi na Rufaa",
+        "wallet": "Pochi",
+        "refer_friend": "Mwalike rafiki",
+        "preferences": "Mapendeleo",
+        "language": "Lugha",
+        "theme": "Mandhari",
+        "currency": "Sarafu",
+        "legal_privacy": "Sheria na faragha",
+        "privacy_policy": "Sera ya faragha",
+        "terms": "Vigezo na Masharti",
+        "help": "Msaada na usaidizi",
+        "support": "Msaada",
+        "about_us": "Kuhusu sisi",
+        "notifications": "Arifa",
+        "email": "Barua pepe",
+        "sms": "SMS",
+        "push": "Push",
+        "coming_soon": "Inakuja hivi karibuni",
+        "save_error": "Imeshindikana kuhifadhi mapendeleo yako. Tafadhali jaribu tena."
     }
 }

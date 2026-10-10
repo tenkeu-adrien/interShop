@@ -1295,5 +1295,32 @@
         "femmes": "Women",
         "profils_verifies": "Verified profiles",
         "nouveaux_profils": "New profiles"
+    },
+    "settings": {
+        "account": "Account",
+        "update_profile": "Update profile",
+        "update_password": "Update password",
+        "saved_addresses": "Saved addresses",
+        "my_bookings": "My bookings",
+        "my_shipments": "My shipments",
+        "wallet_referral": "Wallet & Referral",
+        "wallet": "Wallet",
+        "refer_friend": "Refer a friend",
+        "preferences": "Preferences",
+        "language": "Language",
+        "theme": "Theme",
+        "currency": "Currency",
+        "legal_privacy": "Legal & privacy",
+        "privacy_policy": "Privacy policy",
+        "terms": "Terms & Conditions",
+        "help": "Help & support",
+        "support": "Support",
+        "about_us": "About us",
+        "notifications": "Notifications",
+        "email": "Email",
+        "sms": "SMS",
+        "push": "Push",
+        "coming_soon": "Coming soon",
+        "save_error": "Unable to save your preferences. Please try again."
     }
 }

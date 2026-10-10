@@ -1295,5 +1295,32 @@
     "femmes": "Femmes",
     "profils_verifies": "Profils vérifiés",
     "nouveaux_profils": "Nouveaux profils"
+  },
+  "settings": {
+    "account": "Compte",
+    "update_profile": "Mettre à jour le profil",
+    "update_password": "Mettre à jour le mot de passe",
+    "saved_addresses": "Adresses enregistrées",
+    "my_bookings": "Mes réservations",
+    "my_shipments": "Mes expéditions",
+    "wallet_referral": "Portefeuille & Parrainage",
+    "wallet": "Porte-feuille",
+    "refer_friend": "Parrainer un ami",
+    "preferences": "Préférences",
+    "language": "Langue",
+    "theme": "Thème",
+    "currency": "Devise",
+    "legal_privacy": "Légal et confidentialité",
+    "privacy_policy": "Politique de confidentialité",
+    "terms": "Termes & Conditions",
+    "help": "Aide et assistance",
+    "support": "Support",
+    "about_us": "À propos de nous",
+    "notifications": "Notifications",
+    "email": "Email",
+    "sms": "SMS",
+    "push": "Push",
+    "coming_soon": "Bientôt disponible",
+    "save_error": "Impossible d'enregistrer vos préférences. Veuillez réessayer."
   }
 }

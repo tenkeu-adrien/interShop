@@ -17,6 +17,12 @@ export interface VerificationHistoryEntry {
   details?: string;
 }
 
+export interface NotificationPreferences {
+  email: boolean;
+  sms: boolean;
+  push: boolean;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -24,6 +30,7 @@ export interface User {
   displayName: string;
   photoURL?: string | null;
   phoneNumber?: string | null;
+  notificationPreferences?: NotificationPreferences;
   phoneCountryCode?: string;            // Indicatif pays (ex: +243)
   createdAt: Date;
   updatedAt: Date;

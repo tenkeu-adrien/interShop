@@ -1295,5 +1295,32 @@
         "femmes": "نساء",
         "profils_verifies": "ملفات موثّقة",
         "nouveaux_profils": "ملفات جديدة"
+    },
+    "settings": {
+        "account": "الحساب",
+        "update_profile": "تحديث الملف الشخصي",
+        "update_password": "تحديث كلمة المرور",
+        "saved_addresses": "العناوين المحفوظة",
+        "my_bookings": "حجوزاتي",
+        "my_shipments": "شحناتي",
+        "wallet_referral": "المحفظة والإحالة",
+        "wallet": "المحفظة",
+        "refer_friend": "إحالة صديق",
+        "preferences": "التفضيلات",
+        "language": "اللغة",
+        "theme": "المظهر",
+        "currency": "العملة",
+        "legal_privacy": "الشؤون القانونية والخصوصية",
+        "privacy_policy": "سياسة الخصوصية",
+        "terms": "الشروط والأحكام",
+        "help": "المساعدة والدعم",
+        "support": "الدعم",
+        "about_us": "من نحن",
+        "notifications": "الإشعارات",
+        "email": "البريد الإلكتروني",
+        "sms": "الرسائل القصيرة",
+        "push": "الإشعارات الفورية",
+        "coming_soon": "قريباً",
+        "save_error": "تعذّر حفظ تفضيلاتك. يرجى المحاولة مرة أخرى."
     }
 }
