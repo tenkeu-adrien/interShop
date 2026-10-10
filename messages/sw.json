@@ -329,7 +329,8 @@
         "transfer_success_text": "Uhamisho wako umekamilika kwa mafanikio",
         "transfer_new_transfer": "Uhamisho mpya",
         "status": "Hali",
-        "load_error": "Imeshindikana kupakia pochi yako kwa sasa. Tafadhali jaribu tena baadaye."
+        "load_error": "Imeshindikana kupakia pochi yako kwa sasa. Tafadhali jaribu tena baadaye.",
+        "convert_to": "Badilisha kuwa"
     },
     "dashboard": {
         "overview": "Muhtasari",

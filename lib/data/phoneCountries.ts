@@ -1,3 +1,5 @@
+import { SupportedCurrency } from '@/types';
+
 export interface PhoneCountry {
   code: string;
   flag: string;
@@ -42,6 +44,18 @@ export const PHONE_COUNTRIES: PhoneCountry[] = [
   { code: '+245', flag: '🇬🇼', name: 'Guinée-Bissau', length: 9, example: '955012345', trunkZero: false },
   { code: '+231', flag: '🇱🇷', name: 'Liberia', length: 9, example: '770123456', trunkZero: true },
 ];
+
+// Devise du pays par indicatif ; les pays dont la devise n'est pas gérée retombent sur USD.
+const COUNTRY_CURRENCIES: Record<string, SupportedCurrency> = {
+  '+243': 'CDF',
+  '+242': 'XAF', '+237': 'XAF', '+241': 'XAF', '+236': 'XAF', '+235': 'XAF', '+240': 'XAF',
+  '+225': 'XOF', '+221': 'XOF', '+226': 'XOF', '+223': 'XOF', '+227': 'XOF', '+228': 'XOF', '+229': 'XOF', '+245': 'XOF',
+  '+233': 'GHS', '+234': 'NGN', '+254': 'KES', '+255': 'TZS', '+256': 'UGX',
+  '+27': 'ZAR', '+212': 'MAD', '+20': 'EGP', '+224': 'GNF',
+};
+
+export const getCountryCurrency = (code?: string | null): SupportedCurrency =>
+  (code && COUNTRY_CURRENCIES[code]) || 'USD';
 
 export const getPhoneCountry = (code: string): PhoneCountry =>
   PHONE_COUNTRIES.find((c) => c.code === code) ?? PHONE_COUNTRIES[0];

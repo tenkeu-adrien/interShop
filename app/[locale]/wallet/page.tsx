@@ -20,6 +20,17 @@ import { toDate } from '@/lib/utils/date';
 import { useTranslations } from 'next-intl';
 import DepositModal from '@/components/wallet/DepositModal';
 import WithdrawalModal from '@/components/wallet/WithdrawalModal';
+import { useCurrencyStore } from '@/store/currencyStore';
+import { SUPPORTED_CURRENCIES } from '@/lib/constants/currencies';
+import { getCountryCurrency } from '@/lib/data/phoneCountries';
+import { SupportedCurrency } from '@/types';
+
+const WALLET_CURRENCY: SupportedCurrency = 'CDF';
+const DISPLAY_CURRENCY_KEY = 'wallet-display-currency';
+
+// Réduit la police quand le montant est long pour qu'il reste dans la carte.
+const amountSizeClass = (text: string) =>
+  text.length > 22 ? 'text-xl' : text.length > 16 ? 'text-2xl' : text.length > 12 ? 'text-3xl' : 'text-4xl';
 
 export default function WalletPage() {
   const router = useRouter();
@@ -29,6 +40,36 @@ export default function WalletPage() {
   
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
+  const exchangeRates = useCurrencyStore((s) => s.exchangeRates);
+  const [chosenCurrency, setChosenCurrency] = useState<SupportedCurrency | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(DISPLAY_CURRENCY_KEY) as SupportedCurrency | null;
+    if (saved && SUPPORTED_CURRENCIES[saved]) setChosenCurrency(saved);
+  }, []);
+
+  // Les taux sont exprimés pour 1 USD ; sans taux disponible on reste dans la devise du portefeuille.
+  const rateOf = (currency: SupportedCurrency) => (currency === 'USD' ? 1 : exchangeRates.get(currency));
+  const preferredCurrency = chosenCurrency ?? getCountryCurrency(user?.phoneCountryCode);
+  const canConvert = Boolean(rateOf(WALLET_CURRENCY) && rateOf(preferredCurrency));
+  const displayCurrency = canConvert ? preferredCurrency : WALLET_CURRENCY;
+
+  const formatAmount = (amountInWalletCurrency: number) => {
+    const converted =
+      displayCurrency === WALLET_CURRENCY
+        ? amountInWalletCurrency
+        : (amountInWalletCurrency / rateOf(WALLET_CURRENCY)!) * rateOf(displayCurrency)!;
+    return `${converted.toLocaleString('fr-FR', {
+      maximumFractionDigits: SUPPORTED_CURRENCIES[displayCurrency].decimals,
+    })} ${displayCurrency}`;
+  };
+
+  const changeDisplayCurrency = (currency: SupportedCurrency) => {
+    setChosenCurrency(currency);
+    localStorage.setItem(DISPLAY_CURRENCY_KEY, currency);
+  };
+
+  const balanceText = formatAmount(wallet?.balance ?? 0);
 
   useEffect(() => {
     if (!user) {
@@ -72,17 +113,38 @@ export default function WalletPage() {
         )}
 
         {/* Carte du portefeuille */}
-        <div className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 rounded-2xl p-8 text-gray-900 mb-8 shadow-xl">
-          <div className="flex items-center justify-between mb-6">
-            <div>
+        <div className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 rounded-2xl p-5 sm:p-8 text-gray-900 mb-8 shadow-xl">
+          <div className="flex items-start justify-between gap-4 mb-6">
+            <div className="min-w-0 flex-1">
               <p className="text-sm mb-1 opacity-90">
                 {t('available_balance')}
               </p>
-              <p className="text-4xl font-bold">
-                {wallet?.balance.toLocaleString('fr-FR')} CDF
+              <p className={`${amountSizeClass(balanceText)} font-bold break-words`}>
+                {balanceText}
               </p>
+              {displayCurrency !== WALLET_CURRENCY && (
+                <p className="text-sm mt-1 opacity-80">
+                  = {(wallet?.balance ?? 0).toLocaleString('fr-FR')} {WALLET_CURRENCY}
+                </p>
+              )}
             </div>
-            <WalletIcon className="w-16 h-16 opacity-30" />
+            <label className="shrink-0 text-xs font-medium">
+              <span className="block mb-1 opacity-90">{t('convert_to')}</span>
+              <select
+                value={displayCurrency}
+                onChange={(e) => changeDisplayCurrency(e.target.value as SupportedCurrency)}
+                disabled={!rateOf(WALLET_CURRENCY)}
+                className="bg-white text-gray-900 text-sm font-semibold rounded-lg px-2 py-2 shadow-md focus:outline-none focus:ring-2 focus:ring-green-600 max-w-[9rem]"
+              >
+                {Object.values(SUPPORTED_CURRENCIES)
+                  .filter((c) => rateOf(c.code))
+                  .map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.code} — {c.name}
+                    </option>
+                  ))}
+              </select>
+            </label>
           </div>
 
           {wallet && wallet.pendingBalance > 0 && (
@@ -90,31 +152,31 @@ export default function WalletPage() {
               <p className="text-sm mb-1 opacity-90">
                 {t('pending_balance')}
               </p>
-              <p className="text-2xl font-semibold">
-                {wallet.pendingBalance.toLocaleString('fr-FR')} CDF
+              <p className="text-2xl font-semibold break-words">
+                {formatAmount(wallet.pendingBalance)}
               </p>
             </div>
           )}
 
           {/* Actions */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
             <button
               onClick={() => setShowDepositModal(true)}
-              className="bg-white text-green-600 py-3 rounded-lg font-medium hover:bg-green-50 transition flex items-center justify-center gap-2 shadow-md"
+              className="bg-white text-green-600 py-3 px-1 rounded-lg text-sm sm:text-base font-medium hover:bg-green-50 transition flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 shadow-md min-w-0"
             >
               <ArrowDownCircle className="w-5 h-5" />
               {t('deposit')}
             </button>
             <button
               onClick={() => router.push('/wallet/transfer')}
-              className="bg-white text-yellow-600 py-3 rounded-lg font-medium hover:bg-yellow-50 transition flex items-center justify-center gap-2 shadow-md"
+              className="bg-white text-yellow-600 py-3 px-1 rounded-lg text-sm sm:text-base font-medium hover:bg-yellow-50 transition flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 shadow-md min-w-0"
             >
               <ArrowRight className="w-5 h-5" />
               {t('transfer')}
             </button>
             <button
               onClick={() => setShowWithdrawalModal(true)}
-              className="bg-white text-yellow-600 py-3 rounded-lg font-medium hover:bg-yellow-50 transition flex items-center justify-center gap-2 shadow-md"
+              className="bg-white text-yellow-600 py-3 px-1 rounded-lg text-sm sm:text-base font-medium hover:bg-yellow-50 transition flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 shadow-md min-w-0"
             >
               <ArrowUpCircle className="w-5 h-5" />
               {t('withdraw')}
@@ -207,7 +269,7 @@ export default function WalletPage() {
                         'text-gray-900'
                       }`}>
                         {transaction.type === 'deposit' ? '+' : '-'}
-                        {transaction.amount.toLocaleString('fr-FR')} CDF
+                        {formatAmount(transaction.amount)}
                       </p>
                       <p className={`text-sm ${
                         transaction.status === 'completed' ? 'text-green-600' :

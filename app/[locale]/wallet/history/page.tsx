@@ -1,15 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useWalletStore } from '@/store/walletStore';
-import { TransactionFilters } from '@/types';
 import { 
   ArrowDownCircle, 
   ArrowUpCircle, 
   Wallet as WalletIcon,
-  Filter,
   Loader2,
   ChevronLeft
 } from 'lucide-react';
@@ -21,8 +19,6 @@ export default function WalletHistoryPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { transactions, loading, fetchTransactions } = useWalletStore();
-  const [filters, setFilters] = useState<TransactionFilters>({});
-  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -30,8 +26,8 @@ export default function WalletHistoryPage() {
       return;
     }
 
-    fetchTransactions(user.id, filters);
-  }, [user, filters, router]);
+    fetchTransactions(user.id);
+  }, [user, router]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -79,68 +75,6 @@ export default function WalletHistoryPage() {
           <p className="text-gray-600 mt-2">
             {transactions.length} transaction{transactions.length > 1 ? 's' : ''}
           </p>
-        </div>
-
-        {/* Filtres */}
-        <div className="bg-white rounded-lg shadow mb-6">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="w-full p-4 flex items-center justify-between"
-          >
-            <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-gray-600" />
-              <span className="font-medium text-gray-900">Filtres</span>
-            </div>
-            <span className="text-sm text-gray-600">
-              {showFilters ? 'Masquer' : 'Afficher'}
-            </span>
-          </button>
-
-          {showFilters && (
-            <div className="p-4 border-t border-gray-200">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Type de transaction
-                  </label>
-                  <select
-                    value={filters.type || ''}
-                    onChange={(e) => setFilters({...filters, type: e.target.value as any || undefined})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  >
-                    <option value="">Tous les types</option>
-                    <option value="deposit">Dépôts</option>
-                    <option value="withdrawal">Retraits</option>
-                    <option value="payment">Paiements</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Statut
-                  </label>
-                  <select
-                    value={filters.status || ''}
-                    onChange={(e) => setFilters({...filters, status: e.target.value as any || undefined})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  >
-                    <option value="">Tous les statuts</option>
-                    <option value="pending">En attente</option>
-                    <option value="processing">En cours</option>
-                    <option value="completed">Complété</option>
-                    <option value="failed">Échoué</option>
-                  </select>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setFilters({})}
-                className="mt-4 text-sm text-orange-600 hover:text-orange-700"
-              >
-                Réinitialiser les filtres
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Liste des transactions */}

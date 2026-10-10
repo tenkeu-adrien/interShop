@@ -88,17 +88,17 @@ export default function CurrencyConverter({ amountCDF }: CurrencyConverterProps)
             return (
               <div
                 key={rate.code}
-                className="flex items-center justify-between bg-gradient-to-r from-yellow-50 to-green-50 border border-green-100 rounded-lg px-3 py-2 hover:border-green-300 transition"
+                className="flex items-center justify-between gap-2 min-w-0 bg-gradient-to-r from-yellow-50 to-green-50 border border-green-100 rounded-lg px-3 py-2 hover:border-green-300 transition"
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <span className="text-lg">{rate.flag}</span>
                   <div>
                     <p className="text-xs font-bold text-gray-700">{rate.code}</p>
-                    <p className="text-xs text-gray-500 leading-none">{rate.name}</p>
+                    <p className="hidden sm:block text-xs text-gray-500 leading-none">{rate.name}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-green-700">
+                <div className="text-right min-w-0">
+                  <p className={`${formatted.length > 14 ? 'text-[10px]' : formatted.length > 9 ? 'text-xs' : 'text-sm'} font-bold text-green-700 break-all leading-tight`}>
                     {numAmount > 0 ? formatted : '—'}
                   </p>
                 </div>
