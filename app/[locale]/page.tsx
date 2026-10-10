@@ -172,10 +172,10 @@ export default function HomePage() {
             <Link
               key={shortcut.href}
               href={shortcut.href}
-              className="flex items-center gap-3 bg-white rounded-lg px-4 py-3 shrink-0 w-44 sm:w-auto sm:flex-1 hover:shadow-md transition-shadow"
+              className="flex items-center gap-2 bg-white rounded-lg px-3 py-1.5 shrink-0 sm:flex-1 hover:shadow-md transition-shadow"
             >
-              <shortcut.icon size={30} className={`${shortcut.color} shrink-0`} />
-              <span className="text-sm font-semibold text-gray-900 leading-tight">{shortcut.label}</span>
+              <shortcut.icon size={20} className={`${shortcut.color} shrink-0`} />
+              <span className="text-xs font-semibold text-gray-900 whitespace-nowrap">{shortcut.label}</span>
             </Link>
           ))}
         </div>
@@ -258,7 +258,10 @@ export default function HomePage() {
                   />
                 </div>
                 <div className="p-2.5">
-                  <h3 className="text-sm text-gray-900 truncate">{product.name}</h3>
+                  <h3 className="text-sm font-medium text-gray-900 truncate">{product.name}</h3>
+                  {product.description && (
+                    <p className="text-xs text-gray-500 truncate mt-0.5">{product.description}</p>
+                  )}
                   <div className="flex items-baseline gap-2 mt-1 min-w-0">
                     {product.prices?.[0] && (
                       <PriceDisplay
