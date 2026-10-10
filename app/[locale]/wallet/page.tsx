@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useWalletStore } from '@/store/walletStore';
@@ -8,7 +8,6 @@ import {
   Wallet as WalletIcon, 
   ArrowDownCircle, 
   ArrowUpCircle,
-  ArrowRight,
   History, 
   Settings,
   Loader2,
@@ -18,16 +17,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toDate } from '@/lib/utils/date';
 import { useTranslations } from 'next-intl';
-import DepositModal from '@/components/wallet/DepositModal';
-import WithdrawalModal from '@/components/wallet/WithdrawalModal';
-import { useCurrencyStore } from '@/store/currencyStore';
-import { SUPPORTED_CURRENCIES } from '@/lib/constants/currencies';
+import WalletCard from '@/components/wallet/WalletCard';
 import { useWalletCurrency } from '@/hooks/useWalletCurrency';
-import { SupportedCurrency } from '@/types';
-
-// Réduit la police quand le montant est long pour qu'il reste dans la carte.
-const amountSizeClass = (text: string) =>
-  text.length > 22 ? 'text-xl' : text.length > 16 ? 'text-2xl' : text.length > 12 ? 'text-3xl' : 'text-4xl';
 
 export default function WalletPage() {
   const router = useRouter();
@@ -35,29 +26,7 @@ export default function WalletPage() {
   const { wallet, transactions, loading, error, fetchWallet, fetchTransactions } = useWalletStore();
   const t = useTranslations('wallet');
   
-  const [showDepositModal, setShowDepositModal] = useState(false);
-  const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
-  const exchangeRates = useCurrencyStore((s) => s.exchangeRates);
-  // Le portefeuille est tenu dans la devise du pays de l'utilisateur ;
-  // le sélecteur ne fait que convertir l'affichage, le temps de la visite.
   const walletCurrency = useWalletCurrency();
-  const [chosenCurrency, setChosenCurrency] = useState<SupportedCurrency | null>(null);
-
-  // Taux exprimés pour 1 USD.
-  const rateOf = (currency: SupportedCurrency) => (currency === 'USD' ? 1 : exchangeRates.get(currency));
-  const displayCurrency =
-    chosenCurrency && rateOf(chosenCurrency) && rateOf(walletCurrency) ? chosenCurrency : walletCurrency;
-
-  const formatAmount = (amountInWalletCurrency: number) => {
-    const converted =
-      displayCurrency === walletCurrency
-        ? amountInWalletCurrency
-        : (amountInWalletCurrency / rateOf(walletCurrency)!) * rateOf(displayCurrency)!;
-    return `${converted.toLocaleString('fr-FR', {
-      maximumFractionDigits: SUPPORTED_CURRENCIES[displayCurrency].decimals,
-    })} ${displayCurrency}`;
-  };
-  const balanceText = formatAmount(wallet?.balance ?? 0);
 
   useEffect(() => {
     if (!user) {
@@ -65,7 +34,6 @@ export default function WalletPage() {
       return;
     }
 
-    // Charger le portefeuille et les transactions
     fetchWallet(user.id);
     fetchTransactions(user.id);
   }, [user, router]);
@@ -100,76 +68,7 @@ export default function WalletPage() {
           </div>
         )}
 
-        {/* Carte du portefeuille */}
-        <div className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 rounded-2xl p-5 sm:p-8 text-gray-900 mb-8 shadow-xl">
-          <p className="text-sm mb-1 opacity-90">{t('available_balance')}</p>
-          <div className="flex items-center justify-between gap-3 mb-6">
-            <div className="min-w-0 flex-1">
-              <p className={`${amountSizeClass(balanceText)} font-bold break-words`}>
-                {balanceText}
-              </p>
-              {displayCurrency !== walletCurrency && (
-                <p className="text-sm mt-1 opacity-80">
-                  = {(wallet?.balance ?? 0).toLocaleString('fr-FR')} {walletCurrency}
-                </p>
-              )}
-            </div>
-            <label className="shrink-0 flex items-center gap-2 text-sm font-medium">
-              <span className="hidden sm:inline">{t('convert_to')}</span>
-              <select
-                aria-label={t('convert_to')}
-                value={displayCurrency}
-                onChange={(e) => setChosenCurrency(e.target.value as SupportedCurrency)}
-                disabled={!rateOf(walletCurrency)}
-                className="bg-white text-gray-900 text-sm font-semibold rounded-lg px-2 py-2 shadow-md focus:outline-none focus:ring-2 focus:ring-green-600"
-              >
-                {Object.values(SUPPORTED_CURRENCIES)
-                  .filter((c) => c.code === walletCurrency || rateOf(c.code))
-                  .map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.code}
-                    </option>
-                  ))}
-              </select>
-            </label>
-          </div>
-
-          {wallet && wallet.pendingBalance > 0 && (
-            <div className="bg-white/20 rounded-lg p-4 mb-6">
-              <p className="text-sm mb-1 opacity-90">
-                {t('pending_balance')}
-              </p>
-              <p className="text-2xl font-semibold break-words">
-                {formatAmount(wallet.pendingBalance)}
-              </p>
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-4">
-            <button
-              onClick={() => setShowDepositModal(true)}
-              className="bg-white text-green-600 py-3 px-1 rounded-lg text-sm sm:text-base font-medium hover:bg-green-50 transition flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 shadow-md min-w-0"
-            >
-              <ArrowDownCircle className="w-5 h-5" />
-              {t('deposit')}
-            </button>
-            <button
-              onClick={() => router.push('/wallet/transfer')}
-              className="bg-white text-yellow-600 py-3 px-1 rounded-lg text-sm sm:text-base font-medium hover:bg-yellow-50 transition flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 shadow-md min-w-0"
-            >
-              <ArrowRight className="w-5 h-5" />
-              {t('transfer')}
-            </button>
-            <button
-              onClick={() => setShowWithdrawalModal(true)}
-              className="bg-white text-yellow-600 py-3 px-1 rounded-lg text-sm sm:text-base font-medium hover:bg-yellow-50 transition flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 shadow-md min-w-0"
-            >
-              <ArrowUpCircle className="w-5 h-5" />
-              {t('withdraw')}
-            </button>
-          </div>
-        </div>
+        <WalletCard className="mb-8" />
 
         {/* Boutons secondaires */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
@@ -256,7 +155,7 @@ export default function WalletPage() {
                         'text-gray-900'
                       }`}>
                         {transaction.type === 'deposit' ? '+' : '-'}
-                        {formatAmount(transaction.amount)}
+                        {transaction.amount.toLocaleString('fr-FR')} {walletCurrency}
                       </p>
                       <p className={`text-sm ${
                         transaction.status === 'completed' ? 'text-green-600' :
@@ -291,21 +190,6 @@ export default function WalletPage() {
         </div>
       </div>
       
-      {/* Modals */}
-      {user && (
-        <>
-          <DepositModal 
-            isOpen={showDepositModal} 
-            onClose={() => setShowDepositModal(false)} 
-            userId={user.id} 
-          />
-          <WithdrawalModal 
-            isOpen={showWithdrawalModal} 
-            onClose={() => setShowWithdrawalModal(false)} 
-            userId={user.id} 
-          />
-        </>
-      )}
     </div>
   );
 }

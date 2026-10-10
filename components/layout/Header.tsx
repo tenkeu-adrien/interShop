@@ -396,6 +396,7 @@ export default function Header() {
                           </>
                         )}
 
+                        {user.role !== 'client' && (
                         <Link
                           href="/wallet"
                           onClick={() => setShowUserMenu(false)}
@@ -408,6 +409,7 @@ export default function Header() {
                           <Wallet size={20} className="text-green-600" />
                           <span className="font-medium">{tNav('wallet')}</span>
                         </Link>
+                        )}
 
                         <Link
                           href="/settings"
