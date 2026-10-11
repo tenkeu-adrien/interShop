@@ -47,7 +47,7 @@ function TileGrid({ tiles, columns, onComingSoon }: { tiles: Tile[]; columns: st
                 </span>
               ) : null}
             </span>
-            <span className="text-xs text-gray-700 text-center leading-tight break-words">{label}</span>
+            <span className="text-[10px] sm:text-xs text-gray-700 text-center leading-tight w-full max-w-full [overflow-wrap:anywhere]">{label}</span>
           </>
         );
         const className = 'flex flex-col items-center gap-2 py-2 px-0.5 rounded-lg hover:bg-gray-50 transition-colors min-w-0';

@@ -149,16 +149,17 @@ export default function Header() {
       <div className="container mx-auto px-2 md:px-4">
         <div className="flex items-center justify-between gap-2 h-16 min-w-0">
           {/* Logo */}
-          <Link href="/" className="min-w-0 shrink">
-            <Image
-              src="/logo.png"
-              alt="InterAppshop"
-              className="object-contain w-[110px] md:w-[150px] h-auto"
-              width={150}
-              height={40}
-              priority={true}
-              sizes="(max-width: 768px) 120px, 150px"
-            />
+          <Link href="/" className="min-w-0 flex-1 flex justify-center md:flex-none md:justify-start">
+            <span className="relative block w-[135px] md:w-[150px] h-[36px] md:h-[40px]">
+              <Image
+                src="/logo.png"
+                alt="InterAppshop"
+                fill
+                className="object-contain"
+                priority={true}
+                sizes="(max-width: 768px) 135px, 150px"
+              />
+            </span>
           </Link>
 
           {/* Barre de recherche */}
@@ -244,8 +245,12 @@ export default function Header() {
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   className="flex items-center gap-2 hover:bg-white/20 px-3 py-2 rounded-full transition-colors"
                 >
-                  <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white font-bold">
-                    {user.displayName?.charAt(0).toUpperCase() || 'U'}
+                  <div className="w-8 h-8 bg-green-600 rounded-full overflow-hidden flex items-center justify-center text-white font-bold">
+                    {user.photoURL ? (
+                      <img src={user.photoURL} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      user.displayName?.charAt(0).toUpperCase() || 'U'
+                    )}
                   </div>
                   <span className="hidden md:block font-medium text-gray-900">
                     {user.displayName}
@@ -269,8 +274,12 @@ export default function Header() {
                       {/* User Info */}
                       <div className="bg-gradient-to-r from-yellow-400 to-green-400 p-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                            {user.displayName?.charAt(0).toUpperCase() || 'U'}
+                          <div className="w-12 h-12 bg-green-600 rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-lg">
+                            {user.photoURL ? (
+                              <img src={user.photoURL} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              user.displayName?.charAt(0).toUpperCase() || 'U'
+                            )}
                           </div>
                           <div>
                             <p className="font-bold text-gray-900">{user.displayName}</p>

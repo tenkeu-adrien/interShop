@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useTranslations } from 'next-intl';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { User, Mail, Phone, Shield, Camera, Save, ArrowLeft } from 'lucide-react';
+import { User, Mail, Phone, Shield, Camera, Save, ArrowLeft, Loader2 } from 'lucide-react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { uploadImage, compressImage, validateImageFile } from '@/lib/firebase/storage';
 import toast from 'react-hot-toast';
 
 function ProfileContent() {
@@ -16,10 +17,34 @@ function ProfileContent() {
   const t = useTranslations('profile');
   const tCommon = useTranslations('common');
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     displayName: user?.displayName || '',
     phoneNumber: user?.phoneNumber || '',
   });
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !user) return;
+    try {
+      validateImageFile(file);
+      setUploadingPhoto(true);
+      const compressed = await compressImage(file, 512, 512, 0.85);
+      const url = await uploadImage(compressed, `avatars/${user.id}`);
+      await updateDoc(doc(db, 'users', user.id), {
+        photoURL: url,
+        updatedAt: new Date(),
+      });
+      setUser({ ...user, photoURL: url });
+      toast.success(tCommon('success'));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : tCommon('error'));
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!user) return;
@@ -64,9 +89,29 @@ function ProfileContent() {
         {/* Avatar + role */}
         <div className="bg-white rounded-2xl shadow p-6 mb-6 flex items-center gap-5">
           <div className="relative">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-yellow-400 to-green-500 flex items-center justify-center text-white text-3xl font-bold">
-              {user?.displayName?.charAt(0).toUpperCase() || '?'}
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-yellow-400 to-green-500 flex items-center justify-center text-white text-3xl font-bold overflow-hidden">
+              {user?.photoURL ? (
+                <img src={user.photoURL} alt="" className="w-full h-full object-cover" />
+              ) : (
+                user?.displayName?.charAt(0).toUpperCase() || '?'
+              )}
             </div>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingPhoto}
+              className="absolute bottom-0 right-0 bg-green-600 hover:bg-green-700 text-white rounded-full p-2 shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
+              aria-label="Changer la photo de profil"
+            >
+              {uploadingPhoto ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handlePhotoChange}
+            />
           </div>
           <div>
             <p className="text-xl font-bold text-gray-900">{user?.displayName}</p>
