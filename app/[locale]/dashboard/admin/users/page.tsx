@@ -31,6 +31,7 @@ import { collection, getDocs, doc, updateDoc, deleteDoc, addDoc } from 'firebase
 import { db } from '@/lib/firebase/config';
 import { User as UserType, UserRole, ApprovalStatus } from '@/types';
 import { toDate } from '@/lib/utils/date';
+import { updateFournisseurProductsVerification } from '@/lib/firebase/products';
 import Link from 'next/link';
 import { BackButton } from '@/components/ui/BackButton';
 import toast from 'react-hot-toast';
@@ -116,6 +117,7 @@ export default function AdminUsersPage() {
     try {
       const updates = { approvalStatus: 'approved' as const, approvedBy: user?.id, approvedAt: new Date(), isActive: true };
       await updateDoc(doc(db, 'users', userId), updates);
+      await updateFournisseurProductsVerification(userId, true);
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...updates } : u));
       toast.success(tAdmin('user_approved'));
     } catch (error) {
@@ -128,6 +130,7 @@ export default function AdminUsersPage() {
     try {
       const updates = { approvalStatus: 'rejected' as const, rejectionReason: reason, isActive: false };
       await updateDoc(doc(db, 'users', userId), updates);
+      await updateFournisseurProductsVerification(userId, false);
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...updates } : u));
       toast.success(tAdmin('user_rejected'));
     } catch (error) {

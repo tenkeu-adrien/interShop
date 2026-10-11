@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { enrichProductsWithFournisseurVerification } from '@/lib/firebase/products';
 import { Product } from '@/types';
 import { OptimizedProductCard } from '@/components/products/OptimizedProductCard';
 import { Package, ChevronRight } from 'lucide-react';
@@ -28,7 +29,10 @@ export function ClientProducts() {
         );
         const snap = await getDocs(q);
         if (!active) return;
-        setProducts(snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Product[]);
+        const productsData = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Product[];
+        const enriched = await enrichProductsWithFournisseurVerification(productsData);
+        if (!active) return;
+        setProducts(enriched);
       } catch (error) {
         console.error('Erreur chargement produits:', error);
       } finally {

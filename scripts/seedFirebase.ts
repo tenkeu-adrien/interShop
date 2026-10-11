@@ -32,14 +32,20 @@ function log(message: string, color: keyof typeof colors = 'reset') {
   console.log(`${colors[color]}${message}${colors.reset}`);
 }
 
-async function seedProducts(count: number = 50) {
+async function seedProducts(count: number = 50, fournisseurIds: string[] = []) {
   log(`\n📦 Génération de ${count} produits...`, 'blue');
   
   const productIds: string[] = [];
   
   for (let i = 0; i < count; i++) {
     try {
-      const product = createMockProduct();
+      const fournisseurId =
+        fournisseurIds.length > 0
+          ? fournisseurIds[Math.floor(Math.random() * fournisseurIds.length)]
+          : undefined;
+      const product = createMockProduct(
+        fournisseurId ? { fournisseurId, fournisseurVerified: true } : {}
+      );
       
       // Convertir les dates en Timestamp pour Firebase
       const productData = {
@@ -242,7 +248,8 @@ async function main() {
     const userIds = await seedUsers(10);
     
     // 2. Créer les produits
-    const productIds = await seedProducts(50);
+    const fournisseurIds = userIds.slice(4, 7); // Les 3 fournisseurs créés
+    const productIds = await seedProducts(50, fournisseurIds);
     
     // 3. Créer les commandes
     const orderIds = await seedOrders(20, productIds, userIds);

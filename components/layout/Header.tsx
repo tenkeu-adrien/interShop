@@ -5,10 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
-import { useCartStore } from '@/store/cartStore';
 import { useChatStore } from '@/store/chatStore';
 import {
-  ShoppingCart,
   Search,
   Bell,
   MessageCircle,
@@ -42,7 +40,6 @@ export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
-  const { items } = useCartStore();
   const { totalUnreadCount, subscribeTotalUnreadCount, unsubscribeTotalUnreadCount } = useChatStore();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
@@ -188,7 +185,7 @@ export default function Header() {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden py-1"
+                    className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden py-1 z-50"
                   >
                     <button onClick={() => changeLocale('fr')} className={`w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2 ${locale === 'fr' ? 'text-green-600 font-bold' : 'text-gray-700'}`}>
                       <span>🇫🇷</span> Français
@@ -240,20 +237,6 @@ export default function Header() {
               </button>
             )}
 
-            {/* Panier */}
-            <Link
-              href="/cart"
-              className="hover:scale-110 transition-transform relative p-2 hover:bg-white/20 rounded-full"
-              aria-label={tNav('cart')}
-            >
-              <ShoppingCart size={22} className="text-gray-900" />
-              {items.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center shadow-md animate-bounce">
-                  {items.length}
-                </span>
-              )}
-            </Link>
-
             {/* Menu Utilisateur */}
             {user ? (
               <div className="relative" ref={menuRef}>
@@ -281,7 +264,7 @@ export default function Header() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden"
+                      className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden z-50"
                     >
                       {/* User Info */}
                       <div className="bg-gradient-to-r from-yellow-400 to-green-400 p-4">

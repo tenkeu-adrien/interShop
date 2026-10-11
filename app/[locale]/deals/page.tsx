@@ -7,6 +7,7 @@ import  ProductCard  from '@/components/products/ProductCard';
 import { BackButton } from '@/components/ui/BackButton';
 import { collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { enrichProductsWithFournisseurVerification } from '@/lib/firebase/products';
 import { Product } from '@/types';
 import toast from 'react-hot-toast';
 
@@ -38,9 +39,12 @@ export default function DealsPage() {
         ...doc.data()
       })) as Product[];
       
+      // Ajouter le statut de vérification du fournisseur
+      const enrichedProducts = await enrichProductsWithFournisseurVerification(allProducts);
+      
       // Filtrer les produits avec réductions (simulé avec un prix réduit)
       // Dans une vraie app, vous auriez un champ "discount" ou "originalPrice"
-      const dealsProducts = allProducts.filter(p => {
+      const dealsProducts = enrichedProducts.filter(p => {
         // Simuler des deals: produits avec stock > 50 ou ventes > 100
         return p.stock > 50 || (p.sales && p.sales > 100);
       });

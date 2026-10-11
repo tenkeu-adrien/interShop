@@ -11,10 +11,105 @@ import {
   orderBy,
   limit,
   startAfter,
+  documentId,
   QueryConstraint,
 } from 'firebase/firestore';
-import { db } from './config';
+import { db, auth } from './config';
 import { Product, SearchFilters } from '@/types';
+
+// Un fournisseur est considéré comme vérifié s'il a été approuvé par un admin
+// ou explicitement marqué comme vérifié.
+const isFournisseurVerifiedData = (data: any): boolean =>
+  data?.isVerified === true ||
+  data?.approvalStatus === 'approved' ||
+  data?.adminApproval?.status === 'approved';
+
+/**
+ * Enrichit une liste de produits avec le statut de vérification de leur
+ * fournisseur (`fournisseurVerified`).
+ *
+ * Les produits créés ou approuvés récemment portent déjà ce champ (lecture
+ * publique). Cette fonction sert de repli pour les anciens produits qui n'en
+ * ont pas : elle consulte la collection `users`, réservée aux utilisateurs
+ * authentifiés, et échoue silencieusement pour les visiteurs anonymes.
+ */
+export const enrichProductsWithFournisseurVerification = async (
+  products: Product[]
+): Promise<Product[]> => {
+  try {
+    if (!auth || !auth.currentUser || products.length === 0) return products;
+
+    const missing = products.filter(
+      (p) => p.fournisseurVerified === undefined && p.fournisseurId
+    );
+    if (missing.length === 0) return products;
+
+    const ids = Array.from(
+      new Set(missing.map((p) => p.fournisseurId).filter(Boolean))
+    );
+    if (ids.length === 0) return products;
+
+    const verified = new Set<string>();
+    for (let i = 0; i < ids.length; i += 30) {
+      const chunk = ids.slice(i, i + 30);
+      const snap = await getDocs(
+        query(collection(db, 'users'), where(documentId(), 'in', chunk))
+      );
+      snap.forEach((d) => {
+        if (isFournisseurVerifiedData(d.data())) verified.add(d.id);
+      });
+    }
+
+    return products.map((p) =>
+      p.fournisseurVerified === undefined
+        ? { ...p, fournisseurVerified: verified.has(p.fournisseurId) }
+        : p
+    );
+  } catch (error) {
+    console.warn('Vérification fournisseur indisponible:', error);
+    return products;
+  }
+};
+
+/**
+ * Renvoie si un fournisseur est vérifié, en lisant son document utilisateur.
+ * Renvoie `false` si la lecture échoue (visiteur anonyme, document absent).
+ */
+export const getFournisseurVerification = async (
+  fournisseurId: string
+): Promise<boolean> => {
+  try {
+    if (!fournisseurId) return false;
+    const snap = await getDoc(doc(db, 'users', fournisseurId));
+    if (!snap.exists()) return false;
+    return isFournisseurVerifiedData(snap.data());
+  } catch (error) {
+    return false;
+  }
+};
+
+/**
+ * Met à jour le champ public `fournisseurVerified` de tous les produits d'un
+ * fournisseur (utilisé par l'administration quand un fournisseur est approuvé
+ * ou rejeté).
+ */
+export const updateFournisseurProductsVerification = async (
+  fournisseurId: string,
+  verified: boolean
+): Promise<void> => {
+  const snap = await getDocs(
+    query(
+      collection(db, 'products'),
+      where('fournisseurId', '==', fournisseurId)
+    )
+  );
+  const refs = snap.docs.map((d) => doc(db, 'products', d.id));
+  for (let i = 0; i < refs.length; i += 100) {
+    await Promise.all(
+      refs.slice(i, i + 100).map((ref) => updateDoc(ref, { fournisseurVerified: verified }))
+    );
+  }
+};
 
 export const createProduct = async (productData: Omit<Product, 'id'>): Promise<string> => {
   const fournisseurId = productData.fournisseurId;
@@ -25,8 +120,11 @@ export const createProduct = async (productData: Omit<Product, 'id'>): Promise<s
     throw new Error('Limite de produits atteinte (3 produits pour la version gratuite). Veuillez passer à une licence supérieure.');
   }
 
+  const fournisseurVerified = await getFournisseurVerification(fournisseurId);
+
   const docRef = await addDoc(collection(db, 'products'), {
     ...productData,
+    fournisseurVerified,
     createdAt: new Date(),
     updatedAt: new Date(),
   });
@@ -129,8 +227,10 @@ export const searchProducts = async (
     ...doc.data(),
   })) as Product[];
 
+  const enrichedProducts = await enrichProductsWithFournisseurVerification(products);
+
   return {
-    products,
+    products: enrichedProducts,
     lastDoc: snapshot.docs[snapshot.docs.length - 1],
   };
 };
@@ -159,10 +259,13 @@ export async function createMultiCategoryProduct(
     throw new Error('Quota de produits atteint. Veuillez mettre à niveau votre licence.');
   }
   
+  const fournisseurVerified = await getFournisseurVerification(fournisseurId);
+
   const productsRef = collection(db, 'products');
   const docRef = await addDoc(productsRef, {
     ...productData,
     fournisseurId,
+    fournisseurVerified,
     createdAt: new Date(),
     updatedAt: new Date(),
   });

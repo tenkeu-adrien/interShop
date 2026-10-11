@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { RefreshCw, AlertTriangle, CheckCircle, Clock, TrendingUp, Settings, Save, Key } from 'lucide-react';
+import { CountryFlag } from '@/components/ui/CountryFlag';
 import { useCurrencyStore } from '@/store/currencyStore';
 import { ExchangeRateService } from '@/lib/services/exchangeRateService';
 import { SUPPORTED_CURRENCIES } from '@/lib/constants/currencies';
@@ -247,7 +248,7 @@ function ExchangeRatesContent() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <span className="text-2xl">
-                            {getFlagEmoji(currency.flag)}
+                            <CountryFlag country={currency.flag} width={22} />
                           </span>
                           <span className="text-sm font-medium text-gray-900">
                             {currency.name}
@@ -307,14 +308,6 @@ function ExchangeRatesContent() {
       </div>
     </div>
   );
-}
-
-function getFlagEmoji(countryCode: string): string {
-  const codePoints = countryCode
-    .toUpperCase()
-    .split('')
-    .map(char => 127397 + char.charCodeAt(0));
-  return String.fromCodePoint(...codePoints);
 }
 
 export default function ExchangeRatesPage() {

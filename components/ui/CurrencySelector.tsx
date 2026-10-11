@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Check } from 'lucide-react';
+import { CountryFlag } from '@/components/ui/CountryFlag';
 import { useCurrencyStore } from '@/store/currencyStore';
 import { SUPPORTED_CURRENCIES } from '@/lib/constants/currencies';
 import { SupportedCurrency } from '@/types';
@@ -31,7 +32,9 @@ export function CurrencySelector() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors"
       >
-        <span className="text-2xl">{getFlagEmoji(currentCurrency.flag)}</span>
+        <span className="text-2xl">
+          <CountryFlag country={currentCurrency.flag} width={22} />
+        </span>
         <span className="font-medium">{currentCurrency.code}</span>
         <ChevronDown size={16} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
@@ -57,7 +60,9 @@ export function CurrencySelector() {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">{getFlagEmoji(currency.flag)}</span>
+                    <span className="text-2xl">
+                      <CountryFlag country={currency.flag} width={22} />
+                    </span>
                     <div className="text-left">
                       <div className="font-medium text-gray-900">{currency.code}</div>
                       <div className="text-xs text-gray-500">{currency.name}</div>
@@ -74,12 +79,4 @@ export function CurrencySelector() {
       </AnimatePresence>
     </div>
   );
-}
-
-function getFlagEmoji(countryCode: string): string {
-  const codePoints = countryCode
-    .toUpperCase()
-    .split('')
-    .map(char => 127397 + char.charCodeAt(0));
-  return String.fromCodePoint(...codePoints);
 }

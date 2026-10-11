@@ -164,6 +164,7 @@
         "category": "Category",
         "subcategory": "Subcategory",
         "country_origin": "Country of origin",
+        "verified_seller": "Verified seller",
         "tags": "Tags",
         "view_all": "View all",
         "seen_all_similar": "You've seen all similar products",

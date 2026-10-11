@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { getProduct } from '@/lib/firebase/products';
+import { getProduct, enrichProductsWithFournisseurVerification } from '@/lib/firebase/products';
 import { collection, query, where, orderBy, limit, startAfter, getDocs, getDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { useCartStore } from '@/store/cartStore';
@@ -19,6 +19,7 @@ import {
   MessageCircle,
   ChevronRight,
   Check,
+  BadgeCheck,
   Loader
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -26,6 +27,7 @@ import { PriceDisplay } from '@/components/ui/PriceDisplay';
 import { ProductChatActions } from '@/components/products/ProductChatActions';
 import { ContactButton } from '@/components/products/ContactButton';
 import { BackButton } from '@/components/ui/BackButton';
+import { CountryFlag } from '@/components/ui/CountryFlag';
 import { useTranslations } from 'next-intl';
 
 export default function ProductDetailPage() {
@@ -39,7 +41,7 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedPriceTier, setSelectedPriceTier] = useState(0);
-  const [fournisseur, setFournisseur] = useState<{ name: string; photo?: string } | null>(null);
+  const [fournisseur, setFournisseur] = useState<{ name: string; photo?: string; verified?: boolean } | null>(null);
 
   // Scroll infini pour produits similaires
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
@@ -122,16 +124,25 @@ export default function ProductDetailPage() {
         const fournisseurDoc = await getDoc(doc(db, 'users', productData.fournisseurId));
         if (fournisseurDoc.exists()) {
           const fournisseurData = fournisseurDoc.data();
+          const verified =
+            fournisseurData.isVerified === true ||
+            fournisseurData.approvalStatus === 'approved' ||
+            fournisseurData.adminApproval?.status === 'approved';
           setFournisseur({
             name: fournisseurData.displayName || fournisseurData.shopName || 'Vendeur',
             photo: fournisseurData.photoURL || fournisseurData.shopLogo,
+            verified,
           });
+          if (verified) {
+            setProduct((prev) => (prev ? { ...prev, fournisseurVerified: true } : prev));
+          }
         } else {
           // Fournisseur n'existe pas (données de test), utiliser des valeurs par défaut
           console.warn(`Fournisseur ${productData.fournisseurId} not found, using default values`);
           setFournisseur({
             name: 'Vendeur',
             photo: undefined,
+            verified: productData.fournisseurVerified === true,
           });
         }
       } catch (fournisseurError) {
@@ -140,6 +151,7 @@ export default function ProductDetailPage() {
         setFournisseur({
           name: 'Vendeur',
           photo: undefined,
+          verified: productData.fournisseurVerified === true,
         });
       }
     } catch (error) {
@@ -187,7 +199,9 @@ export default function ProductDetailPage() {
         .map(doc => ({ id: doc.id, ...doc.data() }) as Product)
         .filter(p => p.id !== product.id); // Exclure le produit actuel
 
-      setSimilarProducts(prev => [...prev, ...newProducts]);
+      const enrichedProducts = await enrichProductsWithFournisseurVerification(newProducts);
+
+      setSimilarProducts(prev => [...prev, ...enrichedProducts]);
       setLastDoc(snapshot.docs[snapshot.docs.length - 1]);
       
       if (snapshot.docs.length < 12) {
@@ -369,13 +383,21 @@ export default function ProductDetailPage() {
 
               {/* Price */}
               <div className="border-t border-b py-4 mb-4">
-                <div className="flex items-baseline gap-2 mb-2">
-                  <PriceDisplay 
-                    priceUSD={currentPrice.price}
-                    currency={product.currency}
-                    className="text-4xl font-bold text-green-600"
-                  />
-                  <span className="text-gray-600">{t('products.per_unit')}</span>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-baseline gap-2">
+                    <PriceDisplay 
+                      priceUSD={currentPrice.price}
+                      currency={product.currency}
+                      className="text-4xl font-bold text-green-600"
+                    />
+                    <span className="text-gray-600">{t('products.per_unit')}</span>
+                  </div>
+                  {product.fournisseurVerified && (
+                    <span className="shrink-0 text-sm text-green-700 bg-green-50 border border-green-200 px-3 py-1 rounded-full flex items-center gap-1.5">
+                      <BadgeCheck size={16} className="text-green-600" />
+                      {t('products.verified_seller')}
+                    </span>
+                  )}
                 </div>
                 {product.moq > 1 && (
                   <p className="text-sm text-gray-600">
@@ -569,7 +591,10 @@ export default function ProductDetailPage() {
             )}
             <div>
               <p className="text-sm text-gray-600">{t('products.country_origin')}</p>
-              <p className="font-semibold">{product.country}</p>
+              <p className="font-semibold flex items-center gap-1.5">
+                <CountryFlag country={product.country} width={20} />
+                {product.country}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-600">{t('products.stock')}</p>
@@ -646,15 +671,23 @@ export default function ProductDetailPage() {
                         {similarProduct.rating.toFixed(1)} ({similarProduct.reviewCount})
                       </span>
                     </div>
-                    <div className="flex items-baseline gap-2">
-                      <PriceDisplay 
-                        priceUSD={similarProduct.prices[0].price}
-                        currency={similarProduct.currency}
-                        className="text-lg font-bold text-green-600"
-                      />
-                      <span className="text-xs text-gray-500">
-                        MOQ: {similarProduct.moq}
-                      </span>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-baseline gap-2 min-w-0">
+                        <PriceDisplay 
+                          priceUSD={similarProduct.prices[0].price}
+                          currency={similarProduct.currency}
+                          className="text-lg font-bold text-green-600"
+                        />
+                        <span className="text-xs text-gray-500">
+                          MOQ: {similarProduct.moq}
+                        </span>
+                      </div>
+                      {similarProduct.fournisseurVerified && (
+                        <span className="shrink-0 text-[10px] text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                          <BadgeCheck size={12} className="text-green-600" />
+                          {t('products.verified_seller')}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </Link>

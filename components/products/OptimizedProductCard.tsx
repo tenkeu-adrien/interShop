@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Star, Flame, Award, Tag } from 'lucide-react';
+import { Star, Flame, Award, Tag, BadgeCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Product } from '@/types';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
@@ -109,17 +109,25 @@ export function OptimizedProductCard({ product, index = 0, variant = 'default' }
           </div>
 
           {/* Prix */}
-          <div className="flex flex-col gap-1">
-            <PriceDisplay 
-              priceUSD={product.prices[0].price}
-              currency={product.currency}
-              className={`text-lg font-bold ${
-                variant === 'hot' ? 'text-red-600' : 'text-green-600'
-              }`}
-            />
-            <span className="text-xs text-gray-500">
-              MOQ: {product.moq}
-            </span>
+          <div className="flex items-end justify-between gap-2">
+            <div className="flex flex-col gap-1 min-w-0">
+              <PriceDisplay 
+                priceUSD={product.prices[0].price}
+                currency={product.currency}
+                className={`text-lg font-bold ${
+                  variant === 'hot' ? 'text-red-600' : 'text-green-600'
+                }`}
+              />
+              <span className="text-xs text-gray-500">
+                MOQ: {product.moq}
+              </span>
+            </div>
+            {product.fournisseurVerified && (
+              <span className="shrink-0 text-[10px] text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                <BadgeCheck size={12} className="text-green-600" />
+                Vérifié
+              </span>
+            )}
           </div>
         </div>
       </Link>

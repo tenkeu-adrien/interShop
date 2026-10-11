@@ -3,8 +3,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/types';
-import { Star, ShoppingCart } from 'lucide-react';
+import { Star, ShoppingCart, BadgeCheck } from 'lucide-react';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
+import { CountryFlag } from '@/components/ui/CountryFlag';
 
 interface ProductCardProps {
   product: Product;
@@ -60,12 +61,21 @@ export default function ProductCard({ product }: ProductCardProps) {
               />
               <span className="text-gray-500 text-sm ml-1">/ unité</span>
             </div>
-            <button className="bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 transition-colors">
-              <ShoppingCart size={18} />
-            </button>
+            <div className="flex items-center gap-2">
+              <button className="bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 transition-colors">
+                <ShoppingCart size={18} />
+              </button>
+              {product.fournisseurVerified && (
+                <span className="text-xs text-green-700 bg-green-50 border border-green-200 px-2 py-1 rounded flex items-center gap-1">
+                  <BadgeCheck size={14} className="text-green-600" />
+                  Vérifié
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="mt-2 text-xs text-gray-500">
+            <CountryFlag country={product.country} width={16} className="mr-1" />
             {product.country} • {product.deliveryTime}
           </div>
         </div>

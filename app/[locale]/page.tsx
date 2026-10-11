@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { LayoutGrid, Target, Trophy, Heart, Flame, Award, Loader2, Star } from 'lucide-react';
+import { LayoutGrid, Target, Trophy, Heart, Flame, Award, Loader2, Star, BadgeCheck } from 'lucide-react';
 import {
   collection,
   query,
@@ -16,9 +16,11 @@ import {
   type QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
+import { enrichProductsWithFournisseurVerification } from '@/lib/firebase/products';
 import { Product } from '@/types';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
 import { ProductGridSkeleton } from '@/components/ui/Skeleton';
+import { CountryFlag } from '@/components/ui/CountryFlag';
 import { useTranslations } from 'next-intl';
 
 const PAGE_SIZE = 20;
@@ -81,12 +83,13 @@ export default function HomePage() {
       if (requestId !== requestRef.current) return;
 
       const page = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Product[];
+      const enrichedPage = await enrichProductsWithFournisseurVerification(page);
       lastDocRef.current = snapshot.docs[snapshot.docs.length - 1] ?? lastDocRef.current;
       setHasMore(snapshot.docs.length === PAGE_SIZE);
       setProducts((current) => {
-        if (reset) return page;
+        if (reset) return enrichedPage;
         const known = new Set(current.map((p) => p.id));
-        return [...current, ...page.filter((p) => !known.has(p.id))];
+        return [...current, ...enrichedPage.filter((p) => !known.has(p.id))];
       });
     } catch (error) {
       console.error('Erreur de chargement des produits:', error);
@@ -262,21 +265,35 @@ export default function HomePage() {
                   {product.description && (
                     <p className="text-xs text-gray-500 truncate mt-0.5">{product.description}</p>
                   )}
-                  <div className="flex items-baseline gap-2 mt-1 min-w-0">
-                    {product.prices?.[0] && (
-                      <PriceDisplay
-                        priceUSD={product.prices[0].price}
-                        currency={product.currency}
-                        className="text-base font-bold text-gray-900 whitespace-nowrap"
-                      />
+                  <div className="flex items-center justify-between gap-2 mt-1 min-w-0">
+                    <div className="flex items-baseline gap-2 min-w-0">
+                      {product.prices?.[0] && (
+                        <PriceDisplay
+                          priceUSD={product.prices[0].price}
+                          currency={product.currency}
+                          className="text-base font-bold text-gray-900 whitespace-nowrap"
+                        />
+                      )}
+                      <span className="text-xs text-gray-500 whitespace-nowrap">MOQ: {product.moq}</span>
+                    </div>
+                    {product.fournisseurVerified && (
+                      <span className="shrink-0 text-[10px] text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                        <BadgeCheck size={12} className="text-green-600" />
+                        Vérifié
+                      </span>
                     )}
-                    <span className="text-xs text-gray-500 whitespace-nowrap">MOQ: {product.moq}</span>
                   </div>
                   <div className="flex items-center gap-1 mt-1 text-xs text-gray-500 min-w-0">
                     <Star size={12} className="text-yellow-400 fill-yellow-400 shrink-0" />
-                    <span className="truncate">
+                    <span className="truncate flex items-center gap-1">
                       {Number(product.rating || 0).toFixed(1)}
-                      {product.country ? ` · ${product.country}` : ''}
+                      {product.country && (
+                        <>
+                          <span>·</span>
+                          <CountryFlag country={product.country} width={14} />
+                          {product.country}
+                        </>
+                      )}
                     </span>
                   </div>
                 </div>

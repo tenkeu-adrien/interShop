@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { TrendingUp } from 'lucide-react';
+import { CountryFlag } from '@/components/ui/CountryFlag';
 import { useCurrencyStore } from '@/store/currencyStore';
 import { SUPPORTED_CURRENCIES } from '@/lib/constants/currencies';
 import { SupportedCurrency } from '@/types';
@@ -10,9 +11,6 @@ interface CurrencyConverterProps {
   amount?: number; // montant pré-rempli depuis le formulaire
   baseCurrency: SupportedCurrency; // devise du portefeuille de l'utilisateur
 }
-
-const flagEmoji = (countryCode: string) =>
-  String.fromCodePoint(...countryCode.toUpperCase().split('').map((c) => 127397 + c.charCodeAt(0)));
 
 const formatConverted = (value: number) =>
   value < 0.01
@@ -76,7 +74,9 @@ export default function CurrencyConverter({ amount: initialAmount, baseCurrency 
                   className="bg-gradient-to-r from-yellow-50 to-green-50 border border-green-100 rounded-lg px-3 py-2 hover:border-green-300 transition min-w-0"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-lg shrink-0">{flagEmoji(currency.flag)}</span>
+                    <span className="shrink-0">
+                      <CountryFlag country={currency.flag} width={18} />
+                    </span>
                     <div className="min-w-0">
                       <p className="text-xs font-bold text-gray-700">{currency.code}</p>
                       <p className="text-xs text-gray-500 leading-tight">{currency.name}</p>

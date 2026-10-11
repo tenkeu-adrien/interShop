@@ -146,6 +146,10 @@ export interface Product {
   
   // Devise du produit (héritée de la boutique du fournisseur)
   currency?: 'USD' | 'CDF';
+
+  // Indique si le fournisseur du produit est vérifié (badge "Vérifié").
+  // Champ enrichi à la volée lors du chargement (non stocké en base).
+  fournisseurVerified?: boolean;
   
   // NEW: Service category
   serviceCategory: ProductCategory;
