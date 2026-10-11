@@ -36,6 +36,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const path = pathname.replace(new RegExp(`^/${locale}(?=/|$)`), '') || '/';
   const isBare = matches(path, BARE_ROUTES);
   const isPublic = matches(path, PUBLIC_ROUTES);
+  // L'en-tête n'apparaît que sur la page d'accueil.
+  const showHeader = path === '/';
   // Le pied de page n'apparaît que sur la page de contact.
   const showFooter = matches(path, ['/contact']);
   const mustLogin = !isPublic && !loading && !user;
@@ -65,7 +67,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      {showHeader && <Header />}
       <AccountStatusBanner />
       <main className="flex-1 pb-20 md:pb-0">{children}</main>
       {showFooter && <Footer />}

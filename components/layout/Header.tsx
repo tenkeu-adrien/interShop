@@ -150,16 +150,15 @@ export default function Header() {
         <div className="flex items-center justify-between gap-2 h-16 min-w-0">
           {/* Logo */}
           <Link href="/" className="min-w-0 flex-1 flex justify-center md:flex-none md:justify-start">
-            <span className="relative block w-[135px] md:w-[150px] h-[36px] md:h-[40px]">
-              <Image
-                src="/logo.png"
-                alt="InterAppshop"
-                fill
-                className="object-contain"
-                priority={true}
-                sizes="(max-width: 768px) 135px, 150px"
-              />
-            </span>
+            <Image
+              src="/logo.png"
+              alt="InterAppshop"
+              width={612}
+              height={408}
+              className="object-contain w-auto h-[74px] md:h-[90px]"
+              priority={true}
+              sizes="(max-width: 768px) 111px, 135px"
+            />
           </Link>
 
           {/* Barre de recherche */}
