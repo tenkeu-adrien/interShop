@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useState, useEffect } from 'react';
+import { ClipboardList, Info, AlertTriangle } from 'lucide-react';
 import { useWalletCurrency } from '@/hooks/useWalletCurrency';
 import { useAuthStore } from '@/store/authStore';
 import { useWalletStore } from '@/store/walletStore';
@@ -132,7 +133,9 @@ export default function FlexibleWithdrawalForm({
 
         {/* Instructions */}
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
-          <h3 className="font-semibold text-gray-900 mb-2">📋 Instructions</h3>
+          <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+            <ClipboardList className="w-5 h-5" /> Instructions
+          </h3>
           <p className="text-sm text-gray-700 whitespace-pre-line">
             {paymentMethod.instructions}
           </p>
@@ -141,8 +144,8 @@ export default function FlexibleWithdrawalForm({
         {/* Informations de la méthode */}
         {paymentMethod.accountDetails && (
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-            <h3 className="font-semibold text-orange-900 mb-2">
-              ℹ️ Informations importantes
+            <h3 className="font-semibold text-orange-900 mb-2 flex items-center gap-2">
+              <Info className="w-5 h-5" /> Informations importantes
             </h3>
             <div className="text-sm text-orange-800 space-y-1">
               {paymentMethod.accountDetails.accountNumber && (
@@ -237,8 +240,9 @@ export default function FlexibleWithdrawalForm({
 
           {/* Avertissement */}
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-sm text-yellow-800">
-              ⚠️ Vérifiez bien le nom et le numéro de compte. Une erreur peut entraîner un retard ou une perte du paiement.
+            <p className="text-sm text-yellow-800 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>Vérifiez bien le nom et le numéro de compte. Une erreur peut entraîner un retard ou une perte du paiement.</span>
             </p>
           </div>
 

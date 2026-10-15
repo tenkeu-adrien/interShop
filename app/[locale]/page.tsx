@@ -20,7 +20,7 @@ import { enrichProductsWithFournisseurVerification } from '@/lib/firebase/produc
 import { Product } from '@/types';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
 import { ProductGridSkeleton } from '@/components/ui/Skeleton';
-import { CountryFlag } from '@/components/ui/CountryFlag';
+import ProductOrigin from '@/components/products/ProductOrigin';
 import { useTranslations } from 'next-intl';
 
 const PAGE_SIZE = 20;
@@ -266,16 +266,13 @@ export default function HomePage() {
                     <p className="text-xs text-gray-500 truncate mt-0.5">{product.description}</p>
                   )}
                   <div className="flex items-center justify-between gap-2 mt-1 min-w-0">
-                    <div className="flex items-baseline gap-2 min-w-0">
-                      {product.prices?.[0] && (
-                        <PriceDisplay
-                          priceUSD={product.prices[0].price}
-                          currency={product.currency}
-                          className="text-base font-bold text-gray-900 whitespace-nowrap"
-                        />
-                      )}
-                      <span className="text-xs text-gray-500 whitespace-nowrap">MOQ: {product.moq}</span>
-                    </div>
+                    {product.prices?.[0] && (
+                      <PriceDisplay
+                        priceUSD={product.prices[0].price}
+                        currency={product.currency}
+                        className="text-base font-bold text-gray-900 whitespace-nowrap min-w-0"
+                      />
+                    )}
                     {product.fournisseurVerified && (
                       <span className="shrink-0 text-[10px] text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded flex items-center gap-0.5">
                         <BadgeCheck size={12} className="text-green-600" />
@@ -283,6 +280,7 @@ export default function HomePage() {
                       </span>
                     )}
                   </div>
+                  <span className="block text-xs text-gray-500 mt-0.5 truncate">MOQ: {product.moq}</span>
                   <div className="flex items-center gap-1 mt-1 text-xs text-gray-500 min-w-0">
                     <Star size={12} className="text-yellow-400 fill-yellow-400 shrink-0" />
                     <span className="truncate flex items-center gap-1">
@@ -290,8 +288,7 @@ export default function HomePage() {
                       {product.country && (
                         <>
                           <span>·</span>
-                          <CountryFlag country={product.country} width={14} />
-                          {product.country}
+                          <ProductOrigin country={product.country} city={product.city} width={14} />
                         </>
                       )}
                     </span>

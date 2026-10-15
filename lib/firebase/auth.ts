@@ -18,7 +18,7 @@ import { sendVerificationEmail } from '../services/emailService';
 export interface ShopCreationData {
   shopName?: string;
   shopCategory?: string[];
-  shopCurrency?: 'USD' | 'CDF';
+  shopCurrency?: SupportedCurrency;
   shopLocation?: {
     latitude: number;
     longitude: number;

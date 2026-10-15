@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useCurrencyStore } from '@/store/currencyStore';
+import { SupportedCurrency } from '@/types';
+import { getCurrencyInfo } from '@/lib/constants/currencies';
 
 interface PriceDisplayProps {
   priceUSD: number;
   /** Devise d'origine du produit (boutique). Si fournie, le prix est affiché sans conversion. */
-  currency?: 'USD' | 'CDF';
+  currency?: SupportedCurrency;
   className?: string;
   showOriginal?: boolean; // Show USD price alongside
 }
@@ -21,8 +23,9 @@ export function PriceDisplay({ priceUSD, currency, className = '', showOriginal 
       setLoading(true);
       try {
         // Produit vendu dans sa devise d'origine → affichage direct sans conversion
-        if (currency === 'CDF') {
-          setDisplayPrice(`FC ${Number(priceUSD).toLocaleString('fr-FR')}`);
+        if (currency && currency !== 'USD') {
+          const info = getCurrencyInfo(currency);
+          setDisplayPrice(`${info.symbol} ${Number(priceUSD).toLocaleString('fr-FR')}`);
         } else if (currency === 'USD') {
           setDisplayPrice(`$ ${Number(priceUSD).toFixed(2)}`);
         } else {

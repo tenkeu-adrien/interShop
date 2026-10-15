@@ -10,19 +10,19 @@ import {
   ChevronRight,
   Headset,
   Settings,
-  WalletCards,
-  Package,
-  Ship,
-  Undo2,
-  MessageSquareText,
-  TicketPercent,
-  Receipt,
-  CreditCard,
-  Landmark,
-  MapPin,
-  FileText,
-  MessageCircleQuestion,
-  Sparkles,
+  Clock,
+  Boxes,
+  PackageCheck,
+  RefreshCcw,
+  Star,
+  BadgePercent,
+  ReceiptText,
+  Wallet,
+  Building2,
+  MapPinned,
+  FileBarChart,
+  MessageCircle,
+  Gem,
   type LucideIcon,
 } from 'lucide-react';
 import { db } from '@/lib/firebase/config';
@@ -88,25 +88,25 @@ function ClientDashboardContent() {
   const comingSoon = () => toast(t('coming_soon'));
 
   const orderTiles: Tile[] = [
-    { icon: WalletCards, label: t('orders_pending_payment'), href: '/orders', count: counts.pending },
-    { icon: Package, label: t('orders_pending_shipment'), href: '/orders', count: (counts.paid ?? 0) + (counts.processing ?? 0) },
-    { icon: Ship, label: t('orders_pending_receipt'), href: '/orders', count: counts.shipped },
-    { icon: Undo2, label: t('orders_refunds'), href: '/orders', count: counts.refunded },
-    { icon: MessageSquareText, label: t('orders_pending_review'), href: '/orders', count: counts.delivered },
+    { icon: Clock, label: t('orders_pending_payment'), href: '/orders', count: counts.pending },
+    { icon: Boxes, label: t('orders_pending_shipment'), href: '/orders', count: (counts.paid ?? 0) + (counts.processing ?? 0) },
+    { icon: PackageCheck, label: t('orders_pending_receipt'), href: '/orders', count: counts.shipped },
+    { icon: RefreshCcw, label: t('orders_refunds'), href: '/orders', count: counts.refunded },
+    { icon: Star, label: t('orders_pending_review'), href: '/orders', count: counts.delivered },
   ];
 
   const financeTiles: Tile[] = [
-    { icon: TicketPercent, label: t('coupons_credits') },
-    { icon: Receipt, label: t('invoices_receipts'), href: '/wallet/history' },
-    { icon: CreditCard, label: t('cards_accounts'), href: '/wallet/settings' },
-    { icon: Landmark, label: t('bank_transfer'), href: '/wallet/transfer' },
+    { icon: BadgePercent, label: t('coupons_credits') },
+    { icon: ReceiptText, label: t('invoices_receipts'), href: '/wallet/history' },
+    { icon: Wallet, label: t('cards_accounts'), href: '/wallet/settings' },
+    { icon: Building2, label: t('bank_transfer'), href: '/wallet/transfer' },
   ];
 
   const moreTiles: Tile[] = [
-    { icon: MapPin, label: t('shipping_address') },
-    { icon: FileText, label: t('tax_information') },
-    { icon: MessageCircleQuestion, label: t('inquiries'), href: '/chat' },
-    { icon: Sparkles, label: t('subscription'), href: '/pricing' },
+    { icon: MapPinned, label: t('shipping_address') },
+    { icon: FileBarChart, label: t('tax_information') },
+    { icon: MessageCircle, label: t('inquiries'), href: '/chat' },
+    { icon: Gem, label: t('subscription'), href: '/pricing' },
   ];
 
   return (

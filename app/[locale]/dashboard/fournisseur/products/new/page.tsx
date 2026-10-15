@@ -14,7 +14,8 @@ import {
   validateImageFile,
   validateVideoFile 
 } from '@/lib/firebase/storage';
-import { Product, PriceTier, FournisseurPaymentMethod } from '@/types';
+import { Product, PriceTier, FournisseurPaymentMethod, SupportedCurrency } from '@/types';
+import { SUPPORTED_CURRENCIES } from '@/lib/constants/currencies';
 import {
   Save,
   X,
@@ -68,7 +69,8 @@ function NewProductContent() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'general' | 'media' | 'pricing' | 'inventory' | 'shipping'>('general');
 
-  const shopCurrency = (user?.shopCurrency || 'USD') as 'USD' | 'CDF';
+  const shopCurrency = (user?.shopCurrency || 'USD') as SupportedCurrency;
+  const shopCurrencyInfo = SUPPORTED_CURRENCIES[shopCurrency];
 
   // Charger l'usage du quota et l'abonnement licence au montage
   useEffect(() => {
@@ -552,8 +554,8 @@ function NewProductContent() {
             <div className="flex items-center gap-2 text-sm text-orange-800">
               <ShieldAlert size={18} />
               <span>
-                Devise de votre boutique : <strong>{shopCurrency === 'CDF' ? 'CDF (Franc congolais — FC)' : 'USD (Dollar américain — $)'}</strong>
-                {shopCurrency === 'CDF' && ' — les prix s\'afficheront en FC.'}
+                Devise de votre boutique : <strong>{shopCurrencyInfo.code} ({shopCurrencyInfo.name} — {shopCurrencyInfo.symbol})</strong>
+                {shopCurrency !== 'USD' && ` — les prix s'afficheront en ${shopCurrencyInfo.symbol}.`}
               </span>
             </div>
             <Link
@@ -909,7 +911,7 @@ function NewProductContent() {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Prix unitaire ({shopCurrency === 'CDF' ? 'FC' : 'USD'}) *
+                            Prix unitaire ({shopCurrencyInfo.symbol}) *
                           </label>
                           <input
                             type="number"
@@ -1097,11 +1099,11 @@ function NewProductContent() {
                       <div className="bg-gradient-to-r from-yellow-50 to-green-50 p-4 rounded-lg border border-yellow-200">
                         <p className="text-sm font-medium text-gray-900 mb-2">💡 Exemple de calcul :</p>
                         <div className="text-sm text-gray-700 space-y-1">
-                          <p>• Prix du produit : {priceTiers[0]?.price || 100} {shopCurrency === 'CDF' ? 'FC' : 'USD'}</p>
-                          <p>• Réduction client : -{((priceTiers[0]?.price || 100) * discountPercentage / 100).toFixed(2)} {shopCurrency === 'CDF' ? 'FC' : 'USD'} ({discountPercentage}%)</p>
-                          <p>• Commission marketiste : +{((priceTiers[0]?.price || 100) * marketisteCommissionRate / 100).toFixed(2)} {shopCurrency === 'CDF' ? 'FC' : 'USD'} ({marketisteCommissionRate}%)</p>
+                          <p>• Prix du produit : {priceTiers[0]?.price || 100} {shopCurrencyInfo.symbol}</p>
+                          <p>• Réduction client : -{((priceTiers[0]?.price || 100) * discountPercentage / 100).toFixed(2)} {shopCurrencyInfo.symbol} ({discountPercentage}%)</p>
+                          <p>• Commission marketiste : +{((priceTiers[0]?.price || 100) * marketisteCommissionRate / 100).toFixed(2)} {shopCurrencyInfo.symbol} ({marketisteCommissionRate}%)</p>
                           <p className="font-semibold text-green-700 pt-2 border-t border-yellow-200">
-                            → Client paie : {((priceTiers[0]?.price || 100) * (1 - discountPercentage / 100)).toFixed(2)} {shopCurrency === 'CDF' ? 'FC' : 'USD'}
+                            → Client paie : {((priceTiers[0]?.price || 100) * (1 - discountPercentage / 100)).toFixed(2)} {shopCurrencyInfo.symbol}
                           </p>
                         </div>
                       </div>

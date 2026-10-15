@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, AlertTriangle } from 'lucide-react';
 import { CountryFlag } from '@/components/ui/CountryFlag';
 import { useCurrencyStore } from '@/store/currencyStore';
 import { SUPPORTED_CURRENCIES } from '@/lib/constants/currencies';
@@ -90,8 +90,8 @@ export default function CurrencyConverter({ amount: initialAmount, baseCurrency 
             })}
         </div>
 
-        <p className="mt-3 text-xs text-gray-400 text-center">
-          ⚠️ Taux indicatifs — Pour information uniquement
+        <p className="mt-3 text-xs text-gray-400 flex items-center justify-center gap-1.5">
+          <AlertTriangle className="w-3.5 h-3.5" /> Taux indicatifs — Pour information uniquement
         </p>
       </div>
     </div>

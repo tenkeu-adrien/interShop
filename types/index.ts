@@ -44,7 +44,7 @@ export interface User {
   // Boutique (fournisseur)
   shopName?: string;                    // Nom / label de la boutique
   shopCategory?: string[];             // Catégories de la boutique
-  shopCurrency?: 'USD' | 'CDF';         // Devise de la boutique
+  shopCurrency?: SupportedCurrency;     // Devise de la boutique (selon le pays)
   shopLocation?: {                      // Position de la boutique (= position du créateur)
     latitude: number;
     longitude: number;
@@ -134,6 +134,7 @@ export interface Product {
   prices: PriceTier[];
   stock: number;
   country: string;
+  city?: string;
   deliveryTime: string;
   certifications: string[];
   rating: number;
@@ -145,7 +146,7 @@ export interface Product {
   updatedAt: Date;
   
   // Devise du produit (héritée de la boutique du fournisseur)
-  currency?: 'USD' | 'CDF';
+  currency?: SupportedCurrency;
 
   // Indique si le fournisseur du produit est vérifié (badge "Vérifié").
   // Champ enrichi à la volée lors du chargement (non stocké en base).

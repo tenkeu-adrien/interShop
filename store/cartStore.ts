@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { MarketingCodeValidation } from '@/lib/services/marketingService';
+import { SupportedCurrency } from '@/types';
 
 interface CartItem {
   productId: string;
@@ -10,7 +11,7 @@ interface CartItem {
   quantity: number;
   fournisseurId: string;
   moq: number;
-  currency?: 'USD' | 'CDF';
+  currency?: SupportedCurrency;
 }
 
 interface CartState {

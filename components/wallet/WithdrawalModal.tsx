@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useWalletCurrency } from '@/hooks/useWalletCurrency';
-import { X, Loader2, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { X, Loader2, AlertCircle, CheckCircle, Eye, EyeOff, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { useWalletStore } from '@/store/walletStore';
 import { getActivePaymentMethods } from '@/lib/firebase/paymentMethods';
 import CurrencyConverter from './CurrencyConverter';
@@ -303,16 +303,18 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
               )}
               <button
                 onClick={() => setStep('amount')}
-                className="w-full text-gray-600 hover:text-gray-800"
+                className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-gray-800"
               >
-                ← Retour
+                <ArrowLeft className="w-4 h-4" /> Retour
               </button>
             </>
           ) : (
             /* Step 3: Confirmation */
             <>
               <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-                <p className="font-semibold text-orange-900 mb-2">⚠️ Important</p>
+                <p className="font-semibold text-orange-900 mb-2 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4" /> Important
+                </p>
                 <p className="text-sm text-orange-800">
                   Le montant sera débité immédiatement de votre portefeuille. 
                   Vous recevrez l'argent sur votre compte dans les 24 heures.
@@ -419,9 +421,9 @@ export default function WithdrawalModal({ isOpen, onClose, userId }: WithdrawalM
 
               <button
                 onClick={() => setStep('provider')}
-                className="w-full text-gray-600 hover:text-gray-800"
+                className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-gray-800"
               >
-                ← Retour
+                <ArrowLeft className="w-4 h-4" /> Retour
               </button>
             </>
           )}

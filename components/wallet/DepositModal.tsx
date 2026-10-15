@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useWalletCurrency } from '@/hooks/useWalletCurrency';
-import { X, Loader2, Copy, CheckCircle, AlertCircle } from 'lucide-react';
+import { X, Loader2, Copy, CheckCircle, AlertCircle, ArrowLeft, ClipboardList, AlertTriangle } from 'lucide-react';
 import { useWalletStore } from '@/store/walletStore';
 import { getActivePaymentMethods } from '@/lib/firebase/paymentMethods';
 import CurrencyConverter from './CurrencyConverter';
@@ -256,16 +256,18 @@ export default function DepositModal({ isOpen, onClose, userId }: DepositModalPr
               )}
               <button
                 onClick={() => setStep('amount')}
-                className="w-full text-gray-600 hover:text-gray-800"
+                className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-gray-800"
               >
-                ← Retour
+                <ArrowLeft className="w-4 h-4" /> Retour
               </button>
             </>
           ) : (
             /* Step 3: Instructions */
             <>
               <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-                <p className="font-semibold text-orange-900 mb-2">📋 Instructions</p>
+                <p className="font-semibold text-orange-900 mb-2 flex items-center gap-2">
+                  <ClipboardList className="w-5 h-5" /> Instructions
+                </p>
                 <div 
                   className="text-sm text-orange-800 prose prose-sm"
                   dangerouslySetInnerHTML={{ __html: selectedMethod?.instructions || '' }}
@@ -355,10 +357,13 @@ export default function DepositModal({ isOpen, onClose, userId }: DepositModalPr
 
               {/* Avertissement */}
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                <p className="text-sm text-yellow-800">
-                  ⚠️ <strong>Important:</strong> Effectuez d'abord le paiement selon les instructions ci-dessus, 
-                  puis revenez ici pour confirmer votre dépôt. L'administrateur vérifiera manuellement 
-                  la réception du paiement avant de créditer votre portefeuille.
+                <p className="text-sm text-yellow-800 flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Important:</strong> Effectuez d'abord le paiement selon les instructions ci-dessus, 
+                    puis revenez ici pour confirmer votre dépôt. L'administrateur vérifiera manuellement 
+                    la réception du paiement avant de créditer votre portefeuille.
+                  </span>
                 </p>
               </div>
 
@@ -379,9 +384,9 @@ export default function DepositModal({ isOpen, onClose, userId }: DepositModalPr
 
               <button
                 onClick={() => setStep('provider')}
-                className="w-full text-gray-600 hover:text-gray-800"
+                className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-gray-800"
               >
-                ← Retour
+                <ArrowLeft className="w-4 h-4" /> Retour
               </button>
             </>
           )}

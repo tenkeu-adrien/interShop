@@ -9,6 +9,7 @@ import { db } from '@/lib/firebase/config';
 import { User, Product } from '@/types';
 import { Store, MapPin, Package, Loader, ArrowLeft, Star } from 'lucide-react';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
+import { getCurrencyInfo } from '@/lib/constants/currencies';
 import { useTranslations } from 'next-intl';
 
 export default function BoutiqueDetailPage() {
@@ -127,8 +128,11 @@ export default function BoutiqueDetailPage() {
           <p className="text-sm text-gray-600">
             {t('shop_currency')}
           </p>
-          <span className={`font-bold ${fournisseur.shopCurrency === 'CDF' ? 'text-green-600' : 'text-blue-600'}`}>
-            {fournisseur.shopCurrency === 'CDF' ? 'CDF — Franc congolais (FC)' : 'USD — Dollar américain ($)'}
+          <span className="font-bold text-green-600">
+            {(() => {
+              const info = getCurrencyInfo(fournisseur.shopCurrency);
+              return `${info.code} — ${info.name} (${info.symbol})`;
+            })()}
           </span>
         </div>
 

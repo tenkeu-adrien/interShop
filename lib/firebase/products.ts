@@ -17,20 +17,21 @@ import {
 import { db, auth } from './config';
 import { Product, SearchFilters } from '@/types';
 
-// Un fournisseur est considéré comme vérifié s'il a été approuvé par un admin
-// ou explicitement marqué comme vérifié.
+// Un fournisseur est considéré comme vérifié uniquement s'il a été approuvé
+// par un administrateur. Tant qu'il ne l'est pas, aucun badge n'est affiché.
 const isFournisseurVerifiedData = (data: any): boolean =>
-  data?.isVerified === true ||
   data?.approvalStatus === 'approved' ||
   data?.adminApproval?.status === 'approved';
 
 /**
- * Enrichit une liste de produits avec le statut de vérification de leur
- * fournisseur (`fournisseurVerified`).
+ * Enrichit une liste de produits avec des informations issues de leur
+ * fournisseur : le statut de vérification (`fournisseurVerified`) ainsi que le
+ * pays et la ville de la boutique, qui servent à afficher l'origine du produit.
  *
- * Les produits créés ou approuvés récemment portent déjà ce champ (lecture
- * publique). Cette fonction sert de repli pour les anciens produits qui n'en
- * ont pas : elle consulte la collection `users`, réservée aux utilisateurs
+ * L'origine affichée doit être celle du FOURNISSEUR : le pays et la ville lus
+ * depuis `shopLocation` écrasent les valeurs stockées sur le produit.
+ *
+ * Cette fonction consulte la collection `users`, réservée aux utilisateurs
  * authentifiés, et échoue silencieusement pour les visiteurs anonymes.
  */
 export const enrichProductsWithFournisseurVerification = async (
@@ -39,32 +40,51 @@ export const enrichProductsWithFournisseurVerification = async (
   try {
     if (!auth || !auth.currentUser || products.length === 0) return products;
 
-    const missing = products.filter(
-      (p) => p.fournisseurVerified === undefined && p.fournisseurId
-    );
-    if (missing.length === 0) return products;
-
     const ids = Array.from(
-      new Set(missing.map((p) => p.fournisseurId).filter(Boolean))
+      new Set(products.map((p) => p.fournisseurId).filter(Boolean))
     );
     if (ids.length === 0) return products;
 
-    const verified = new Set<string>();
+    const supplierById = new Map<
+      string,
+      { verified: boolean; country?: string; city?: string }
+    >();
     for (let i = 0; i < ids.length; i += 30) {
       const chunk = ids.slice(i, i + 30);
       const snap = await getDocs(
         query(collection(db, 'users'), where(documentId(), 'in', chunk))
       );
       snap.forEach((d) => {
-        if (isFournisseurVerifiedData(d.data())) verified.add(d.id);
+        const data = d.data();
+        const loc = data?.shopLocation;
+        supplierById.set(d.id, {
+          verified: isFournisseurVerifiedData(data),
+          country:
+            typeof loc?.country === 'string' && loc.country.trim()
+              ? loc.country.trim()
+              : undefined,
+          city:
+            typeof loc?.city === 'string' && loc.city.trim()
+              ? loc.city.trim()
+              : undefined,
+        });
       });
     }
 
-    return products.map((p) =>
-      p.fournisseurVerified === undefined
-        ? { ...p, fournisseurVerified: verified.has(p.fournisseurId) }
-        : p
-    );
+    return products.map((p) => {
+      const supplier = supplierById.get(p.fournisseurId);
+      if (!supplier) {
+        return p.fournisseurVerified === undefined
+          ? { ...p, fournisseurVerified: false }
+          : p;
+      }
+      const next = { ...p };
+      next.fournisseurVerified = supplier.verified;
+      // L'origine affichée doit être celle du fournisseur.
+      if (supplier.country) next.country = supplier.country;
+      if (supplier.city) next.city = supplier.city;
+      return next;
+    });
   } catch (error) {
     console.warn('Vérification fournisseur indisponible:', error);
     return products;

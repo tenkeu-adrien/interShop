@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Product } from '@/types';
 import { Star, ShoppingCart, BadgeCheck } from 'lucide-react';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
-import { CountryFlag } from '@/components/ui/CountryFlag';
+import ProductOrigin from '@/components/products/ProductOrigin';
 
 interface ProductCardProps {
   product: Product;
@@ -74,9 +74,9 @@ export default function ProductCard({ product }: ProductCardProps) {
             </div>
           </div>
 
-          <div className="mt-2 text-xs text-gray-500">
-            <CountryFlag country={product.country} width={16} className="mr-1" />
-            {product.country} • {product.deliveryTime}
+          <div className="mt-2 text-xs text-gray-500 flex items-center gap-1 min-w-0">
+            <ProductOrigin country={product.country} city={product.city} width={16} className="truncate" />
+            {product.deliveryTime && <span className="shrink-0">• {product.deliveryTime}</span>}
           </div>
         </div>
       </div>

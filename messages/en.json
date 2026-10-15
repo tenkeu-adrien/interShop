@@ -672,6 +672,7 @@
         "shop_category_label": "Shop categories *",
         "shop_category_placeholder": "Select one or more categories",
         "shop_currency_label": "Shop currency *",
+        "shop_currency_auto": "The currency is chosen based on the country of your phone number.",
         "currency_usd_name": "US Dollar",
         "currency_cdf_name": "Congolese Franc",
         "cdf_note": "Your product prices will be displayed in Congolese Francs (FC).",

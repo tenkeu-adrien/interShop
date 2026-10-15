@@ -1,6 +1,16 @@
 'use client';
 
 import { useEffect } from 'react';
+import {
+  Smartphone,
+  CreditCard,
+  Bitcoin,
+  Landmark,
+  Wallet,
+  CheckCircle2,
+  Frown,
+  type LucideIcon,
+} from 'lucide-react';
 import { usePaymentMethodsStore } from '@/store/paymentMethodsStore';
 import type { PaymentMethod } from '@/types';
 
@@ -11,20 +21,25 @@ interface PaymentMethodSelectorProps {
 }
 
 // Icônes par type de méthode
-const getMethodIcon = (type: string) => {
+const getMethodIcon = (type: string): LucideIcon => {
   switch (type) {
     case 'mobile_money':
-      return '📱';
+      return Smartphone;
     case 'mpesa':
-      return '💳';
+      return CreditCard;
     case 'crypto':
-      return '₿';
+      return Bitcoin;
     case 'bank_transfer':
-      return '🏦';
+      return Landmark;
     default:
-      return '💰';
+      return Wallet;
   }
 };
+
+function MethodIcon({ type, className }: { type: string; className?: string }) {
+  const Icon = getMethodIcon(type);
+  return <Icon className={className} />;
+}
 
 // Couleur par type
 const getMethodColor = (type: string) => {
@@ -72,8 +87,8 @@ export default function PaymentMethodSelector({
   if (paymentMethods.length === 0) {
     return (
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-        <p className="text-yellow-800 mb-2">
-          😕 Aucune méthode de paiement disponible pour le moment
+        <p className="text-yellow-800 mb-2 flex items-center justify-center gap-2">
+          <Frown className="w-5 h-5" /> Aucune méthode de paiement disponible pour le moment
         </p>
         <p className="text-sm text-yellow-700">
           Veuillez réessayer plus tard ou contacter le support.
@@ -113,7 +128,7 @@ export default function PaymentMethodSelector({
       {Object.entries(groupedMethods).map(([methodType, methodsList]) => (
         <div key={methodType}>
           <h3 className="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <span className="text-2xl">{getMethodIcon(methodType)}</span>
+            <MethodIcon type={methodType} className="w-6 h-6" />
             {typeLabels[methodType] || methodType}
           </h3>
           
@@ -138,8 +153,8 @@ export default function PaymentMethodSelector({
                       className="w-12 h-12 object-contain rounded"
                     />
                   ) : (
-                    <div className="w-12 h-12 flex items-center justify-center text-3xl">
-                      {getMethodIcon(method.type)}
+                    <div className="w-12 h-12 flex items-center justify-center text-gray-500">
+                      <MethodIcon type={method.type} className="w-7 h-7" />
                     </div>
                   )}
                   
@@ -154,9 +169,7 @@ export default function PaymentMethodSelector({
                   
                   {selectedMethodId === method.id && (
                     <div className="text-orange-500">
-                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
+                      <CheckCircle2 className="w-6 h-6" />
                     </div>
                   )}
                 </div>

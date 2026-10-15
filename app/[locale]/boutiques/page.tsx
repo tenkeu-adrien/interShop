@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { User, Product } from '@/types';
+import { getCurrencyInfo } from '@/lib/constants/currencies';
 import { Store, MapPin, Package, Loader, ArrowLeft, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -180,7 +181,7 @@ export default function BoutiquesPage() {
                       </p>
                       <div className="flex flex-wrap gap-2 mt-2">
                         <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
-                          {fournisseur.shopCurrency === 'CDF' ? 'CDF (FC)' : 'USD ($)'}
+                          {getCurrencyInfo(fournisseur.shopCurrency).code} ({getCurrencyInfo(fournisseur.shopCurrency).symbol})
                         </span>
                         {(fournisseur.shopLocation?.city || fournisseur.shopLocation?.country) && (
                           <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full flex items-center gap-1">

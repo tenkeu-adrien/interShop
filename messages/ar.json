@@ -672,6 +672,7 @@
         "shop_category_label": "فئات المتجر *",
         "shop_category_placeholder": "اختر فئة واحدة أو أكثر",
         "shop_currency_label": "عملة المتجر *",
+        "shop_currency_auto": "يتم اختيار العملة حسب بلد رقم هاتفك.",
         "currency_usd_name": "الدولار الأمريكي",
         "currency_cdf_name": "الفرنك الكونغولي",
         "cdf_note": "ستُعرض أسعار منتجاتك بالفرنك الكونغولي (FC).",

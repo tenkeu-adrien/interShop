@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useState, useEffect } from 'react';
+import { ClipboardList, AlertTriangle } from 'lucide-react';
 import { useWalletCurrency } from '@/hooks/useWalletCurrency';
 import { useAuthStore } from '@/store/authStore';
 import type { PaymentMethod, FlexibleDepositData } from '@/types';
@@ -73,8 +74,8 @@ export default function FlexibleDepositForm({
       
       {/* Instructions de paiement */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <h3 className="font-semibold text-blue-900 mb-2">
-          📋 Instructions de paiement
+        <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+          <ClipboardList className="w-5 h-5" /> Instructions de paiement
         </h3>
         <div 
           className="text-sm text-blue-800 prose prose-sm"
@@ -173,10 +174,13 @@ export default function FlexibleDepositForm({
         
         {/* Avertissement */}
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-sm text-yellow-800">
-            ⚠️ <strong>Important:</strong> Effectuez d'abord le paiement selon les instructions ci-dessus, 
-            puis revenez ici pour confirmer votre dépôt. L'administrateur vérifiera manuellement 
-            la réception du paiement avant de créditer votre portefeuille.
+          <p className="text-sm text-yellow-800 flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>
+              <strong>Important:</strong> Effectuez d'abord le paiement selon les instructions ci-dessus, 
+              puis revenez ici pour confirmer votre dépôt. L'administrateur vérifiera manuellement 
+              la réception du paiement avant de créditer votre portefeuille.
+            </span>
           </p>
         </div>
         

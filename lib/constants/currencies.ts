@@ -123,3 +123,7 @@ export const SUPPORTED_CURRENCIES: Record<SupportedCurrency, CurrencyInfo> = {
 };
 
 export const BASE_CURRENCY: SupportedCurrency = 'USD';
+
+/** Renvoie les infos d'une devise, avec repli sur USD si le code est inconnu/absent. */
+export const getCurrencyInfo = (code?: string | null): CurrencyInfo =>
+  (code && SUPPORTED_CURRENCIES[code as SupportedCurrency]) || SUPPORTED_CURRENCIES.USD;

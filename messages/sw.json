@@ -672,6 +672,7 @@
         "shop_category_label": "Kategoria za duka *",
         "shop_category_placeholder": "Chagua kategoria moja au zaidi",
         "shop_currency_label": "Sarafu ya duka *",
+        "shop_currency_auto": "Sarafu huchaguliwa kulingana na nchi ya namba yako ya simu.",
         "currency_usd_name": "Dola ya Marekani",
         "currency_cdf_name": "Faranga ya Kongo",
         "cdf_note": "Bei za bidhaa zako zitaonyeshwa kwa Faranga za Kongo (FC).",

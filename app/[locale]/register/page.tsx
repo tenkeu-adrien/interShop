@@ -6,14 +6,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { registerUser } from '@/lib/firebase/auth';
 import { useAuthStore } from '@/store/authStore';
-import { UserRole } from '@/types';
+import { UserRole, SupportedCurrency } from '@/types';
 import { SHOP_CATEGORIES } from '@/lib/constants';
+import { SUPPORTED_CURRENCIES } from '@/lib/constants/currencies';
 import { useGeolocationStore } from '@/store/geolocationStore';
 import { MapPin, Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTranslations } from 'next-intl';
 import PasswordInput from '@/components/ui/PasswordInput';
-import { PHONE_COUNTRIES, getPhoneCountry, sanitizePhoneNumber, isValidPhoneNumber } from '@/lib/data/phoneCountries';
+import { PHONE_COUNTRIES, getPhoneCountry, getCountryCurrency, sanitizePhoneNumber, isValidPhoneNumber } from '@/lib/data/phoneCountries';
 
 export default function RegisterPage() {
   const t = useTranslations('register');
@@ -32,7 +33,7 @@ export default function RegisterPage() {
   const [shopData, setShopData] = useState({
     shopName: '',
     shopCategory: [] as string[],
-    shopCurrency: 'USD' as 'USD' | 'CDF',
+    shopCurrency: getCountryCurrency('+243') as SupportedCurrency,
     city: '',
     country: '',
   });
@@ -40,6 +41,12 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
 
   const phoneCountry = getPhoneCountry(formData.countryCode);
+
+  // La devise de la boutique dépend du pays (indicatif) du fournisseur.
+  const countryCurrency = getCountryCurrency(formData.countryCode);
+  const currencyOptions = Array.from(
+    new Set<SupportedCurrency>([countryCurrency, 'USD'])
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -230,13 +237,15 @@ export default function RegisterPage() {
               <div className="flex gap-2">
                 <select
                   value={formData.countryCode}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setFormData({
                       ...formData,
                       countryCode: e.target.value,
                       phoneNumber: sanitizePhoneNumber(formData.phoneNumber, e.target.value),
-                    })
-                  }
+                    });
+                    // Adapter la devise de la boutique au pays du fournisseur.
+                    setShopData((s) => ({ ...s, shopCurrency: getCountryCurrency(e.target.value) }));
+                  }}
                   className="w-28 shrink-0 px-1 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                 >
                   {PHONE_COUNTRIES.map((country) => (
@@ -338,36 +347,40 @@ export default function RegisterPage() {
                     {t('shop_currency_label')}
                   </label>
                   <div className="grid grid-cols-2 gap-2">
-                    {(['USD', 'CDF'] as const).map((currency) => (
-                      <label
-                        key={currency}
-                        className={`flex items-center gap-2 border-2 rounded-lg px-3 py-2 cursor-pointer transition-colors ${
-                          shopData.shopCurrency === currency
-                            ? 'border-orange-500 bg-orange-50'
-                            : 'border-gray-200 hover:border-orange-300'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="shopCurrency"
-                          value={currency}
-                          checked={shopData.shopCurrency === currency}
-                          onChange={() => setShopData({ ...shopData, shopCurrency: currency })}
-                          className="accent-orange-500"
-                        />
-                        <div>
-                          <p className="font-semibold text-gray-800 text-sm">
-                            {currency === 'USD' ? 'USD ($)' : 'CDF (FC)'}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {currency === 'USD' ? t('currency_usd_name') : t('currency_cdf_name')}
-                          </p>
-                        </div>
-                      </label>
-                    ))}
+                    {currencyOptions.map((currency) => {
+                      const info = SUPPORTED_CURRENCIES[currency];
+                      return (
+                        <label
+                          key={currency}
+                          className={`flex items-center gap-2 border-2 rounded-lg px-3 py-2 cursor-pointer transition-colors ${
+                            shopData.shopCurrency === currency
+                              ? 'border-orange-500 bg-orange-50'
+                              : 'border-gray-200 hover:border-orange-300'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="shopCurrency"
+                            value={currency}
+                            checked={shopData.shopCurrency === currency}
+                            onChange={() => setShopData({ ...shopData, shopCurrency: currency })}
+                            className="accent-orange-500"
+                          />
+                          <div>
+                            <p className="font-semibold text-gray-800 text-sm">
+                              {currency} ({info.symbol})
+                            </p>
+                            <p className="text-xs text-gray-500">{info.name}</p>
+                          </div>
+                        </label>
+                      );
+                    })}
                   </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    {t('shop_currency_auto')}
+                  </p>
                   {shopData.shopCurrency === 'CDF' && (
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-gray-500 mt-1">
                       {t('cdf_note')}
                     </p>
                   )}

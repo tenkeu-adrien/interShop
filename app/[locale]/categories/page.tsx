@@ -1,13 +1,17 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { 
-  Smartphone, 
-  Shirt, 
-  Home, 
-  Dumbbell, 
-  Sparkles, 
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase/config';
+import { Product } from '@/types';
+import {
+  Smartphone,
+  Shirt,
+  Home,
+  Dumbbell,
+  Sparkles,
   Baby,
   Car,
   Book,
@@ -41,23 +45,32 @@ const getCategoryIcon = (name: string) => {
   return icons[name] || Smartphone;
 };
 
+// `match` est la valeur réellement stockée dans `product.category`.
+// Les liens utilisent cette même valeur (espaces -> tirets) pour que la
+// page /categories/[category] retrouve exactement les mêmes produits.
 const categoryKeys = [
-  { key: 'electronics', count: 15420, color: 'bg-blue-500' },
-  { key: 'fashion', count: 23150, color: 'bg-pink-500' },
-  { key: 'phones_accessories', count: 18750, color: 'bg-indigo-500' },
-  { key: 'home_appliances', count: 9320, color: 'bg-cyan-500' },
-  { key: 'construction_materials', count: 7640, color: 'bg-amber-700' },
-  { key: 'home_garden', count: 18900, color: 'bg-green-500' },
-  { key: 'sport_leisure', count: 12340, color: 'bg-red-500' },
-  { key: 'beauty_health', count: 9870, color: 'bg-purple-500' },
-  { key: 'toys_baby', count: 11200, color: 'bg-yellow-500' },
-  { key: 'automotive', count: 8650, color: 'bg-gray-700' },
-  { key: 'books_media', count: 7430, color: 'bg-indigo-400' },
-  { key: 'food', count: 6890, color: 'bg-orange-500' },
-  { key: 'office_supplies', count: 5670, color: 'bg-teal-500' },
-  { key: 'computers', count: 14230, color: 'bg-sky-500' },
-  { key: 'watches_jewelry', count: 4560, color: 'bg-amber-500' },
+  { key: 'electronics', match: 'Électronique', color: 'bg-blue-500' },
+  { key: 'fashion', match: 'Mode', color: 'bg-pink-500' },
+  { key: 'phones_accessories', match: 'Téléphones & Accessoires', color: 'bg-indigo-500' },
+  { key: 'home_appliances', match: 'Électroménager', color: 'bg-cyan-500' },
+  { key: 'construction_materials', match: 'Matériaux de Construction', color: 'bg-amber-700' },
+  { key: 'home_garden', match: 'Maison & Jardin', color: 'bg-green-500' },
+  { key: 'sport_leisure', match: 'Sport & Loisirs', color: 'bg-red-500' },
+  { key: 'beauty_health', match: 'Beauté & Santé', color: 'bg-purple-500' },
+  { key: 'toys_baby', match: 'Jouets & Bébé', color: 'bg-yellow-500' },
+  { key: 'automotive', match: 'Automobile', color: 'bg-gray-700' },
+  { key: 'books_media', match: 'Livres & Médias', color: 'bg-indigo-400' },
+  { key: 'food', match: 'Alimentation', color: 'bg-orange-500' },
+  { key: 'office_supplies', match: 'Fournitures Bureau', color: 'bg-teal-500' },
 ];
+
+const normalize = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
+const categorySlug = (label: string) => label.replace(/\s+/g, '-');
 
 const container = {
   hidden: { opacity: 0 },
@@ -76,7 +89,43 @@ const item = {
 
 export default function CategoriesPage() {
   const t = useTranslations();
-  
+  const [counts, setCounts] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      setLoading(true);
+      try {
+        const q = query(collection(db, 'products'), where('isActive', '==', true));
+        const snapshot = await getDocs(q);
+        const products = snapshot.docs.map((d) => ({ ...d.data() })) as Product[];
+
+        const next: Record<string, number> = {};
+        for (const category of categoryKeys) {
+          const match = normalize(category.match);
+          let count = 0;
+          for (const p of products) {
+            const productCategory = normalize(p.category || '');
+            if (productCategory === match || productCategory.includes(match) || match.includes(productCategory)) {
+              count++;
+            }
+          }
+          next[category.key] = count;
+        }
+        if (!cancelled) setCounts(next);
+      } catch (error) {
+        console.error('Erreur chargement des catégories:', error);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-12">
@@ -109,13 +158,15 @@ export default function CategoriesPage() {
                 whileTap={{ scale: 0.95 }}
               >
                 <Link
-                  href={`/categories/${category.key.replace(/_/g, '-')}`}
+                  href={`/categories/${categorySlug(category.match)}`}
                   className="block bg-white rounded-xl shadow-lg hover:shadow-2xl transition-shadow overflow-hidden"
                 >
                   <div className={`${category.color} p-6 text-white`}>
                     <Icon size={48} className="mb-4" />
                     <h2 className="text-2xl font-bold mb-2">{t(`categories.${category.key}`)}</h2>
-                    <p className="text-white/90">{category.count.toLocaleString()} {t('categories.products')}</p>
+                    <p className="text-white/90">
+                      {loading ? '…' : `${(counts[category.key] ?? 0).toLocaleString()} ${t('categories.products')}`}
+                    </p>
                   </div>
                   <div className="p-4 bg-gradient-to-r from-gray-50 to-white">
                     <span className="text-orange-600 font-semibold flex items-center gap-2">
