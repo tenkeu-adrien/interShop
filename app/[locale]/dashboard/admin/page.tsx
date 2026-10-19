@@ -30,6 +30,7 @@ import { Product, Order, User as UserType } from '@/types';
 import { toDate } from '@/lib/utils/date';
 import Link from 'next/link';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
+import MyOrdersSection from '@/components/dashboard/MyOrdersSection';
 
 interface DashboardStats {
   totalUsers: number;
@@ -252,6 +253,11 @@ export default function AdminDashboardPage() {
               </Link>
             </motion.div>
           ))}
+        </div>
+
+        {/* Mes commandes */}
+        <div className="mb-8">
+          <MyOrdersSection />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">

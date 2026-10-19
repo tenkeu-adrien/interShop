@@ -30,7 +30,7 @@ export default function LoginPage() {
       const user = await loginUser(email, password);
       setUser(user);
       toast.success(tAuth('login_success'));
-      router.push('/dashboard');
+      router.push('/');
     } catch (error: any) {
       toast.error(tErrors(getAuthErrorKey(error)));
     } finally {
@@ -44,7 +44,7 @@ export default function LoginPage() {
       const user = await loginWithGoogle();
       setUser(user);
       toast.success(tAuth('login_success'));
-      router.push('/dashboard');
+      router.push('/');
     } catch (error: any) {
       toast.error(tErrors(getAuthErrorKey(error)));
     } finally {
@@ -58,7 +58,7 @@ export default function LoginPage() {
       const user = await loginWithFacebook();
       setUser(user);
       toast.success(tAuth('login_success'));
-      router.push('/dashboard');
+      router.push('/');
     } catch (error: any) {
       toast.error(tErrors(getAuthErrorKey(error)));
     } finally {

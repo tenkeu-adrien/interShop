@@ -1,20 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
-import { collection, getDocs, query, where } from 'firebase/firestore';
 import {
   ChevronDown,
   ChevronRight,
   Headset,
   Settings,
-  Clock,
-  Boxes,
-  PackageCheck,
-  RefreshCcw,
-  Star,
   BadgePercent,
   ReceiptText,
   Wallet,
@@ -23,77 +16,19 @@ import {
   FileBarChart,
   MessageCircle,
   Gem,
-  type LucideIcon,
 } from 'lucide-react';
-import { db } from '@/lib/firebase/config';
 import { useAuthStore } from '@/store/authStore';
-import { OrderStatus } from '@/types';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import WalletCard from '@/components/wallet/WalletCard';
-
-type Tile = { icon: LucideIcon; label: string; href?: string; count?: number };
-
-function TileGrid({ tiles, columns, onComingSoon }: { tiles: Tile[]; columns: string; onComingSoon: () => void }) {
-  return (
-    <div className={`grid ${columns} gap-1`}>
-      {tiles.map(({ icon: Icon, label, href, count }) => {
-        const content = (
-          <>
-            <span className="relative">
-              <Icon size={26} strokeWidth={1.6} className="text-gray-900" />
-              {count ? (
-                <span className="absolute -top-2 -right-3 bg-red-600 text-white text-[11px] font-bold rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">
-                  {count > 99 ? '99+' : count}
-                </span>
-              ) : null}
-            </span>
-            <span className="text-[10px] sm:text-xs text-gray-700 text-center leading-tight w-full max-w-full [overflow-wrap:anywhere]">{label}</span>
-          </>
-        );
-        const className = 'flex flex-col items-center gap-2 py-2 px-0.5 rounded-lg hover:bg-gray-50 transition-colors min-w-0';
-        return href ? (
-          <Link key={label} href={href} className={className}>
-            {content}
-          </Link>
-        ) : (
-          <button key={label} type="button" onClick={onComingSoon} className={className}>
-            {content}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
+import TileGrid, { type Tile } from '@/components/dashboard/TileGrid';
+import MyOrdersSection from '@/components/dashboard/MyOrdersSection';
 
 function ClientDashboardContent() {
   const user = useAuthStore((s) => s.user);
   const t = useTranslations('client');
   const tCommon = useTranslations('common');
-  const [counts, setCounts] = useState<Partial<Record<OrderStatus, number>>>({});
-
-  useEffect(() => {
-    if (!user) return;
-    getDocs(query(collection(db, 'orders'), where('clientId', '==', user.id)))
-      .then((snapshot) => {
-        const next: Partial<Record<OrderStatus, number>> = {};
-        snapshot.docs.forEach((doc) => {
-          const status = doc.data().status as OrderStatus;
-          next[status] = (next[status] ?? 0) + 1;
-        });
-        setCounts(next);
-      })
-      .catch((error) => console.error('Erreur de chargement des commandes:', error));
-  }, [user?.id]);
 
   const comingSoon = () => toast(t('coming_soon'));
-
-  const orderTiles: Tile[] = [
-    { icon: Clock, label: t('orders_pending_payment'), href: '/orders', count: counts.pending },
-    { icon: Boxes, label: t('orders_pending_shipment'), href: '/orders', count: (counts.paid ?? 0) + (counts.processing ?? 0) },
-    { icon: PackageCheck, label: t('orders_pending_receipt'), href: '/orders', count: counts.shipped },
-    { icon: RefreshCcw, label: t('orders_refunds'), href: '/orders', count: counts.refunded },
-    { icon: Star, label: t('orders_pending_review'), href: '/orders', count: counts.delivered },
-  ];
 
   const financeTiles: Tile[] = [
     { icon: BadgePercent, label: t('coupons_credits') },
@@ -134,15 +69,7 @@ function ClientDashboardContent() {
         </div>
 
         {/* Mes commandes */}
-        <section className="bg-white rounded-2xl p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">{t('my_orders')}</h2>
-            <Link href="/orders" className="flex items-center gap-1 text-sm text-gray-600">
-              {tCommon('view_all')} <ChevronRight size={18} className="rtl:rotate-180" />
-            </Link>
-          </div>
-          <TileGrid tiles={orderTiles} columns="grid-cols-5" onComingSoon={comingSoon} />
-        </section>
+        <MyOrdersSection />
 
         {/* Paiement & Financement */}
         <section className="bg-white rounded-2xl p-4">

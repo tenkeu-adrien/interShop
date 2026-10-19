@@ -34,6 +34,7 @@ import { toDate } from '@/lib/utils/date';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { PriceDisplay } from '@/components/ui/PriceDisplay';
+import MyOrdersSection from '@/components/dashboard/MyOrdersSection';
 
 export default function MarketisteDashboardPage() {
   const router = useRouter();
@@ -341,6 +342,11 @@ export default function MarketisteDashboardPage() {
               </motion.div>
             ))}
           </div>
+        </div>
+
+        {/* Mes commandes */}
+        <div className="mb-8">
+          <MyOrdersSection />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">

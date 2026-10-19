@@ -7,6 +7,7 @@ import { Package, DollarSign, ShoppingBag, TrendingUp, Plus, UtensilsCrossed, Ho
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { AccountTabs } from '@/components/account/AccountTabs';
+import MyOrdersSection from '@/components/dashboard/MyOrdersSection';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
 import { Product, Order } from '@/types';
@@ -126,6 +127,11 @@ function FournisseurDashboardContent() {
           <p className="text-3xl font-bold">+12%</p>
           <p className="text-sm text-gray-500 mt-2">vs {tFournisseur('this_month')}</p>
         </div>
+      </div>
+
+      {/* Mes commandes */}
+      <div className="mb-8">
+        <MyOrdersSection />
       </div>
 
       {/* Quick Actions */}
