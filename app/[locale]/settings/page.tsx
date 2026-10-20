@@ -33,8 +33,8 @@ import { useCurrencyStore } from '@/store/currencyStore';
 import { SUPPORTED_CURRENCIES } from '@/lib/constants/currencies';
 import { NotificationPreferences } from '@/types';
 
-const ACCENT = 'text-[#f97316]';
-const ACCENT_BG = 'bg-[#f97316]';
+const ACCENT = 'text-green-600';
+const ACCENT_BG = 'bg-green-600';
 
 const LANGUAGES = [
   { code: 'fr', label: 'Français' },
