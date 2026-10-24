@@ -161,23 +161,6 @@ export default function HomePage() {
       <div className="container mx-auto px-2 sm:px-4">
         {/* Hero Slider - Remplace les sections statiques */}
         <HeroSlider />
-
-        {/* Filtres de produits */}
-                    sizes="(max-width: 768px) 33vw, 20vw"
-                  />
-                  {product.prices?.[0] && (
-                    <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 bg-white/95 rounded-full px-2 py-0.5 text-xs font-bold text-gray-900 whitespace-nowrap max-w-[92%] overflow-hidden">
-                      <PriceDisplay priceUSD={product.prices[0].price} currency={product.currency} />
-                    </span>
-                  )}
-                </div>
-                <p className="mt-2 text-xs sm:text-sm font-semibold text-gray-900 text-center line-clamp-2">
-                  {tHome('explore_category', { category: product.category })}
-                </p>
-              </Link>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Filtres */}
