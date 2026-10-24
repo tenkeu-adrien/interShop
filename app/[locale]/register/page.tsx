@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { registerUser } from '@/lib/firebase/auth';
@@ -19,6 +20,8 @@ import { PHONE_COUNTRIES, getPhoneCountry, getCountryCurrency, sanitizePhoneNumb
 export default function RegisterPage() {
   const t = useTranslations('register');
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
   const { setUser } = useAuthStore();
   const { requestLocation, userLocation, loading: locLoading } = useGeolocationStore();
   const [formData, setFormData] = useState({
@@ -129,8 +132,8 @@ export default function RegisterPage() {
       setUser(user);
       toast.success(t('success'));
       
-      // Rediriger vers la page de vérification email
-      router.push('/verify-email');
+      // Rediriger vers la page de vérification email avec locale
+      router.push(`/${locale}/verify-email`);
     } catch (error: any) {
       console.error('Erreur d\'inscription:', error);
       

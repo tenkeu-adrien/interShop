@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { loginUser, loginWithGoogle, loginWithFacebook, getAuthErrorKey } from '@/lib/firebase/auth';
@@ -12,6 +13,8 @@ import { Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
   const { setUser } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,7 +33,8 @@ export default function LoginPage() {
       const user = await loginUser(email, password);
       setUser(user);
       toast.success(tAuth('login_success'));
-      router.push('/');
+      // Rediriger vers la page d'accueil avec la locale
+      router.push(`/${locale}`);
     } catch (error: any) {
       toast.error(tErrors(getAuthErrorKey(error)));
     } finally {
@@ -44,7 +48,8 @@ export default function LoginPage() {
       const user = await loginWithGoogle();
       setUser(user);
       toast.success(tAuth('login_success'));
-      router.push('/');
+      // Rediriger vers la page d'accueil avec la locale
+      router.push(`/${locale}`);
     } catch (error: any) {
       toast.error(tErrors(getAuthErrorKey(error)));
     } finally {
@@ -58,7 +63,8 @@ export default function LoginPage() {
       const user = await loginWithFacebook();
       setUser(user);
       toast.success(tAuth('login_success'));
-      router.push('/');
+      // Rediriger vers la page d'accueil avec la locale
+      router.push(`/${locale}`);
     } catch (error: any) {
       toast.error(tErrors(getAuthErrorKey(error)));
     } finally {
