@@ -834,3 +834,20 @@ export interface TransactionFiltersExtended extends TransactionFilters {
   paymentMethodId?: string;
   userId?: string;
 }
+
+// Hero Slide pour la page d'accueil
+export interface HeroSlide {
+  id: string;
+  title: string;
+  description: string;
+  buttonText: string;
+  buttonLink: string;
+  buttonColor: string; // Couleur du bouton (ex: #FF5722)
+  backgroundColor: string; // Couleur de fond (ex: #F5F5F5)
+  imageUrl: string; // URL de l'image d'illustration
+  isActive: boolean;
+  order: number; // Ordre d'affichage
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy: string; // ID de l'admin qui a créé le slide
+}

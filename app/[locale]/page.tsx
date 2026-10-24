@@ -22,6 +22,7 @@ import { PriceDisplay } from '@/components/ui/PriceDisplay';
 import { ProductGridSkeleton } from '@/components/ui/Skeleton';
 import ProductOrigin from '@/components/products/ProductOrigin';
 import { useTranslations } from 'next-intl';
+import HeroSlider from '@/components/home/HeroSlider';
 
 const PAGE_SIZE = 20;
 
@@ -130,22 +131,11 @@ export default function HomePage() {
     { href: '/dating', label: tNav('dating') },
   ];
 
-  const shortcuts = [
-    { href: '/categories', icon: LayoutGrid, label: tHome('explore_by_category'), color: 'text-green-600' },
-    { href: '/contact', icon: Target, label: tHome('request_quote'), color: 'text-red-500' },
-    { href: '/products?sort=rating', icon: Trophy, label: tHome('top_ranking'), color: 'text-yellow-500' },
-  ];
-
   const filters: { id: Filter; label: string; icon: typeof Heart; color: string }[] = [
     { id: 'all', label: tHome('filter_all'), icon: Heart, color: 'text-green-600' },
     { id: 'deals', label: tHome('best_deals'), icon: Flame, color: 'text-red-500' },
     { id: 'top', label: tHome('top_ranking'), icon: Award, color: 'text-yellow-500' },
   ];
-
-  // Trois vignettes « Explorez … » : un produit par catégorie parmi les premiers chargés.
-  const highlights = products
-    .filter((p, i, all) => p.category && all.findIndex((o) => o.category === p.category) === i)
-    .slice(0, 3);
 
   return (
     <div className="bg-gray-100 min-h-screen">
@@ -169,35 +159,10 @@ export default function HomePage() {
       </nav>
 
       <div className="container mx-auto px-2 sm:px-4">
-        {/* Raccourcis */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide py-2">
-          {shortcuts.map((shortcut) => (
-            <Link
-              key={shortcut.href}
-              href={shortcut.href}
-              className="flex items-center gap-2 bg-white rounded-lg px-3 py-1.5 shrink-0 sm:flex-1 hover:shadow-md transition-shadow"
-            >
-              <shortcut.icon size={20} className={`${shortcut.color} shrink-0`} />
-              <span className="text-xs font-semibold text-gray-900 whitespace-nowrap">{shortcut.label}</span>
-            </Link>
-          ))}
-        </div>
+        {/* Hero Slider - Remplace les sections statiques */}
+        <HeroSlider />
 
-        {/* Vignettes « Explorez » */}
-        {highlights.length > 0 && (
-          <div className="grid grid-cols-3 gap-2 pb-2">
-            {highlights.map((product) => (
-              <Link
-                key={product.id}
-                href={`/products?search=${encodeURIComponent(product.category)}`}
-                className="bg-white rounded-lg p-2 hover:shadow-md transition-shadow min-w-0"
-              >
-                <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
-                  <Image
-                    src={product.images?.[0] || '/placeholder.png'}
-                    alt={product.category}
-                    fill
-                    className="object-cover"
+        {/* Filtres de produits */}
                     sizes="(max-width: 768px) 33vw, 20vw"
                   />
                   {product.prices?.[0] && (
