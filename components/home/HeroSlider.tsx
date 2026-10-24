@@ -20,12 +20,15 @@ export default function HeroSlider() {
 
   const loadSlides = async () => {
     try {
+      console.log('🎨 Chargement des slides...');
       const q = query(
         collection(db, 'heroSlides'),
         where('isActive', '==', true),
         orderBy('order', 'asc')
       );
       const snapshot = await getDocs(q);
+      console.log(`✅ ${snapshot.docs.length} slides trouvés`);
+      
       const slidesData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
@@ -33,9 +36,10 @@ export default function HeroSlider() {
         updatedAt: doc.data().updatedAt?.toDate() || new Date()
       })) as HeroSlide[];
       
+      console.log('📊 Slides:', slidesData);
       setSlides(slidesData);
     } catch (error) {
-      console.error('Erreur chargement slides:', error);
+      console.error('❌ Erreur chargement slides:', error);
     } finally {
       setLoading(false);
     }
