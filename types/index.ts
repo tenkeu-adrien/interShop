@@ -844,7 +844,9 @@ export interface HeroSlide {
   buttonLink: string;
   buttonColor: string; // Couleur du bouton (ex: #FF5722)
   backgroundColor: string; // Couleur de fond (ex: #F5F5F5)
-  imageUrl: string; // URL de l'image d'illustration
+  mediaType: 'image' | 'video'; // Type de média
+  imageUrl?: string; // URL de l'image d'illustration (si mediaType = 'image')
+  videoUrl?: string; // URL de la vidéo (si mediaType = 'video')
   isActive: boolean;
   order: number; // Ordre d'affichage
   createdAt: Date;

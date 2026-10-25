@@ -158,18 +158,29 @@ export default function HeroSlider() {
                   </motion.div>
                 </div>
 
-                {/* Image : cachée sur très petit écran, visible à partir de sm */}
+                {/* Image ou Vidéo : visible sur tous les écrans */}
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="hidden sm:block flex-1 relative h-[250px] sm:h-[300px] md:h-[400px] w-full"
+                  className="flex-1 relative h-[200px] sm:h-[300px] md:h-[400px] w-full"
                 >
-                  <img
-                    src={currentSlide.imageUrl}
-                    alt={currentSlide.title}
-                    className="w-full h-full object-contain"
-                  />
+                  {currentSlide.mediaType === 'video' && currentSlide.videoUrl ? (
+                    <video
+                      src={currentSlide.videoUrl}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  ) : (
+                    <img
+                      src={currentSlide.imageUrl || currentSlide.videoUrl}
+                      alt={currentSlide.title}
+                      className="w-full h-full object-contain"
+                    />
+                  )}
                 </motion.div>
               </div>
             </div>

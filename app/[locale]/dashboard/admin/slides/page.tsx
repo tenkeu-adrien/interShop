@@ -13,7 +13,8 @@ import {
   ArrowUp,
   ArrowDown,
   Image as ImageIcon,
-  Loader
+  Loader,
+  Video as VideoIcon
 } from 'lucide-react';
 import { 
   collection, 
@@ -30,6 +31,7 @@ import { db, storage } from '@/lib/firebase/config';
 import { HeroSlide } from '@/types';
 import toast from 'react-hot-toast';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { compressVideo, validateVideoFile, formatFileSize } from '@/lib/utils/videoCompression';
 
 function AdminSlidesContent() {
   const router = useRouter();
@@ -48,12 +50,16 @@ function AdminSlidesContent() {
     buttonLink: '/products',
     buttonColor: '#FF5722',
     backgroundColor: '#F5F5F5',
+    mediaType: 'image' as 'image' | 'video',
     imageUrl: '',
+    videoUrl: '',
     isActive: true,
     order: 0
   });
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState('');
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState('');
+  const [compressing, setCompressing] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState(0);
 
   useEffect(() => {
     if (!loading && (!user || user.role !== 'admin')) {
@@ -85,20 +91,66 @@ function AdminSlidesContent() {
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMediaChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
+    if (!file) return;
+
+    const isVideo = file.type.startsWith('video/');
+    
+    if (isVideo) {
+      // Validation vidéo
+      const validation = validateVideoFile(file);
+      if (!validation.valid) {
+        toast.error(validation.error || 'Fichier vidéo invalide');
+        return;
+      }
+
+      // Compression vidéo
+      setCompressing(true);
+      setCompressionProgress(0);
+      
+      try {
+        toast.loading('Compression de la vidéo en cours...', { id: 'compression' });
+        
+        const result = await compressVideo(file, {
+          maxWidth: 1920,
+          maxHeight: 1080,
+          quality: 0.8,
+          bitrate: 2500000
+        }, (progress) => {
+          setCompressionProgress(progress);
+        });
+
+        toast.success(
+          `Vidéo compressée : ${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)} (${result.compressionRatio.toFixed(1)}% de réduction)`,
+          { id: 'compression', duration: 5000 }
+        );
+
+        setMediaFile(result.file);
+        setMediaPreview(URL.createObjectURL(result.file));
+        setFormData({ ...formData, mediaType: 'video' });
+      } catch (error) {
+        console.error('Erreur compression vidéo:', error);
+        toast.error('Erreur lors de la compression de la vidéo', { id: 'compression' });
+      } finally {
+        setCompressing(false);
+        setCompressionProgress(0);
+      }
+    } else {
+      // Image
+      setMediaFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+        setMediaPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+      setFormData({ ...formData, mediaType: 'image' });
     }
   };
 
-  const uploadImage = async (file: File): Promise<string> => {
-    const storageRef = ref(storage, `slides/${Date.now()}_${file.name}`);
+  const uploadMedia = async (file: File): Promise<string> => {
+    const folder = file.type.startsWith('video/') ? 'slides/videos' : 'slides/images';
+    const storageRef = ref(storage, `${folder}/${Date.now()}_${file.name}`);
     await uploadBytes(storageRef, file);
     return getDownloadURL(storageRef);
   };
@@ -108,22 +160,35 @@ function AdminSlidesContent() {
     setUploading(true);
 
     try {
-      let imageUrl = formData.imageUrl;
+      let mediaUrl = formData.mediaType === 'video' ? formData.videoUrl : formData.imageUrl;
       
-      // Upload nouvelle image si sélectionnée
-      if (imageFile) {
-        imageUrl = await uploadImage(imageFile);
+      // Upload nouveau média si sélectionné
+      if (mediaFile) {
+        mediaUrl = await uploadMedia(mediaFile);
       }
 
-      if (!imageUrl && !editingSlide) {
-        toast.error('Veuillez sélectionner une image');
+      if (!mediaUrl && !editingSlide) {
+        toast.error('Veuillez sélectionner une image ou une vidéo');
         setUploading(false);
         return;
       }
 
       const slideData = {
-        ...formData,
-        imageUrl: imageUrl || formData.imageUrl,
+        title: formData.title,
+        description: formData.description,
+        buttonText: formData.buttonText,
+        buttonLink: formData.buttonLink,
+        buttonColor: formData.buttonColor,
+        backgroundColor: formData.backgroundColor,
+        mediaType: formData.mediaType,
+        ...(formData.mediaType === 'video' ? {
+          videoUrl: mediaUrl,
+          imageUrl: null
+        } : {
+          imageUrl: mediaUrl,
+          videoUrl: null
+        }),
+        isActive: formData.isActive,
         updatedAt: new Date(),
         ...(editingSlide ? {} : {
           createdAt: new Date(),
@@ -161,12 +226,14 @@ function AdminSlidesContent() {
       buttonLink: '/products',
       buttonColor: '#FF5722',
       backgroundColor: '#F5F5F5',
+      mediaType: 'image',
       imageUrl: '',
+      videoUrl: '',
       isActive: true,
       order: 0
     });
-    setImageFile(null);
-    setImagePreview('');
+    setMediaFile(null);
+    setMediaPreview('');
     setEditingSlide(null);
   };
 
@@ -179,11 +246,13 @@ function AdminSlidesContent() {
       buttonLink: slide.buttonLink,
       buttonColor: slide.buttonColor,
       backgroundColor: slide.backgroundColor,
-      imageUrl: slide.imageUrl,
+      mediaType: slide.mediaType,
+      imageUrl: slide.imageUrl || '',
+      videoUrl: slide.videoUrl || '',
       isActive: slide.isActive,
       order: slide.order
     });
-    setImagePreview(slide.imageUrl);
+    setMediaPreview(slide.videoUrl || slide.imageUrl || '');
     setShowModal(true);
   };
 
@@ -279,13 +348,25 @@ function AdminSlidesContent() {
               className="bg-white rounded-lg shadow-md p-6"
             >
               <div className="flex gap-6">
-                {/* Image preview */}
+                {/* Media preview */}
                 <div className="flex-shrink-0">
-                  <img
-                    src={slide.imageUrl}
-                    alt={slide.title}
-                    className="w-40 h-40 object-cover rounded-lg"
-                  />
+                  {slide.mediaType === 'video' && slide.videoUrl ? (
+                    <div className="relative">
+                      <video
+                        src={slide.videoUrl}
+                        className="w-40 h-40 object-cover rounded-lg"
+                        muted
+                        loop
+                      />
+                      <VideoIcon className="absolute top-2 right-2 text-white bg-black bg-opacity-50 p-1 rounded" size={20} />
+                    </div>
+                  ) : (
+                    <img
+                      src={slide.imageUrl || slide.videoUrl || ''}
+                      alt={slide.title}
+                      className="w-40 h-40 object-cover rounded-lg"
+                    />
+                  )}
                 </div>
 
                 {/* Contenu */}
@@ -483,23 +564,86 @@ function AdminSlidesContent() {
                   </div>
                 </div>
 
-                {/* Image */}
+                {/* Type de média */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Image d'illustration {!editingSlide && '*'}
+                    Type de média *
                   </label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        value="image"
+                        checked={formData.mediaType === 'image'}
+                        onChange={(e) => setFormData({ ...formData, mediaType: 'image' })}
+                        className="w-4 h-4 text-purple-600"
+                      />
+                      <ImageIcon size={20} />
+                      <span>Image</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        value="video"
+                        checked={formData.mediaType === 'video'}
+                        onChange={(e) => setFormData({ ...formData, mediaType: 'video' })}
+                        className="w-4 h-4 text-purple-600"
+                      />
+                      <VideoIcon size={20} />
+                      <span>Vidéo</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Media Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {formData.mediaType === 'video' ? 'Vidéo' : 'Image'} {!editingSlide && '*'}
+                  </label>
+                  {formData.mediaType === 'video' && (
+                    <p className="text-xs text-gray-500 mb-2">
+                      💡 La vidéo sera automatiquement compressée pour optimiser la taille (max 100 MB)
+                    </p>
+                  )}
                   <input
                     type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="w-full px-4 py-2 border rounded-lg"
+                    accept={formData.mediaType === 'video' ? 'video/*' : 'image/*'}
+                    onChange={handleMediaChange}
+                    disabled={compressing}
+                    className="w-full px-4 py-2 border rounded-lg disabled:opacity-50"
                   />
-                  {imagePreview && (
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="mt-4 w-full h-48 object-cover rounded-lg"
-                    />
+                  
+                  {compressing && (
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                        <span>Compression en cours...</span>
+                        <span>{compressionProgress}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-purple-600 h-2 rounded-full transition-all"
+                          style={{ width: `${compressionProgress}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
+                  {mediaPreview && !compressing && (
+                    <div className="mt-4">
+                      {formData.mediaType === 'video' ? (
+                        <video
+                          src={mediaPreview}
+                          controls
+                          className="w-full h-48 object-cover rounded-lg"
+                        />
+                      ) : (
+                        <img
+                          src={mediaPreview}
+                          alt="Preview"
+                          className="w-full h-48 object-cover rounded-lg"
+                        />
+                      )}
+                    </div>
                   )}
                 </div>
 
@@ -531,13 +675,13 @@ function AdminSlidesContent() {
                   </button>
                   <button
                     type="submit"
-                    disabled={uploading}
+                    disabled={uploading || compressing}
                     className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    {uploading ? (
+                    {uploading || compressing ? (
                       <>
                         <Loader className="animate-spin" size={16} />
-                        Enregistrement...
+                        {compressing ? 'Compression...' : 'Enregistrement...'}
                       </>
                     ) : (
                       editingSlide ? 'Mettre à jour' : 'Créer'
