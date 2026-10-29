@@ -22,7 +22,8 @@ import {
   ArrowDownRight,
   Shield,
   Heart,
-  MessageSquare
+  MessageSquare,
+  Image
 } from 'lucide-react';
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase/config';
@@ -430,7 +431,15 @@ export default function AdminDashboardPage() {
               className="p-3 border-2 border-gray-200 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-all text-center group"
             >
               <DollarSign className="mx-auto mb-1 text-gray-600 group-hover:text-yellow-600" size={24} />
-              <p className="font-semibold text-gray-900 text-sm">{tAdmin('exchange_rates')}</p>
+              <p className="font-semibold text-gray-900 text-sm">{tAdmin('exchange_rates') || 'Taux de Change'}</p>
+            </Link>
+            
+            <Link
+              href="/dashboard/admin/slides"
+              className="p-3 border-2 border-gray-200 rounded-lg hover:border-pink-500 hover:bg-pink-50 transition-all text-center group"
+            >
+              <Image className="mx-auto mb-1 text-gray-600 group-hover:text-pink-600" size={24} />
+              <p className="font-semibold text-gray-900 text-sm">Slides Accueil</p>
             </Link>
             
             <Link
@@ -438,7 +447,7 @@ export default function AdminDashboardPage() {
               className="p-3 border-2 border-gray-200 rounded-lg hover:border-emerald-500 hover:bg-emerald-50 transition-all text-center group"
             >
               <DollarSign className="mx-auto mb-1 text-gray-600 group-hover:text-emerald-600" size={24} />
-              <p className="font-semibold text-gray-900 text-sm">{tAdmin('payment_methods')}</p>
+              <p className="font-semibold text-gray-900 text-sm">{tAdmin('payment_methods') || 'Moyens de Paiement'}</p>
             </Link>
             
             <Link
