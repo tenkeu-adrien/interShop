@@ -1,13 +1,16 @@
 import { ExchangeRate, SupportedCurrency } from '@/types';
 import { SUPPORTED_CURRENCIES } from '@/lib/constants/currencies';
+import { getActiveAdminExchangeRates } from '@/lib/firebase/adminExchangeRates';
 
-const EXCHANGE_RATE_API_KEY = process.env.NEXT_PUBLIC_EXCHANGE_RATE_API_KEY;
-const EXCHANGE_RATE_API_URL = 'https://v6.exchangerate-api.com/v6';
-
+/**
+ * Service de gestion des taux de change
+ * SYSTÈME MANUEL : Lit les taux depuis Firestore (définis par l'admin)
+ * Plus d'API externe !
+ */
 export class ExchangeRateService {
   private static cache: Map<SupportedCurrency, ExchangeRate> = new Map();
   private static lastUpdate: Date | null = null;
-  private static readonly CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+  private static readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes (cache court pour refléter les changements admin)
 
   static async getExchangeRate(targetCurrency: SupportedCurrency): Promise<number> {
     if (targetCurrency === 'USD') return 1;
@@ -18,7 +21,7 @@ export class ExchangeRateService {
       return cached.rate;
     }
 
-    // Fetch new rates
+    // Fetch new rates from Firestore
     await this.updateRates();
     
     const rate = this.cache.get(targetCurrency);
@@ -29,48 +32,43 @@ export class ExchangeRateService {
     return rate.rate;
   }
 
+  /**
+   * Met à jour les taux depuis Firestore (définis manuellement par l'admin)
+   */
   static async updateRates(): Promise<void> {
-    if (!EXCHANGE_RATE_API_KEY) {
-      console.warn('Clé API de taux de change manquante. Utilisation des taux par défaut.');
-      this.setDefaultRates();
-      return;
-    }
-
     try {
-      const response = await fetch(
-        `${EXCHANGE_RATE_API_URL}/${EXCHANGE_RATE_API_KEY}/latest/USD`
-      );
-
-      if (!response.ok) {
-        throw new Error('Échec de la récupération des taux de change');
-      }
-
-      const data = await response.json();
+      console.log('📊 Chargement des taux de change depuis Firestore...');
       
-      if (data.result !== 'success') {
-        throw new Error('L\'API de taux de change a retourné une erreur');
+      // Récupère les taux actifs définis par l'admin
+      const adminRates = await getActiveAdminExchangeRates();
+      
+      if (adminRates.length === 0) {
+        console.warn('⚠️ Aucun taux de change trouvé dans Firestore. Utilisation des taux par défaut.');
+        this.setDefaultRates();
+        return;
       }
 
-      // Update cache
-      Object.keys(SUPPORTED_CURRENCIES).forEach((currency) => {
-        if (currency !== 'USD' && data.conversion_rates[currency]) {
-          this.cache.set(currency as SupportedCurrency, {
+      // Update cache avec les taux admin
+      adminRates.forEach((adminRate) => {
+        if (adminRate.currency !== 'USD') {
+          this.cache.set(adminRate.currency, {
             baseCurrency: 'USD',
-            targetCurrency: currency as SupportedCurrency,
-            rate: data.conversion_rates[currency],
-            timestamp: new Date(),
-            source: 'exchangerate-api.com'
+            targetCurrency: adminRate.currency,
+            rate: adminRate.rateToUSD,
+            timestamp: adminRate.updatedAt,
+            source: 'admin-firestore'
           });
         }
       });
 
       this.lastUpdate = new Date();
-      console.log('Taux de change mis à jour avec succès');
+      console.log(`✅ ${adminRates.length} taux de change chargés depuis Firestore`);
     } catch (error) {
-      console.error('Échec de la mise à jour des taux de change:', error);
+      console.error('❌ Échec du chargement des taux depuis Firestore:', error);
+      
       // Use cached rates if available
       if (this.cache.size === 0) {
-        console.warn('Aucun taux de change disponible. Utilisation des taux par défaut.');
+        console.warn('⚠️ Aucun taux disponible. Utilisation des taux par défaut.');
         this.setDefaultRates();
       }
     }

@@ -1,319 +1,475 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { RefreshCw, AlertTriangle, CheckCircle, Clock, TrendingUp, Settings, Save, Key } from 'lucide-react';
+import { useAuthStore } from '@/store/authStore';
+import {
+  DollarSign,
+  Edit,
+  Check,
+  X,
+  RefreshCw,
+  TrendingUp,
+  Eye,
+  EyeOff,
+  Loader,
+  Save,
+  AlertCircle
+} from 'lucide-react';
+import {
+  getAllAdminExchangeRates,
+  updateAdminExchangeRate,
+  toggleAdminExchangeRateStatus,
+  applyGlobalMargin,
+  AdminExchangeRate
+} from '@/lib/firebase/adminExchangeRates';
 import { CountryFlag } from '@/components/ui/CountryFlag';
-import { useCurrencyStore } from '@/store/currencyStore';
-import { ExchangeRateService } from '@/lib/services/exchangeRateService';
-import { SUPPORTED_CURRENCIES } from '@/lib/constants/currencies';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import toast from 'react-hot-toast';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { toDate } from '@/lib/utils/date';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
-function ExchangeRatesContent() {
-  const { exchangeRates, lastUpdate, updateExchangeRates, loading } = useCurrencyStore();
-  const [refreshing, setRefreshing] = useState(false);
-  const [showApiConfig, setShowApiConfig] = useState(false);
-  const [apiKey, setApiKey] = useState('');
-  const [testingApi, setTestingApi] = useState(false);
+function AdminExchangeRatesContent() {
+  const router = useRouter();
+  const { user, loading } = useAuthStore();
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
+  const [rates, setRates] = useState<AdminExchangeRate[]>([]);
+  const [loadingRates, setLoadingRates] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  // Modal marge globale
+  const [showMarginModal, setShowMarginModal] = useState(false);
+  const [marginValue, setMarginValue] = useState('');
+  const [applyingMargin, setApplyingMargin] = useState(false);
+
+  useEffect(() => {
+    if (!loading && (!user || user.role !== 'admin')) {
+      router.push('/dashboard');
+      return;
+    }
+    if (user && user.role === 'admin') {
+      loadRates();
+    }
+  }, [user, loading, router]);
+
+  const loadRates = async () => {
+    setLoadingRates(true);
     try {
-      await updateExchangeRates();
-      toast.success('Taux de change mis à jour avec succès');
+      const data = await getAllAdminExchangeRates();
+      setRates(data);
     } catch (error) {
-      toast.error('Échec de la mise à jour des taux');
+      console.error('Erreur chargement taux:', error);
+      toast.error('Erreur lors du chargement des taux');
     } finally {
-      setRefreshing(false);
+      setLoadingRates(false);
     }
   };
 
-  const handleTestApiKey = async () => {
-    if (!apiKey.trim()) {
-      toast.error('Veuillez entrer une clé API');
+  const startEdit = (rate: AdminExchangeRate) => {
+    setEditingId(rate.currency);
+    setEditValue(rate.rateToUSD.toString());
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditValue('');
+  };
+
+  const saveEdit = async (currency: string) => {
+    const newRate = parseFloat(editValue);
+
+    if (isNaN(newRate) || newRate <= 0) {
+      toast.error('Veuillez entrer un taux valide');
       return;
     }
 
-    setTestingApi(true);
+    setSaving(true);
     try {
-      // Test the API key by making a request
-      const response = await fetch(
-        `https://v6.exchangerate-api.com/v6/${apiKey}/latest/USD`
+      await updateAdminExchangeRate(
+        currency as any,
+        newRate,
+        user!.id,
+        user!.displayName
       );
-      const data = await response.json();
-
-      if (data.result === 'success') {
-        toast.success('Clé API valide !');
-        // Save to localStorage (in production, save to Firebase)
-        localStorage.setItem('EXCHANGE_RATE_API_KEY', apiKey);
-      } else {
-        toast.error('Clé API invalide');
-      }
+      toast.success('Taux mis à jour');
+      setEditingId(null);
+      loadRates();
     } catch (error) {
-      toast.error('Erreur lors du test de la clé API');
+      console.error('Erreur sauvegarde:', error);
+      toast.error('Erreur lors de la sauvegarde');
     } finally {
-      setTestingApi(false);
+      setSaving(false);
     }
   };
 
-  const getTimeSinceUpdate = () => {
-    if (!lastUpdate) return 'Jamais';
-    const now = new Date();
-    const diff = now.getTime() - toDate(lastUpdate).getTime();
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (hours > 0) {
-      return `Il y a ${hours}h ${minutes}min`;
+  const toggleStatus = async (currency: string) => {
+    if (currency === 'USD') {
+      toast.error('USD est la devise de base et ne peut être désactivé');
+      return;
     }
-    return `Il y a ${minutes}min`;
+
+    try {
+      await toggleAdminExchangeRateStatus(
+        currency as any,
+        user!.id,
+        user!.displayName
+      );
+      toast.success('Statut modifié');
+      loadRates();
+    } catch (error) {
+      console.error('Erreur toggle:', error);
+      toast.error('Erreur lors du changement de statut');
+    }
   };
 
-  const isStale = () => {
-    if (!lastUpdate) return true;
-    const now = new Date();
-    const diff = now.getTime() - toDate(lastUpdate).getTime();
-    return diff > 24 * 60 * 60 * 1000; // Plus de 24h
+  const handleApplyMargin = async () => {
+    const margin = parseFloat(marginValue);
+
+    if (isNaN(margin)) {
+      toast.error('Veuillez entrer un pourcentage valide');
+      return;
+    }
+
+    if (Math.abs(margin) > 50) {
+      toast.error('La marge ne peut pas dépasser ±50%');
+      return;
+    }
+
+    setApplyingMargin(true);
+    try {
+      const updated = await applyGlobalMargin(margin, user!.id, user!.displayName);
+      toast.success(`${updated} taux mis à jour avec une marge de ${margin > 0 ? '+' : ''}${margin}%`);
+      setShowMarginModal(false);
+      setMarginValue('');
+      loadRates();
+    } catch (error) {
+      console.error('Erreur application marge:', error);
+      toast.error('Erreur lors de l\'application de la marge');
+    } finally {
+      setApplyingMargin(false);
+    }
   };
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('fr-FR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  };
+
+  if (loading || loadingRates) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader className="animate-spin text-purple-600" size={48} />
+      </div>
+    );
+  }
+
+  const activeRates = rates.filter(r => r.isActive);
+  const inactiveRates = rates.filter(r => !r.isActive);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Gestion des Taux de Change
-          </h1>
-          <p className="text-gray-600">
-            Gérez les taux de conversion pour toutes les devises supportées
-          </p>
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <DollarSign className="text-purple-600" size={36} />
+              Gestion des Taux de Change
+            </h1>
+            <p className="text-gray-600 mt-1">Définissez manuellement les taux de conversion pour chaque devise</p>
+          </div>
+          <button
+            onClick={() => setShowMarginModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg"
+          >
+            <TrendingUp size={20} />
+            Appliquer une Marge
+          </button>
         </div>
 
-        {/* Status Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-lg shadow-md p-6 mb-6"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-full ${isStale() ? 'bg-red-100' : 'bg-green-100'}`}>
-                {isStale() ? (
-                  <AlertTriangle className="text-red-600" size={24} />
-                ) : (
-                  <CheckCircle className="text-green-600" size={24} />
-                )}
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">
-                  {isStale() ? 'Taux obsolètes' : 'Taux à jour'}
-                </h3>
-                <p className="text-sm text-gray-600 flex items-center gap-2">
-                  <Clock size={16} />
-                  Dernière mise à jour : {getTimeSinceUpdate()}
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowApiConfig(!showApiConfig)}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                <Settings size={18} />
-                Configuration
-              </button>
-              <button
-                onClick={handleRefresh}
-                disabled={refreshing || loading}
-                className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
-                {refreshing ? 'Mise à jour...' : 'Actualiser'}
-              </button>
-            </div>
+        {/* Info Box */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+          <AlertCircle className="text-blue-600 flex-shrink-0 mt-0.5" size={20} />
+          <div className="text-sm text-blue-900">
+            <p className="font-medium mb-1">💡 Comment ça marche ?</p>
+            <ul className="list-disc list-inside space-y-1 text-blue-800">
+              <li>Définissez le taux : <strong>1 USD = X unités</strong> de la devise cible</li>
+              <li>Les prix des produits seront convertis en temps réel selon ces taux</li>
+              <li>Le sélecteur de devise dans le header utilisera ces taux</li>
+              <li>Le système de wallet utilisera ces taux pour les transactions</li>
+            </ul>
           </div>
+        </div>
+      </div>
 
-          {isStale() && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-800">
-                ⚠️ Les taux de change n'ont pas été mis à jour depuis plus de 24 heures. 
-                Veuillez actualiser pour obtenir les derniers taux.
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Total Devises</p>
+              <p className="text-2xl font-bold text-gray-900">{rates.length}</p>
+            </div>
+            <DollarSign className="text-purple-600" size={32} />
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Devises Actives</p>
+              <p className="text-2xl font-bold text-green-600">{activeRates.length}</p>
+            </div>
+            <Eye className="text-green-600" size={32} />
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Devises Inactives</p>
+              <p className="text-2xl font-bold text-gray-400">{inactiveRates.length}</p>
+            </div>
+            <EyeOff className="text-gray-400" size={32} />
+          </div>
+        </div>
+      </div>
+
+      {/* Rates Table */}
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Devise
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Taux (1 USD =)
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Dernière Modification
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Modifié Par
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Statut
+                </th>
+                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {rates.map((rate) => (
+                <motion.tr
+                  key={rate.currency}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className={`hover:bg-gray-50 transition-colors ${
+                    !rate.isActive ? 'opacity-50' : ''
+                  }`}
+                >
+                  {/* Devise */}
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">
+                        <CountryFlag country={rate.flag} width={28} />
+                      </span>
+                      <div>
+                        <div className="font-semibold text-gray-900">{rate.currency}</div>
+                        <div className="text-sm text-gray-500">{rate.currencyName}</div>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Taux */}
+                  <td className="px-6 py-4">
+                    {editingId === rate.currency ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          step="0.01"
+                          min="0"
+                          className="w-32 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                          autoFocus
+                        />
+                        <span className="text-gray-600">{rate.symbol}</span>
+                      </div>
+                    ) : (
+                      <div className="font-mono text-lg font-semibold text-gray-900">
+                        {rate.rateToUSD.toLocaleString('fr-FR', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })}{' '}
+                        <span className="text-sm text-gray-500">{rate.symbol}</span>
+                      </div>
+                    )}
+                  </td>
+
+                  {/* Date */}
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {formatDate(rate.updatedAt)}
+                  </td>
+
+                  {/* Modifié par */}
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {rate.updatedByName || 'System'}
+                  </td>
+
+                  {/* Statut */}
+                  <td className="px-6 py-4">
+                    <span
+                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
+                        rate.isActive
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {rate.isActive ? <Eye size={14} /> : <EyeOff size={14} />}
+                      {rate.isActive ? 'Actif' : 'Inactif'}
+                    </span>
+                  </td>
+
+                  {/* Actions */}
+                  <td className="px-6 py-4">
+                    <div className="flex items-center justify-end gap-2">
+                      {editingId === rate.currency ? (
+                        <>
+                          <button
+                            onClick={() => saveEdit(rate.currency)}
+                            disabled={saving}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+                            title="Sauvegarder"
+                          >
+                            {saving ? (
+                              <Loader className="animate-spin" size={18} />
+                            ) : (
+                              <Check size={18} />
+                            )}
+                          </button>
+                          <button
+                            onClick={cancelEdit}
+                            disabled={saving}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                            title="Annuler"
+                          >
+                            <X size={18} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => startEdit(rate)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Modifier le taux"
+                          >
+                            <Edit size={18} />
+                          </button>
+                          <button
+                            onClick={() => toggleStatus(rate.currency)}
+                            disabled={rate.currency === 'USD'}
+                            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                            title={rate.isActive ? 'Désactiver' : 'Activer'}
+                          >
+                            {rate.isActive ? <EyeOff size={18} /> : <Eye size={18} />}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Modal Marge Globale */}
+      {showMarginModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+          >
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <TrendingUp className="text-purple-600" size={28} />
+              Appliquer une Marge Globale
+            </h2>
+
+            <p className="text-gray-600 mb-6">
+              Appliquez un pourcentage de marge sur tous les taux actifs. 
+              <br />
+              Exemple : +5% augmente tous les taux de 5%.
+            </p>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Marge en % (-50 à +50)
+              </label>
+              <input
+                type="number"
+                value={marginValue}
+                onChange={(e) => setMarginValue(e.target.value)}
+                step="0.5"
+                min="-50"
+                max="50"
+                placeholder="Ex: 5 pour +5%"
+                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 text-lg"
+              />
+              <p className="text-xs text-gray-500 mt-2">
+                💡 Utilisez un nombre négatif pour réduire les taux (ex: -3 pour -3%)
               </p>
             </div>
-          )}
 
-          {/* API Configuration Panel */}
-          {showApiConfig && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg"
-            >
-              <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
-                <Key size={18} />
-                Configuration de l'API
-              </h4>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-blue-900 mb-2">
-                    Clé API exchangerate-api.com
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={apiKey}
-                      onChange={(e) => setApiKey(e.target.value)}
-                      placeholder="Entrez votre clé API"
-                      className="flex-1 px-4 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <button
-                      onClick={handleTestApiKey}
-                      disabled={testingApi}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-                    >
-                      {testingApi ? 'Test...' : 'Tester'}
-                    </button>
-                  </div>
-                  <p className="text-xs text-blue-700 mt-2">
-                    Obtenez une clé API gratuite sur{' '}
-                    <a
-                      href="https://www.exchangerate-api.com/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline hover:text-blue-900"
-                    >
-                      exchangerate-api.com
-                    </a>
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </motion.div>
-
-        {/* Exchange Rates Table */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white rounded-lg shadow-md overflow-hidden"
-        >
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Taux de Change (Base: USD)
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              {exchangeRates.size} devises configurées
-            </p>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Devise
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Code
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Symbole
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Taux (1 USD =)
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Décimales
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {Object.values(SUPPORTED_CURRENCIES).map((currency, index) => {
-                  const rate = currency.code === 'USD' ? 1 : exchangeRates.get(currency.code) || 0;
-                  
-                  return (
-                    <motion.tr
-                      key={currency.code}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.02 }}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">
-                            <CountryFlag country={currency.flag} width={22} />
-                          </span>
-                          <span className="text-sm font-medium text-gray-900">
-                            {currency.name}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm font-mono font-semibold text-gray-900">
-                          {currency.code}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm font-medium text-gray-700">
-                          {currency.symbol}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <TrendingUp size={16} className="text-green-500" />
-                          <span className="text-sm font-mono font-semibold text-gray-900">
-                            {rate.toFixed(currency.decimals || 2)}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <span className="text-sm text-gray-600">
-                          {currency.decimals}
-                        </span>
-                      </td>
-                    </motion.tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </motion.div>
-
-        {/* Info Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-6"
-        >
-          <h3 className="font-semibold text-blue-900 mb-2">
-            ℹ️ Informations sur les Taux de Change
-          </h3>
-          <ul className="text-sm text-blue-800 space-y-2">
-            <li>• Les taux sont mis à jour automatiquement toutes les heures</li>
-            <li>• Source : exchangerate-api.com</li>
-            <li>• Les taux sont mis en cache pour optimiser les performances</li>
-            <li>• En cas d'échec de l'API, des taux par défaut sont utilisés</li>
-            <li>• Les commandes verrouillent le taux au moment de la création</li>
-            <li>• Les remboursements utilisent le taux verrouillé de la commande</li>
-          </ul>
-        </motion.div>
-      </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowMarginModal(false);
+                  setMarginValue('');
+                }}
+                disabled={applyingMargin}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleApplyMargin}
+                disabled={applyingMargin || !marginValue}
+                className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {applyingMargin ? (
+                  <>
+                    <Loader className="animate-spin" size={16} />
+                    Application...
+                  </>
+                ) : (
+                  <>
+                    <Save size={16} />
+                    Appliquer
+                  </>
+                )}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
 
-export default function ExchangeRatesPage() {
+export default function AdminExchangeRatesPage() {
   return (
     <ProtectedRoute allowedRoles={['admin']}>
-      <ExchangeRatesContent />
+      <AdminExchangeRatesContent />
     </ProtectedRoute>
   );
 }

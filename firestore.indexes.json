@@ -297,6 +297,16 @@
           "order": "ASCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "adminExchangeRates",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "currency",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []

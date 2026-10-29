@@ -3,6 +3,13 @@ import { persist } from 'zustand/middleware';
 import { SupportedCurrency } from '@/types';
 import { ExchangeRateService } from '@/lib/services/exchangeRateService';
 
+/**
+ * Store de gestion des devises
+ * 
+ * SYSTÈME MANUEL : Les taux de change sont définis par l'admin dans Firestore
+ * ExchangeRateService lit depuis la collection 'adminExchangeRates'
+ * Plus d'API externe !
+ */
 interface CurrencyState {
   selectedCurrency: SupportedCurrency;
   exchangeRates: Map<SupportedCurrency, number>;
@@ -40,6 +47,10 @@ export const useCurrencyStore = create<CurrencyState>()(
         set({ selectedCurrency: currency });
       },
 
+      /**
+       * Met à jour les taux de change depuis Firestore (définis par l'admin)
+       * ExchangeRateService.updateRates() lit la collection 'adminExchangeRates'
+       */
       updateExchangeRates: async () => {
         set({ loading: true, error: null });
         try {
