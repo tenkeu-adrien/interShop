@@ -129,25 +129,25 @@ export default function Header() {
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         placeholder={tHome('search_placeholder')}
-        className="w-full px-4 py-2.5 pr-24 rounded-full bg-white text-gray-900 border-2 border-green-500 focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-200 shadow-sm transition-all"
+        className="w-full px-3 py-1.5 pr-20 rounded-full bg-white text-gray-900 border-2 border-green-500 focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-200 shadow-sm transition-all text-sm"
       />
-      <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+      <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
         <ImageSearchButton />
         <button
           type="submit"
-          className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full transition-colors"
+          className="bg-green-500 hover:bg-green-600 text-white p-1.5 rounded-full transition-colors"
           aria-label={tCommon('search')}
         >
-          <Search size={18} />
+          <Search size={16} />
         </button>
       </div>
     </form>
   );
 
   return (
-    <header className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 text-gray-900 sticky top-0 z-50 shadow-lg px-2 py-3 md:p-5">
+    <header className="bg-gradient-to-r from-yellow-400 via-green-400 to-yellow-500 text-gray-900 sticky top-0 z-50 shadow-lg px-2 py-1.5 md:px-4 md:py-2">
       <div className="container mx-auto px-2 md:px-4">
-        <div className="flex items-center justify-between gap-2 h-16 min-w-0">
+        <div className="flex items-center justify-between gap-2 h-11 md:h-12 min-w-0">
           {/* Logo */}
           <Link href="/" className="min-w-0 flex-1 flex justify-center md:flex-none md:justify-start">
             <Image
@@ -155,9 +155,9 @@ export default function Header() {
               alt="InterAppshop"
               width={612}
               height={408}
-              className="object-contain w-auto h-[74px] md:h-[90px]"
+              className="object-contain w-auto h-[50px] md:h-[60px]"
               priority={true}
-              sizes="(max-width: 768px) 111px, 135px"
+              sizes="(max-width: 768px) 75px, 90px"
             />
           </Link>
 
@@ -172,10 +172,10 @@ export default function Header() {
             <div className="relative" ref={langRef}>
               <button
                 onClick={() => setShowLangMenu(!showLangMenu)}
-                className="p-2 hover:bg-white/20 rounded-full transition-colors flex items-center gap-1"
+                className="p-1.5 hover:bg-white/20 rounded-full transition-colors flex items-center gap-1"
                 aria-label={tCommon('language')}
               >
-                <Globe size={20} className="text-gray-900" />
+                <Globe size={18} className="text-gray-900" />
                 <span className="hidden sm:inline text-xs font-bold uppercase">{locale}</span>
               </button>
 
@@ -216,7 +216,7 @@ export default function Header() {
                 className="hidden md:flex hover:scale-110 transition-transform relative p-2 hover:bg-white/20 rounded-full"
                 aria-label={tNav('messages')}
               >
-                <MessageCircle size={22} className="text-gray-900" />
+                <MessageCircle size={18} className="text-gray-900" />
                 {totalUnreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center shadow-md">
                     {totalUnreadCount > 9 ? '9+' : totalUnreadCount}
@@ -232,7 +232,7 @@ export default function Header() {
                 className="hover:scale-110 transition-transform relative p-2 hover:bg-white/20 rounded-full"
                 aria-label={tNav('notifications')}
               >
-                <Bell size={22} className="text-gray-900" />
+                <Bell size={18} className="text-gray-900" />
                 <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
               </button>
             )}
@@ -242,20 +242,20 @@ export default function Header() {
               <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-2 hover:bg-white/20 px-3 py-2 rounded-full transition-colors"
+                  className="flex items-center gap-2 hover:bg-white/20 px-2 py-1.5 rounded-full transition-colors"
                 >
-                  <div className="w-8 h-8 bg-green-600 rounded-full overflow-hidden flex items-center justify-center text-white font-bold">
+                  <div className="w-7 h-7 bg-green-600 rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-sm">
                     {user.photoURL ? (
                       <img src={user.photoURL} alt="" className="w-full h-full object-cover" />
                     ) : (
                       user.displayName?.charAt(0).toUpperCase() || 'U'
                     )}
                   </div>
-                  <span className="hidden md:block font-medium text-gray-900">
+                  <span className="hidden md:block font-medium text-gray-900 text-xs">
                     {user.displayName}
                   </span>
                   <ChevronDown
-                    size={18}
+                    size={16}
                     className={`text-gray-900 transition-transform ${showUserMenu ? 'rotate-180' : ''}`}
                   />
                 </button>
@@ -292,13 +292,13 @@ export default function Header() {
                         <Link
                           href={getDashboardLink()}
                           onClick={() => setShowUserMenu(false)}
-                          className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                          className={`flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
                             pathname.includes('/dashboard')
                               ? 'bg-green-50 text-green-700 border-l-4 border-green-600'
                               : 'text-gray-700 hover:bg-gray-50'
                           }`}
                         >
-                          <LayoutDashboard size={20} className="text-green-600" />
+                          <LayoutDashboard size={18} className="text-green-600" />
                           <span className="font-medium">
                             {user.role === 'fournisseur' && 'Dashboard Fournisseur'}
                             {user.role === 'marketiste' && 'Dashboard Marketiste'}
@@ -312,13 +312,13 @@ export default function Header() {
                           <Link
                             href="/dashboard/fournisseur/products"
                             onClick={() => setShowUserMenu(false)}
-                            className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                            className={`flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
                               pathname.includes('/dashboard/fournisseur/products')
                                 ? 'bg-green-50 text-green-700 border-l-4 border-green-600'
                                 : 'text-gray-700 hover:bg-gray-50'
                             }`}
                           >
-                            <Package size={20} className="text-green-600" />
+                            <Package size={18} className="text-green-600" />
                             <span className="font-medium">{tDashboard('my_products')}</span>
                           </Link>
                         )}
@@ -327,13 +327,13 @@ export default function Header() {
                           <Link
                             href="/orders"
                             onClick={() => setShowUserMenu(false)}
-                            className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                            className={`flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
                               pathname.includes('/orders')
                                 ? 'bg-green-50 text-green-700 border-l-4 border-green-600'
                                 : 'text-gray-700 hover:bg-gray-50'
                             }`}
                           >
-                            <ShoppingBag size={20} className="text-green-600" />
+                            <ShoppingBag size={18} className="text-green-600" />
                             <span className="font-medium">{tNav('orders')}</span>
                           </Link>
                         )}
@@ -342,13 +342,13 @@ export default function Header() {
                           <Link
                             href="/dashboard/admin/users"
                             onClick={() => setShowUserMenu(false)}
-                            className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                            className={`flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
                               pathname.includes('/dashboard/admin/users')
                                 ? 'bg-green-50 text-green-700 border-l-4 border-green-600'
                                 : 'text-gray-700 hover:bg-gray-50'
                             }`}
                           >
-                            <Users size={20} className="text-green-600" />
+                            <Users size={18} className="text-green-600" />
                             <span className="font-medium">{tCommon('users')}</span>
                           </Link>
                         )}
@@ -391,13 +391,13 @@ export default function Header() {
                         <Link
                           href="/wallet"
                           onClick={() => setShowUserMenu(false)}
-                          className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                          className={`flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
                             pathname.includes('/wallet')
                               ? 'bg-green-50 text-green-700 border-l-4 border-green-600'
                               : 'text-gray-700 hover:bg-gray-50'
                           }`}
                         >
-                          <Wallet size={20} className="text-green-600" />
+                          <Wallet size={18} className="text-green-600" />
                           <span className="font-medium">{tNav('wallet')}</span>
                         </Link>
                         )}
@@ -405,13 +405,13 @@ export default function Header() {
                         <Link
                           href="/settings"
                           onClick={() => setShowUserMenu(false)}
-                          className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                          className={`flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
                             pathname.includes('/settings')
                               ? 'bg-green-50 text-green-700 border-l-4 border-green-600'
                               : 'text-gray-700 hover:bg-gray-50'
                           }`}
                         >
-                          <Settings size={20} className="text-green-600" />
+                          <Settings size={18} className="text-green-600" />
                           <span className="font-medium">{tCommon('settings')}</span>
                         </Link>
 
@@ -419,9 +419,9 @@ export default function Header() {
 
                         <button
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors text-red-600"
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-red-50 transition-colors text-red-600"
                         >
-                          <LogOut size={20} />
+                          <LogOut size={18} />
                           <span className="font-medium">{tCommon('logout')}</span>
                         </button>
                       </div>
