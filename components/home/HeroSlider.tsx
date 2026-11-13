@@ -73,7 +73,7 @@ export default function HeroSlider() {
 
   if (loading) {
     return (
-      <div className="w-full h-[500px] bg-gray-100 animate-pulse rounded-lg" />
+      <div className="w-full h-[280px] bg-gray-100 animate-pulse rounded-lg" />
     );
   }
 
@@ -101,9 +101,9 @@ export default function HeroSlider() {
   };
 
   return (
-    <div className="relative w-full overflow-hidden rounded-lg shadow-lg mb-6 md:mb-12">
+    <div className="relative w-full overflow-hidden rounded-lg shadow-lg mb-4 md:mb-8">
       <div 
-        className="relative h-[400px] sm:h-[450px] md:h-[500px]"
+        className="relative h-[280px] sm:h-[320px] md:h-[360px]"
         style={{ backgroundColor: currentSlide.backgroundColor }}
       >
         <AnimatePresence initial={false} custom={direction}>
@@ -122,14 +122,14 @@ export default function HeroSlider() {
           >
             <div className="container mx-auto px-4 h-full">
               {/* Layout responsive : colonne sur mobile, ligne sur desktop */}
-              <div className="flex flex-col md:flex-row items-center justify-center h-full gap-4 md:gap-12">
+              <div className="flex flex-col md:flex-row items-center justify-center h-full gap-3 md:gap-8">
                 {/* Contenu : centré sur mobile, gauche sur desktop */}
-                <div className="flex-1 space-y-3 md:space-y-6 text-center md:text-left w-full md:w-auto px-2">
+                <div className="flex-1 space-y-2 md:space-y-4 text-center md:text-left w-full md:w-auto px-2">
                   <motion.h1 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight"
+                  className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight"
                   >
                     {currentSlide.title}
                   </motion.h1>
@@ -138,7 +138,7 @@ export default function HeroSlider() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 leading-relaxed"
+                    className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-700 leading-relaxed"
                   >
                     {currentSlide.description}
                   </motion.p>
@@ -150,7 +150,7 @@ export default function HeroSlider() {
                   >
                     <Link
                       href={currentSlide.buttonLink}
-                      className="inline-block px-6 py-3 md:px-8 md:py-4 rounded-lg font-semibold text-white text-base md:text-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                      className="inline-block px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold text-white text-sm md:text-base shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
                       style={{ backgroundColor: currentSlide.buttonColor }}
                     >
                       {currentSlide.buttonText}
@@ -163,7 +163,7 @@ export default function HeroSlider() {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="flex-1 relative h-[200px] sm:h-[300px] md:h-[400px] w-full"
+                  className="flex-1 relative h-[150px] sm:h-[200px] md:h-[280px] w-full"
                 >
                   {currentSlide.mediaType === 'video' && currentSlide.videoUrl ? (
                     <video

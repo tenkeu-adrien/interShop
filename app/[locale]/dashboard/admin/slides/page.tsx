@@ -48,6 +48,7 @@ function AdminSlidesContent() {
     description: '',
     buttonText: 'En savoir plus',
     buttonLink: '/products',
+    buttonLinkType: 'internal' as 'internal' | 'external',
     buttonColor: '#FF5722',
     backgroundColor: '#F5F5F5',
     mediaType: 'image' as 'image' | 'video',
@@ -224,6 +225,7 @@ function AdminSlidesContent() {
       description: '',
       buttonText: 'En savoir plus',
       buttonLink: '/products',
+      buttonLinkType: 'internal',
       buttonColor: '#FF5722',
       backgroundColor: '#F5F5F5',
       mediaType: 'image',
@@ -239,11 +241,16 @@ function AdminSlidesContent() {
 
   const handleEdit = (slide: HeroSlide) => {
     setEditingSlide(slide);
+    
+    // Déterminer le type de lien
+    const isExternal = slide.buttonLink.startsWith('http://') || slide.buttonLink.startsWith('https://');
+    
     setFormData({
       title: slide.title,
       description: slide.description,
       buttonText: slide.buttonText,
       buttonLink: slide.buttonLink,
+      buttonLinkType: isExternal ? 'external' : 'internal',
       buttonColor: slide.buttonColor,
       backgroundColor: slide.backgroundColor,
       mediaType: slide.mediaType,
@@ -504,9 +511,11 @@ function AdminSlidesContent() {
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     required
                     rows={3}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 resize-none whitespace-pre-wrap break-words"
                     placeholder="Courte description du slide"
+                    style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
                   />
+                  <p className="text-xs text-gray-500 mt-1">Les retours à la ligne automatiques sont activés</p>
                 </div>
 
                 {/* Couleurs */}
@@ -551,17 +560,75 @@ function AdminSlidesContent() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Lien du bouton
+                      Type de lien
                     </label>
-                    <input
-                      type="text"
+                    <select
+                      value={formData.buttonLinkType}
+                      onChange={(e) => setFormData({ 
+                        ...formData, 
+                        buttonLinkType: e.target.value as 'internal' | 'external',
+                        buttonLink: e.target.value === 'internal' ? '/products' : 'https://'
+                      })}
+                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    >
+                      <option value="internal">Route interne</option>
+                      <option value="external">URL externe</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Lien du bouton */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {formData.buttonLinkType === 'internal' ? 'Route interne' : 'URL externe'}
+                  </label>
+                  
+                  {formData.buttonLinkType === 'internal' ? (
+                    <select
                       value={formData.buttonLink}
                       onChange={(e) => setFormData({ ...formData, buttonLink: e.target.value })}
                       required
                       className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
-                      placeholder="/products"
-                    />
-                  </div>
+                    >
+                      <optgroup label="Pages principales">
+                        <option value="/">Page d'accueil</option>
+                        <option value="/products">Tous les produits</option>
+                        <option value="/deals">Promotions</option>
+                        <option value="/boutiques">Boutiques</option>
+                      </optgroup>
+                      <optgroup label="Catégories">
+                        <option value="/categories/electronics">Électronique</option>
+                        <option value="/categories/fashion">Mode</option>
+                        <option value="/categories/home">Maison</option>
+                        <option value="/categories/sports">Sports</option>
+                        <option value="/categories/books">Livres</option>
+                      </optgroup>
+                      <optgroup label="Services">
+                        <option value="/restaurants">Restaurants</option>
+                        <option value="/hotels">Hôtels</option>
+                        <option value="/dating">Rencontres</option>
+                      </optgroup>
+                      <optgroup label="Informations">
+                        <option value="/about">À propos</option>
+                        <option value="/contact">Contact</option>
+                        <option value="/how-to-buy">Comment acheter</option>
+                      </optgroup>
+                    </select>
+                  ) : (
+                    <>
+                      <input
+                        type="url"
+                        value={formData.buttonLink}
+                        onChange={(e) => setFormData({ ...formData, buttonLink: e.target.value })}
+                        required
+                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                        placeholder="https://exemple.com"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        💡 L'URL doit commencer par http:// ou https://
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 {/* Type de média */}
