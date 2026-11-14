@@ -141,14 +141,14 @@ export default function HomePage() {
     <div className="bg-gray-100 min-h-screen">
       {/* Onglets */}
       <nav className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-3 flex items-center gap-6 overflow-x-auto scrollbar-hide">
+        <div className="container mx-auto px-3 flex items-center gap-4 overflow-x-auto scrollbar-hide">
           {tabs.map((tab) => (
             <Link
               key={tab.href}
               href={tab.href}
-              className={`py-3 whitespace-nowrap border-b-[3px] transition-colors ${
+              className={`py-2 whitespace-nowrap border-b-[2px] transition-colors text-sm ${
                 tab.active
-                  ? 'text-lg font-bold text-gray-900 border-green-600'
+                  ? 'font-bold text-gray-900 border-green-600'
                   : 'font-semibold text-gray-700 border-transparent hover:text-green-600'
               }`}
             >
@@ -165,19 +165,19 @@ export default function HomePage() {
 
       {/* Filtres */}
       <div className="bg-white">
-        <div className="container mx-auto px-2 sm:px-4 flex gap-2 overflow-x-auto scrollbar-hide py-3">
+        <div className="container mx-auto px-2 sm:px-4 flex gap-2 overflow-x-auto scrollbar-hide py-2">
           {filters.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => setFilter(item.id)}
-              className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm whitespace-nowrap shrink-0 transition-colors ${
+              className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs whitespace-nowrap shrink-0 transition-colors ${
                 filter === item.id
                   ? 'border-2 border-gray-900 font-semibold text-gray-900 bg-white'
                   : 'border-2 border-transparent bg-gray-100 text-gray-800 hover:bg-gray-200'
               }`}
             >
-              <item.icon size={16} className={item.color} />
+              <item.icon size={14} className={item.color} />
               {item.label}
             </button>
           ))}

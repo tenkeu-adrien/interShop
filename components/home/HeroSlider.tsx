@@ -73,7 +73,7 @@ export default function HeroSlider() {
 
   if (loading) {
     return (
-      <div className="w-full h-[280px] bg-gray-100 animate-pulse rounded-lg" />
+      <div className="w-full h-[220px] bg-gray-100 animate-pulse rounded-lg" />
     );
   }
 
@@ -101,9 +101,9 @@ export default function HeroSlider() {
   };
 
   return (
-    <div className="relative w-full overflow-hidden rounded-lg shadow-lg mb-4 md:mb-8">
+    <div className="relative w-full overflow-hidden rounded-lg shadow-lg mb-3 md:mb-6">
       <div 
-        className="relative h-[280px] sm:h-[320px] md:h-[360px]"
+        className="relative h-[220px] sm:h-[260px] md:h-[300px]"
         style={{ backgroundColor: currentSlide.backgroundColor }}
       >
         <AnimatePresence initial={false} custom={direction}>
@@ -122,9 +122,9 @@ export default function HeroSlider() {
           >
             <div className="container mx-auto px-4 h-full">
               {/* Layout responsive : colonne sur mobile, ligne sur desktop */}
-              <div className="flex flex-col md:flex-row items-center justify-center h-full gap-3 md:gap-8">
+              <div className="flex flex-col md:flex-row items-center justify-center h-full gap-2 md:gap-6">
                 {/* Contenu : centré sur mobile, gauche sur desktop */}
-                <div className="flex-1 space-y-2 md:space-y-4 text-center md:text-left w-full md:w-auto px-2">
+                <div className="flex-1 space-y-1.5 md:space-y-3 text-center md:text-left w-full md:w-auto px-2">
                   <motion.h1 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -138,7 +138,7 @@ export default function HeroSlider() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-700 leading-relaxed"
+                    className="text-xs sm:text-sm md:text-base text-gray-700 leading-relaxed line-clamp-2"
                   >
                     {currentSlide.description}
                   </motion.p>
@@ -150,7 +150,7 @@ export default function HeroSlider() {
                   >
                     <Link
                       href={currentSlide.buttonLink}
-                      className="inline-block px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold text-white text-sm md:text-base shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                      className="inline-block px-3 py-1.5 md:px-5 md:py-2.5 rounded-lg font-semibold text-white text-xs md:text-sm shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
                       style={{ backgroundColor: currentSlide.buttonColor }}
                     >
                       {currentSlide.buttonText}
@@ -163,7 +163,7 @@ export default function HeroSlider() {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="flex-1 relative h-[150px] sm:h-[200px] md:h-[280px] w-full"
+                  className="flex-1 relative h-[120px] sm:h-[160px] md:h-[220px] w-full"
                 >
                   {currentSlide.mediaType === 'video' && currentSlide.videoUrl ? (
                     <video
@@ -192,33 +192,33 @@ export default function HeroSlider() {
           <>
             <button
               onClick={prevSlide}
-              className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 md:p-3 shadow-lg transition-all z-10"
+              className="absolute left-1.5 md:left-3 top-1/2 -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-1.5 md:p-2 shadow-lg transition-all z-10"
               aria-label="Slide précédent"
             >
-              <ChevronLeft size={20} className="text-gray-800 md:w-6 md:h-6" />
+              <ChevronLeft size={16} className="text-gray-800 md:w-5 md:h-5" />
             </button>
             
             <button
               onClick={nextSlide}
-              className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 md:p-3 shadow-lg transition-all z-10"
+              className="absolute right-1.5 md:right-3 top-1/2 -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-1.5 md:p-2 shadow-lg transition-all z-10"
               aria-label="Slide suivant"
             >
-              <ChevronRight size={20} className="text-gray-800 md:w-6 md:h-6" />
+              <ChevronRight size={16} className="text-gray-800 md:w-5 md:h-5" />
             </button>
           </>
         )}
 
         {/* Indicateurs (dots) : plus petits sur mobile */}
         {slides.length > 1 && (
-          <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 md:gap-2 z-10">
+          <div className="absolute bottom-2 md:bottom-4 left-1/2 -translate-x-1/2 flex gap-1 md:gap-1.5 z-10">
             {slides.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
                 className={`transition-all ${
                   index === currentIndex
-                    ? 'w-6 md:w-8 h-2 md:h-3 bg-white'
-                    : 'w-2 md:w-3 h-2 md:h-3 bg-white bg-opacity-50 hover:bg-opacity-75'
+                    ? 'w-4 md:w-6 h-1.5 md:h-2 bg-white'
+                    : 'w-1.5 md:w-2 h-1.5 md:h-2 bg-white bg-opacity-50 hover:bg-opacity-75'
                 } rounded-full`}
                 aria-label={`Aller au slide ${index + 1}`}
               />
